@@ -1,0 +1,31 @@
+/node_modules/
+/public/build/
+.vscode/
+dist
+
+.DS_Store
+
+.idea
+src-tauri/gen/
+*.exe
+!shell/busybox64u.exe
+!src-tauri/resources/shell/busybox64u.exe
+refrence
+
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision
+*.provisionprofile
+ssh_key/
+
+# Local docker login scratch
+%DOCKER_CONFIG%/
+temp_docker_cfg/
+
+.wechat/

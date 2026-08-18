@@ -1,0 +1,428 @@
+$tab-container-height: 2rem;
+
+// Modern CSS variables for contemporary styling
+:root {
+    --modern-border-radius: 8px;
+    --modern-border-radius-sm: 4px;
+    --modern-border-radius-lg: 12px;
+    --modern-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --modern-shadow: 0 1px 3px 0 rgb(0 0 / 0.1), 0 1px 2px -1px rgb(0 0 / 0.1);
+    --modern-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --modern-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --modern-transition: all 0.2s ease-in-out;
+    --modern-transition-fast: all 0.1s ease-in-out;
+    --scrollbar-size: 10px;
+    --scrollbar-radius: 12px;
+    --scrollbar-thumb-border: 3px;
+    --scrollbar-min-thumb-size: 32px;
+    --scrollbar-track-color: transparent;
+    --scrollbar-track-hover-color: color-mix(in srgb, var(--window-background, #101319) 80%, rgba(255, 255, 255, 0.12) 20%);
+    --scrollbar-thumb-idle-color: transparent;
+    --scrollbar-thumb-color: color-mix(in srgb, var(--window-scrollbarBackground, rgba(128, 128, 128, 0.45)) 85%, rgba(255, 255, 255, 0.08) 15%);
+    --scrollbar-thumb-hover-color: color-mix(in srgb, var(--window-scrollbarHoverBackground, rgba(128, 128, 128, 0.65)) 90%, rgba(255, 255, 255, 0.1) 10%);
+    --scrollbar-thumb-active-color: color-mix(in srgb, var(--window-scrollbarHoverBackground, rgba(128, 128, 128, 0.65)) 70%, rgba(0, 0, 0, 0.35) 30%);
+
+    /* Splitpanes divider colors.
+       NOTE: Don't tie this to --window-borderColor. On some platforms/themes that token can be the accent
+       color (blue in light mode), which makes splitters look "active" even when not hovered. */
+    --window-panelBorderColor: color-mix(in srgb, var(--window-foreground, #000) 14%, transparent);
+    /* Splitpanes hover indicator color. */
+    --window-panelBorderHoverColor: color-mix(in srgb, var(--window-accent, #3b82f6) 82%, transparent);
+
+    /* File tree geometry (em-based so it scales with the row font size). */
+    --filetree-indent-step: 1.45em;
+    --filetree-icon-size: 0.9em;
+    /* Small pixel nudge so guide lines align with the perceived center of folder/file icons. */
+    --filetree-guide-bias: -1px;
+}
+
+@supports not (color: color-mix(in srgb, white, black)) {
+    :root {
+        --scrollbar-track-color: transparent;
+        --scrollbar-track-hover-color: rgba(128, 128, 128, 0.12);
+        --scrollbar-thumb-idle-color: transparent;
+        --scrollbar-thumb-color: var(--window-scrollbarBackground, rgba(128, 128, 128, 0.45));
+        --scrollbar-thumb-hover-color: var(--window-scrollbarHoverBackground, rgba(128, 128, 128, 0.65));
+        --scrollbar-thumb-active-color: var(--window-scrollbarHoverBackground, rgba(128, 128, 128, 0.75));
+        --window-panelBorderColor: rgba(0, 0, 0, 0.12);
+        --window-panelBorderHoverColor: var(--window-accent, #3b82f6);
+    }
+}
+
+/* Fallback for older engines without color-mix(): approximate the divider color for dark mode. */
+@supports not (color: color-mix(in srgb, white, black)) {
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --window-panelBorderColor: rgba(255, 255, 255, 0.12);
+        }
+    }
+}
+
+html {
+    background-color: var(--window-background);
+    color: var(--window-foreground);
+}
+#handle, #header {
+    height: var(--layout-header-height, 2rem);
+}
+#statusbar {
+    border-top: solid 1px var(--window-borderColor);
+    height: calc(var(--statusbar-height, 1.5rem) + 0.1rem);
+    color: var(--statusbar-foreground);
+    background-color: var(--statusbar-background);
+    .tool:hover {
+        background-color: var(--statusbar-buttonBackgroundHover);
+        color: var(--statusbar-buttonForegroundHover);
+    }
+}
+#workspace {
+    line-height: var(--layout-header-height, 2rem);
+}
+#header {
+    background-color: var(--header-background);
+    box-shadow: var(--header-borderColor) 0px 1.5px 0px;
+}
+.window-button:not(.close):hover {
+    background-color: var(--header-buttonHoverBackground);
+}
+.menu-button {
+    &:hover {
+        background-color: var(--header-buttonHoverBackground);
+    }
+    &.open {
+        background-color: var(--header-buttonHoverBackground);
+    }
+}
+.menu-list, .context-menu {
+    background-color: var(--window-menuBackground);
+    box-shadow: 0 2px 6px var(--window-boxShadow);
+}
+.menu-item, .context-menu-option {
+    color: var(--window-foreground);
+    &:hover {
+        background-color:  var(--window-menuItemHoverBackground);
+    }
+}
+.select {
+    button {
+        background-color: var(--window-selectButtonBackground);
+        color: var(--window-selectButtonForeground);
+    }
+    .item-list {
+        border: 1px solid var(--window-selectListBorder);
+        background-color: var(--window-selectBackground);
+        .item:hover {
+            background-color: var(--window-selectItemHoverBackground);
+            color: var(--window-selectItemHoverForeground);
+        }
+    }
+}
+.option-shortcut, .shortcut {
+    color: var(--window-menuShortcutForeground);
+}
+.disabled {
+    color: var(--window-disabledTextForeground);
+}
+.invalid {
+    color: var(--window-invalidTextForeground);
+}
+.readonly {
+    color: var(--window-readonlyTextForeground);
+}
+.link {
+    color: var(--window-linkForeground);
+    &:hover {
+        color: var(--window-linkHoverForeground);
+    }
+}
+.desc {
+    color: var(--window-descriptionForeground);
+}
+
+label {
+    color: var(--window-inputLabelForeground);
+}
+input {
+    border: 1px solid var(--window-inputBorder) !important;
+    border-radius: var(--modern-border-radius-sm);
+    background-color: var(--window-inputBackground);
+    color: var(--window-inputForeground);
+    transition: var(--modern-transition);
+    padding: 8px 12px;
+    &.invalid {
+        border: 1px solid var(--window-inputInvalidBorder) !important;
+    }
+    &:focus {
+        border: 1px solid var(--window-inputFocusBorder) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+}
+button {
+    background-color: var(--window-buttonBackground);
+    color: var(--window-buttonForeground);
+    border-radius: var(--modern-border-radius-sm);
+    transition: var(--modern-transition);
+    &.primary {
+        background-color: var(--window-buttonBackground);
+        color: var(--window-buttonForeground);
+        box-shadow: var(--modern-shadow-sm);
+        &:hover {
+            background-color: var(--window-buttonHoverBackground);
+            color: var(--window-buttonHoverForeground);
+            box-shadow: var(--modern-shadow);
+            transform: translateY(-1px);
+        }
+    }
+    &.secondary {
+        background-color: var(--window-buttonSecondaryBackground);
+        color: var(--window-buttonSecondaryForeground);
+        box-shadow: var(--modern-shadow-sm);
+        &:hover {
+            background-color: var(--window-buttonSecondaryHoverBackground);
+            color: var(--window-buttonSecondaryHoverForeground);
+            box-shadow: var(--modern-shadow);
+        }
+    }
+    &.accent {
+        background-color: var(--window-buttonAccentBackground);
+        color: var(--window-buttonAccentForeground);
+        box-shadow: var(--modern-shadow-sm);
+        &:hover {
+            background-color: var(--window-buttonAccentHoverBackground);
+            color: var(--window-buttonHoverAccentForeground);
+            box-shadow: var(--modern-shadow);
+        }
+    }
+    &.danger {
+        background-color: var(--window-buttonDangerBackground);
+        color: var(--window-buttonDangerForeground);
+        box-shadow: var(--modern-shadow-sm);
+        &:hover {
+            background-color: var(--window-buttonDangerHoverBackground);
+            color: var(--window-buttonDangerHoverForeground);
+            box-shadow: var(--modern-shadow);
+        }
+    }
+}
+button:focus {
+    outline: 1px solid;
+    outline-offset: 0px;
+}
+
+.divider {
+    background-color: var(--window-borderColor);
+}
+
+#main {
+    height: calc(100vh - var(--layout-header-height, 2rem) - (var(--statusbar-height, 1.5rem) + 0.1rem) - (0.063rem * 2));
+}
+#main.fullscreen {
+    height: calc(100vh - var(--layout-header-height, 2rem) + 0.4rem) !important;
+}
+
+#sidebar {
+    border-right: 1px solid var(--window-borderColor);
+}
+
+#right-sidebar {
+    border-left: 1px solid var(--window-borderColor);
+}
+
+/* Ensure a visible divider between the left sidebar view and editor */
+.editor-panes > .splitpanes__pane:first-child #sidebarview {
+    border-right: 1px solid var(--window-borderColor);
+}
+
+#sidebarview {
+    .toolbar-button {
+        background-color: var(--window-buttonBackground);
+        color: var(--window-buttonForeground);
+        &:hover {
+            background-color: var(--window-buttonHoverBackground);
+            color: var(--window-buttonHoverForeground);
+        }
+    }
+}
+
+.sidebar-tab {
+    &.active {
+        box-shadow: inset 3.5px 0px 0 0 var(--sidebar-tabActiveBorder);
+        background-color: var(--sidebar-tabActiveBackground);
+        color: var(--sidebar-tabActiveForeground);
+    }
+    &:hover {
+        background-color:  var(--sidebar-tabHoverBackground);
+    }
+}
+
+.editor-panes .splitpanes__splitter {
+    /* The splitter hit area is widened in src/global.css; keep it visually thin by drawing
+       the actual divider via pseudo-elements instead of a background fill. */
+    background-color: transparent;
+}
+
+.tree {
+    color: var(--filetree-treeNodeForeground);
+    .hover {
+        background-color: var(--header-background) !important;   
+    }
+    .tree-label {
+        svg {
+            color: var(--window-foreground);
+        }
+        &:hover {
+            color: var(--filetree-treeNodeHoverForeground);
+            background-color: var(--filetree-treeNodeHoverBackground);
+        }
+        &.selected {
+            color: var(--filetree-treeNodeSelectedForeground);
+            background-color: var(--filetree-treeNodeSelectedBackground);
+        }
+    }
+}
+
+#editor-tabs {
+    background-color: var(--header-background);
+    color: var(--header-foreground);
+    /* Keep editor tab bar height consistent with other top bars (and scale with UI font size). */
+    height: var(--layout-header-height, calc($tab-container-height + 5px));
+    min-height: var(--layout-header-height, calc($tab-container-height + 5px));
+    position: relative;
+    z-index: 2; // keep above editors/diff views
+    box-shadow: inset 0px -1px 0 0 var(--window-borderColor);
+
+    .tab {
+        background-color: var(--editor-tabBackground);
+        color: var(--editor-tabForeground);
+        border-radius: var(--modern-border-radius-sm) var(--modern-border-radius-sm) 0;
+        transition: var(--modern-transition);
+        box-shadow: inset 0px -1px 0 0 var(--editor-tabBorderColor);
+        border-right: 1px solid var(--editor-tabBorderColor);
+        &:last-of-type {
+            border-right: none;
+        }
+        &:not(.active):hover {
+            background-color: var(--editor-tabHoverBackground);
+            color: var(--editor-tabHoverForeground);
+            border-radius: var(--modern-border-radius-sm) var(--modern-border-radius-sm) 0 0;
+        }
+        &.active {
+            background-color: var(--editor-tabActiveBackground);
+            //border-radius: var(--modern-border-radius-sm) var(--modern-border-radius-sm) 0;
+            border-radius: 0;
+            box-shadow: inset 0px 4px 0 0 var(--editor-tabActiveBorderColor) !important;
+            color: var(--editor-tabActiveForeground);
+        }
+    }
+    .close-tab span:hover {
+        background-color: var(--editor-tabBorderColor);
+    }
+    .tab-content .save-state {
+        background-color: var(--editor-tabSaveStateColor);
+    }
+    .tab-toolbar {
+        box-shadow: inset 1px 0px 0 0 var(--window-borderColor);
+    }
+}
+
+#tabview {
+    height: 100%;
+    min-height: 0;
+    &>div:not(.editor) {
+        background-color: var(--window-background);
+    }
+    >.container svg {
+        color: var(--window-accent);
+    }
+}
+
+.settings {
+    .heading::after {
+        background-color: var(--window-borderColor);
+    }
+}
+.settings-directory {
+    border-right: 0.5px solid var(--window-borderColor);
+}
+
+.rename-input .divider {
+    background-color: var(--window-inputBorder);
+}
+
+.popup-wrapper {
+    background-color: var(--modal-shadow);
+    .popup-container {
+        background-color: var(--modal-background);
+        color: var(--modal-foreground);
+        button {
+            &:first-child {
+                background-color: var(--modal-buttonBackground) !important;
+                color: var(--modal-buttonForeground) !important;
+                &:hover {
+                    background-color: var(--modal-buttonHoverBackground) !important;
+                    color: var(--modal-buttonHoverForeground) !important;
+                }
+            }
+            background-color: var(--window-buttonSecondaryBackground);
+            color: var(--window-buttonSecondaryForeground);
+            &:hover {
+                background-color: var(--window-buttonSecondaryHoverBackground);
+                color: var(--window-buttonSecondaryHoverForeground);
+            }
+            &:focus {
+                outline-color: var(--window-inputFocusBorder);
+            }
+        }
+    }
+}
+
+#toolview {
+    .header {
+        border-bottom: solid 1px var(--window-borderColor);
+        color: var(--statusbar-foreground);
+        .tool-buttons > div {
+            &:hover {
+                background-color: var(--statusbar-buttonBackgroundHover);
+                color: var(--statusbar-buttonForegroundHover);
+            }
+        }
+        .close {
+            &:hover {
+                background-color: var(--statusbar-buttonBackgroundHover);
+                color: var(--statusbar-buttonForegroundHover);
+            }
+        }
+    }
+}
+
+#terminal {
+    background-color: var(--terminal-background);
+    color: var(--terminal-foreground);
+}
+.notification, .notification-toast {
+    background-color: var(--notification-background);
+    border-top: 3px solid var(--notification-defaultBorderColor);
+    color: var(--notification-foreground);
+    &.read {
+        border-top-color: var(--notification-unreadBorderColor) !important;
+        color: var(--notification-unreadColor);
+        .icon {
+            color: var(--notification-unreadBorderColor) !important;
+        }
+        .message {
+            color: var(--notification-unreadBorderColor);
+        }
+    }
+    .details .icon {
+        color: var(--notification-defaultBorderColor);
+    }
+    &::before {
+        border-color: var(--window-inputBackground);
+    }
+    .action-button {
+        color: var(--notification-actionButtonColor);
+    }
+}
+.notification-toast {
+    box-shadow: 0 2px 6px var(--window-boxShadow);
+}

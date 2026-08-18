@@ -1,0 +1,105 @@
+{
+  "build": {
+    "beforeBuildCommand": "yarn build",
+    "beforeDevCommand": "yarn dev",
+    "frontendDist": "../dist",
+    "devUrl": "http://127.0.0.1:8080"
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": false,
+    "category": "DeveloperTool",
+    "copyright": "",
+    "targets": [
+      "app",
+      "dmg"
+    ],
+    "externalBin": [],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    },
+    "longDescription": "",
+    "macOS": {
+      "entitlements": "Entitlements.plist",
+      "exceptionDomain": "",
+      "frameworks": [],
+      "infoPlist": "Info.plist",
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "resources": [],
+    "shortDescription": "",
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    }
+  },
+  "productName": "arthas",
+  "mainBinaryName": "arthas",
+  "version": "0.0.49",
+  "identifier": "com.lokizhou.arthas",
+  "plugins": {
+    "fs": {
+      "requireLiteralLeadingDot": false
+    },
+    "os": {},
+    "updater": {
+      "active": false
+    }
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "fullscreen": false,
+        "height": 600,
+        "resizable": true,
+        "title": "Arthas",
+        "width": 800,
+        "minWidth": 680,
+        "minHeight": 430,
+        "decorations": true,
+        "dragDropEnabled": false,
+        "maximized": false,
+        "visible": false,
+        "useHttpsScheme": true,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay"
+      },
+      {
+        "label": "splashscreen",
+        "url": "/splashscreen.html",
+        "width": 400,
+        "height": 320,
+        "resizable": false,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "center": true,
+        "visible": true,
+        "transparent": true,
+        "shadow": false,
+        "dragDropEnabled": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' asset: https://asset.localhost; img-src 'self' asset: https://asset.localhost http://asset.localhost data: https: blob:; font-src 'self' asset: https://asset.localhost data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://ipc.localhost http://127.0.0.1:* ws://127.0.0.1:* http://localhost:* ws://localhost:*",
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "**"
+        ]
+      }
+    }
+  }
+}

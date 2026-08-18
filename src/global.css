@@ -1,0 +1,531 @@
+*:focus-visible,
+*:focus {
+    outline: none;
+}
+
+html,
+body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* JetBrains Mono (variable weight)
+   Use absolute root path so Vite serves from public/ at /font in dev and build. */
+/* Note: JetBrains Mono font removed - using system fonts instead */
+
+:root {
+    --ui-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "San Francisco", "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Noto Sans", "Liberation Sans", "PingFang SC", "Microsoft YaHei", "WenQuanYi Micro Hei", "JetBrains Mono", sans-serif;
+    --ui-font-size: 16px;
+    --ai-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "San Francisco", "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Noto Sans", "Liberation Sans", "PingFang SC", "Microsoft YaHei", "WenQuanYi Micro Hei", "JetBrains Mono", sans-serif;
+    --ai-font-size: 16px;
+
+    /* Layout metrics derived from UI font size */
+    --header-font-size-base: var(--ui-font-size, 16px);
+    --header-control-height: clamp(24px, calc(var(--header-font-size-base) * 1.75), 44px);
+    --header-gap: clamp(4px, calc(var(--header-font-size-base) * 0.4), 12px);
+    --header-padding-x: clamp(8px, calc(var(--header-font-size-base) * 0.75), 20px);
+    --header-icon-size: clamp(14px, calc(var(--header-font-size-base) * 1.1), 26px);
+    --header-label-font-size: clamp(12px, calc(var(--header-font-size-base) * 0.875), 18px);
+    --header-compact-font-size: clamp(11px, calc(var(--header-font-size-base) * 0.75), 16px);
+    --header-logo-size: clamp(18px, calc(var(--header-font-size-base) * 1.3), 32px);
+    --header-logo-width: clamp(32px, calc(var(--header-font-size-base) * 2.2), 56px);
+    --layout-header-height: calc(var(--header-control-height) + var(--header-gap));
+
+    --statusbar-font-size: var(--ui-font-size, 16px);
+    --statusbar-height: clamp(26px, calc(var(--statusbar-font-size) * 1.65), 44px);
+    --statusbar-padding-y: clamp(2px, calc(var(--statusbar-font-size) * 0.2), 8px);
+    --statusbar-padding-x: clamp(6px, calc(var(--statusbar-font-size) * 0.6), 18px);
+    --statusbar-gap: clamp(6px, calc(var(--statusbar-font-size) * 0.35), 16px);
+    --statusbar-radius: clamp(3px, calc(var(--statusbar-font-size) * 0.25), 8px);
+    --statusbar-icon-size: clamp(16px, calc(var(--statusbar-font-size) * 1.2), 24px);
+    --statusbar-item-height: calc(var(--statusbar-height) - (var(--statusbar-padding-y) * 2));
+
+    /* Markdown preview & typography tokens (light defaults) */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 16% 88%;
+    --muted-foreground: 215 19% 35%;
+    --accent: 215 100% 94%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 16% 86%;
+    --input: 210 16% 90%;
+    --ring: 222 47% 11%;
+    --radius: 0.5rem;
+
+    --blockquote-background: #f7f7f7;
+    --preview-surface: #ffffff;
+    --preview-mobile-bg: #f5f7fb;
+    --preview-mobile-surface: #ffffff;
+    --preview-mobile-backdrop: #f5f7fb;
+    --preview-mobile-frame: #1f2937;
+    --preview-mobile-detail: rgba(148, 163, 184, 0.45);
+    --preview-border: rgba(15, 23, 42, 0.08);
+    --preview-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+    --preview-text: #0f172a;
+    --preview-muted: #4b5563;
+    --preview-link: #1d4ed8;
+    --preview-link-hover: #1e40af;
+    --preview-code-background: #f4f4f5;
+    --preview-inline-code: #27272a;
+    --preview-toolbar-surface: rgba(255, 255, 255, 0.9);
+    --preview-toolbar-border: rgba(15, 23, 42, 0.08);
+    --preview-toolbar-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --image-viewer-background: #f5f7fb;
+
+    /* Tool button theme variables (light) */
+    --tool-hover-bg: rgba(59, 130, 246, 0.08);
+    --tool-active-bg: rgba(59, 130, 246, 0.12);
+    --tool-active-hover-bg: rgba(59, 130, 246, 0.16);
+    --tool-active-color: #3b82f6;
+
+    /* VSCode theme variables (light) */
+    --vscode-foreground: #333333;
+    --vscode-icon-foreground: #424242;
+    --vscode-panel-border: rgba(128, 128, 128, 0.35);
+    --vscode-sideBar-background: #f3f3f3;
+    --vscode-toolbar-hoverBackground: rgba(0, 0, 0, 0.1);
+    --vscode-toolbar-activeBackground: rgba(0, 0, 0, 0.15);
+    --vscode-focusBorder: #007acc;
+}
+
+html[data-theme="dark"] {
+    --background: 222 24% 7%;
+    --foreground: 0 0% 96%;
+    --card: 222 24% 9%;
+    --card-foreground: 0 0% 96%;
+    --popover: 222 24% 9%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 210 40% 90%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 222 24% 13%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 222 24% 16%;
+    --muted-foreground: 218 11% 65%;
+    --accent: 222 24% 18%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 62% 31%;
+    --destructive-foreground: 0 0% 96%;
+    --border: 222 24% 18%;
+    --input: 222 24% 18%;
+    --ring: 222 82% 75%;
+
+    --blockquote-background: #212121;
+    --preview-surface: #111827;
+    --preview-mobile-bg: #0f131f;
+    --preview-mobile-surface: #1b2332;
+    --preview-mobile-backdrop: #0f131f;
+    --preview-mobile-frame: rgba(148, 163, 184, 0.28);
+    --preview-mobile-detail: rgba(148, 163, 184, 0.5);
+    --preview-border: rgba(148, 163, 184, 0.16);
+    --preview-shadow: 0 36px 70px rgba(0, 0, 0, 0.45);
+    --preview-text: #e5e7eb;
+    --preview-muted: #9ca3af;
+    --preview-link: #8e9eb9;
+    --preview-link-hover: #aab6d6;
+    --preview-code-background: #1f2430;
+    --preview-inline-code: #f4f4f5;
+    --preview-toolbar-surface: rgba(28, 34, 44, 0.92);
+    --preview-toolbar-border: rgba(148, 163, 184, 0.2);
+    --preview-toolbar-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    --image-viewer-background: #101521;
+
+    /* Tool button theme variables (dark) */
+    --tool-hover-bg: rgba(59, 130, 246, 0.15);
+    --tool-active-bg: rgba(59, 130, 246, 0.2);
+    --tool-active-hover-bg: rgba(59, 130, 246, 0.25);
+    --tool-active-color: #60a5fa;
+
+    /* VSCode theme variables (dark) */
+    --vscode-foreground: #cccccc;
+    --vscode-icon-foreground: #c5c5c5;
+    --vscode-panel-border: rgba(255, 255, 255, 0.18);
+    --vscode-sideBar-background: #252526;
+    --vscode-toolbar-hoverBackground: rgba(255, 255, 255, 0.1);
+    --vscode-toolbar-activeBackground: rgba(255, 255, 255, 0.15);
+    --vscode-focusBorder: #007acc;
+}
+
+html {
+    font-family: var(--ui-font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "San Francisco", "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Noto Sans", "Liberation Sans", "PingFang SC", "Microsoft YaHei", "WenQuanYi Micro Hei", "JetBrains Mono", sans-serif);
+    font-size: var(--ui-font-size, 16px);
+    line-height: 24px;
+    font-weight: 400;
+
+    font-synthesis: none;
+    text-rendering: auto;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Cross-platform font rendering:
+   - macOS: antialiased/grayscale tends to look smoother in WebKit/Blink.
+   - Windows/Linux: keep browser defaults to preserve subpixel AA and avoid "blurry" CJK text. */
+html[data-platform="macos"] {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html[data-platform="windows"],
+html[data-platform="linux"],
+html[data-platform="unknown"] {
+    text-rendering: auto;
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
+}
+
+/* Monaco inherits global rendering inconsistently across engines; pin platform behavior explicitly. */
+html[data-platform="macos"] .monaco-editor,
+html[data-platform="macos"] .monaco-editor * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html[data-platform="windows"] .monaco-editor,
+html[data-platform="windows"] .monaco-editor *,
+html[data-platform="linux"] .monaco-editor,
+html[data-platform="linux"] .monaco-editor *,
+html[data-platform="unknown"] .monaco-editor,
+html[data-platform="unknown"] .monaco-editor * {
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
+}
+
+body {
+    box-sizing: border-box;
+}
+
+
+
+a {
+    color: rgb(0, 100, 200);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+label {
+    display: block;
+}
+
+input,
+button,
+select,
+textarea {
+    font-family: inherit;
+    font-size: inherit;
+    padding: 0.4em;
+    margin: 0;
+    outline: none;
+    box-sizing: border-box;
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+}
+
+input:disabled {
+    color: #ccc;
+}
+
+button {
+    cursor: pointer;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+ul {
+    padding: 0
+}
+
+.editor-panes .splitpanes__pane {
+    background-color: transparent;
+    transition: none !important;
+}
+
+.editor-panes .splitpanes__splitter {
+    position: relative;
+    /* Keep the splitter above panes so the enlarged hit area can receive hover/click. */
+    z-index: 1;
+}
+
+.editor-panes.splitpanes--vertical > .splitpanes__splitter,
+.editor-panes.splitpanes--vertical > .splitpanes__splitter::before {
+    cursor: ew-resize;
+    cursor: col-resize;
+}
+
+.editor-panes.splitpanes--horizontal > .splitpanes__splitter,
+.editor-panes.splitpanes--horizontal > .splitpanes__splitter::before {
+    cursor: ns-resize;
+    cursor: row-resize;
+}
+
+/* Windows: prefer the native-looking double-arrow resize cursors over the "column/row" variants,
+   which look noticeably different in WebView2 compared to most native Windows splitters. */
+html[data-platform="windows"] .editor-panes.splitpanes--vertical > .splitpanes__splitter,
+html[data-platform="windows"] .editor-panes.splitpanes--vertical > .splitpanes__splitter::before {
+    cursor: col-resize;
+    cursor: ew-resize;
+}
+
+html[data-platform="windows"] .editor-panes.splitpanes--horizontal > .splitpanes__splitter,
+html[data-platform="windows"] .editor-panes.splitpanes--horizontal > .splitpanes__splitter::before {
+    cursor: row-resize;
+    cursor: ns-resize;
+}
+
+.editor-panes .splitpanes__splitter.splitpanes__splitter__active {
+    z-index: 2;
+}
+
+.editor-panes.splitpanes--vertical>.splitpanes__splitter::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    transform: translateX(-1px);
+    opacity: 0;
+    transition: opacity 0.15s ease-out;
+    background-color: var(--window-panelBorderHoverColor, var(--window-accent, #3b82f6));
+    pointer-events: none;
+    z-index: 4;
+}
+
+.editor-panes.splitpanes--horizontal>.splitpanes__splitter::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    transform: translateY(-1px);
+    opacity: 0;
+    transition: opacity 0.15s ease-out;
+    background-color: var(--window-panelBorderHoverColor, var(--window-accent, #3b82f6));
+    pointer-events: none;
+    z-index: 4;
+}
+
+.editor-panes.splitpanes--vertical>.splitpanes__splitter::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-0.5px);
+    background-color: var(--window-panelBorderColor, var(--window-borderColor, rgba(0, 0, 0, 0.12)));
+    opacity: 1;
+    pointer-events: none;
+    z-index: 3;
+    cursor: ew-resize;
+}
+
+.editor-panes.splitpanes--horizontal>.splitpanes__splitter::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    transform: translateY(-0.5px);
+    background-color: var(--window-panelBorderColor, var(--window-borderColor, rgba(0, 0, 0, 0.12)));
+    opacity: 1;
+    pointer-events: none;
+    z-index: 3;
+    cursor: ns-resize;
+}
+
+.editor-panes.splitpanes--vertical > .splitpanes__splitter {
+    /* Increase the actual hover/click target on macOS without making the divider look thicker. */
+    width: 9px;
+    margin-left: -4px;
+    margin-right: -4px;
+    background: transparent;
+}
+
+.editor-panes.splitpanes--horizontal > .splitpanes__splitter {
+    height: 9px;
+    margin-top: -4px;
+    margin-bottom: -4px;
+    background: transparent;
+}
+
+.editor-panes .splitpanes__splitter:hover::before {
+    opacity: 1;
+}
+
+.editor-panes.splitpanes--vertical.splitpanes--dragging {
+    cursor: ew-resize;
+    cursor: col-resize;
+}
+
+.editor-panes.splitpanes--horizontal.splitpanes--dragging {
+    cursor: ns-resize;
+    cursor: row-resize;
+}
+
+html[data-platform="windows"] .editor-panes.splitpanes--vertical.splitpanes--dragging {
+    cursor: col-resize;
+    cursor: ew-resize;
+}
+
+html[data-platform="windows"] .editor-panes.splitpanes--horizontal.splitpanes--dragging {
+    cursor: row-resize;
+    cursor: ns-resize;
+}
+
+.editor-panes.splitpanes--dragging>.splitpanes__splitter.splitpanes__splitter__active::before {
+    opacity: 1;
+}
+
+/* 全局滚动条样式 */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-idle-color, transparent) var(--scrollbar-track-color, transparent);
+}
+
+*:hover,
+*:focus-within {
+    scrollbar-color: var(--scrollbar-thumb-color, rgba(128, 128, 128, 0.45)) var(--scrollbar-track-hover-color, transparent);
+}
+
+*::-webkit-scrollbar {
+    width: var(--scrollbar-size, 10px);
+    height: var(--scrollbar-size, 10px);
+}
+
+*::-webkit-scrollbar-track {
+    border-radius: var(--scrollbar-radius, 12px);
+    background: var(--scrollbar-track-color, transparent);
+}
+
+*:hover::-webkit-scrollbar-track,
+*:focus-within::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-hover-color, transparent);
+}
+
+*::-webkit-scrollbar-thumb {
+    min-height: var(--scrollbar-min-thumb-size, 32px);
+    border-radius: var(--scrollbar-radius, 12px);
+    background-color: var(--scrollbar-thumb-idle-color, transparent);
+    border: var(--scrollbar-thumb-border, 3px) solid transparent;
+    background-clip: padding-box;
+    transition: var(--modern-transition, all 0.2s ease-in-out);
+}
+
+*:hover::-webkit-scrollbar-thumb,
+*:focus-within::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-color, rgba(128, 128, 128, 0.45));
+}
+
+*:hover::-webkit-scrollbar-thumb:hover,
+*:focus-within::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover-color, rgba(128, 128, 128, 0.65));
+}
+
+*::-webkit-scrollbar-thumb:active {
+    background-color: var(--scrollbar-thumb-active-color, rgba(128, 128, 128, 0.75));
+}
+
+*:hover::-webkit-scrollbar-thumb:active,
+*:focus-within::-webkit-scrollbar-thumb:active {
+    background-color: var(--scrollbar-thumb-active-color, rgba(128, 128, 128, 0.75));
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* 滚动区域默认允许滚动 */
+.scroll-container,
+[class*="scroll"],
+[class*="panel"],
+[class*="content"] {
+    overflow: auto;
+}
+
+/* 终端区域使用自动隐藏滚动条 */
+.xterm .xterm-viewport,
+.xterm .xterm-screen,
+.terminal,
+.terminal-wrapper {
+    --scrollbar-size: 10px;
+    --scrollbar-radius: 12px;
+    --scrollbar-thumb-border: 3px;
+    --scrollbar-min-thumb-size: 32px;
+    --scrollbar-track-color: transparent;
+    --scrollbar-track-hover-color: rgba(128, 128, 128, 0.12);
+    --scrollbar-thumb-idle-color: transparent;
+    --scrollbar-thumb-color: rgba(128, 128, 128, 0.45);
+    --scrollbar-thumb-hover-color: rgba(128, 128, 128, 0.65);
+    --scrollbar-thumb-active-color: rgba(128, 128, 128, 0.75);
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-idle-color, transparent) var(--scrollbar-track-color, transparent);
+}
+
+/* 悬停在终端区域时显示滚动条 */
+.terminal:hover .xterm .xterm-viewport,
+.terminal:hover .xterm .xterm-screen,
+.terminal-wrapper:hover .xterm .xterm-viewport,
+.terminal-wrapper:hover .xterm .xterm-screen,
+.xterm:hover .xterm-viewport,
+.xterm:hover .xterm-screen,
+.terminal:hover,
+.terminal-wrapper:hover {
+    scrollbar-color: var(--scrollbar-thumb-color, rgba(128, 128, 128, 0.45)) var(--scrollbar-track-hover-color, transparent);
+}
+
+/* WebKit 滚动条 - 悬停在终端区域时显示 */
+.terminal:hover .xterm .xterm-viewport::-webkit-scrollbar-thumb,
+.terminal:hover .xterm .xterm-screen::-webkit-scrollbar-thumb,
+.terminal-wrapper:hover .xterm .xterm-viewport::-webkit-scrollbar-thumb,
+.terminal-wrapper:hover .xterm .xterm-screen::-webkit-scrollbar-thumb,
+.xterm:hover .xterm-viewport::-webkit-scrollbar-thumb,
+.xterm:hover .xterm-screen::-webkit-scrollbar-thumb,
+.terminal:hover::-webkit-scrollbar-thumb,
+.terminal-wrapper:hover::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-color, rgba(128, 128, 128, 0.45));
+}
+
+.terminal:hover .xterm .xterm-viewport::-webkit-scrollbar-track,
+.terminal:hover .xterm .xterm-screen::-webkit-scrollbar-track,
+.terminal-wrapper:hover .xterm .xterm-viewport::-webkit-scrollbar-track,
+.terminal-wrapper:hover .xterm .xterm-screen::-webkit-scrollbar-track,
+.xterm:hover .xterm-viewport::-webkit-scrollbar-track,
+.xterm:hover .xterm-screen::-webkit-scrollbar-track,
+.terminal:hover::-webkit-scrollbar-track,
+.terminal-wrapper:hover::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-hover-color, transparent);
+}
+
+/* 暗色主题下的终端滚动条 */
+html[data-theme="dark"] .xterm .xterm-viewport,
+html[data-theme="dark"] .xterm .xterm-screen,
+html[data-theme="dark"] .terminal,
+html[data-theme="dark"] .terminal-wrapper {
+    --scrollbar-track-hover-color: rgba(255, 255, 255, 0.12);
+    --scrollbar-thumb-color: rgba(255, 255, 255, 0.45);
+    --scrollbar-thumb-hover-color: rgba(255, 255, 255, 0.65);
+    --scrollbar-thumb-active-color: rgba(255, 255, 255, 0.75);
+}

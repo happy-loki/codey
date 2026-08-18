@@ -1,0 +1,41 @@
+{
+  "$schema": "../gen/schemas/capability.schema.json",
+  "identifier": "main-capability",
+  "description": "Main window capabilities",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text",
+    "shell:allow-open",
+    "dialog:allow-ask",
+    "dialog:allow-confirm",
+    "dialog:allow-open",
+    "dialog:allow-message",
+    "dialog:allow-save",
+    "fs:allow-read-text-file",
+    "fs:allow-exists",
+    "fs:allow-write-text-file",
+    {
+      "identifier": "fs:scope",
+      "allow": ["**"]
+    },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": ["**"]
+    },
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        { "path": "**" }
+      ]
+    },
+    {
+      "identifier": "opener:allow-reveal-item-in-dir",
+      "scope": [
+        { "path": "**" }
+      ]
+    }
+  ]
+}
