@@ -79,7 +79,6 @@
             <div class="thanks-heading">{translate("settings.aboutThanksHeading")}</div>
             <p class="thanks-description">{translate("settings.aboutThanksDescription")}</p>
             <ul>
-                <li><a href="https://github.com/cline/cline" target="_blank" rel="noreferrer">cline</a></li>
                 <li><a href="https://github.com/excalidraw/excalidraw" target="_blank" rel="noreferrer">Excalidraw</a></li>
                 <li><a href="https://github.com/jgraph/drawio" target="_blank" rel="noreferrer">draw.io</a></li>
                 <li><a href="https://github.com/lucide-icons/lucide" target="_blank" rel="noreferrer">Lucide Icons</a></li>
