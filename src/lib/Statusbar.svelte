@@ -336,7 +336,7 @@
 
 <div id="statusbar">
     <div id="title">
-        <span>Arthas <span id="version">-v{appVersion}-alpha</span></span>
+        <span>Codey <span id="version">-v{appVersion}-alpha</span></span>
         <div class="divider"></div>
     </div>
     <div class="editor-tools">

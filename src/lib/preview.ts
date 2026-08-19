@@ -4,7 +4,7 @@ export type PreviewMode = "edit" | "split" | "preview";
 
 export const previewMode = writable<PreviewMode>("edit");
 
-const TOOLBAR_STORAGE_KEY = "arthas.showMarkdownToolbar";
+const TOOLBAR_STORAGE_KEY = "codey.showMarkdownToolbar";
 
 function createShowMarkdownToolbarStore() {
     let initialValue = true;

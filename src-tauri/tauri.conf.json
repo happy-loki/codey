@@ -44,17 +44,19 @@
       }
     }
   },
-  "productName": "arthas",
-  "mainBinaryName": "arthas",
+  "productName": "codey",
+  "mainBinaryName": "codey",
   "version": "0.0.49",
-  "identifier": "com.lokizhou.arthas",
+  "identifier": "com.lokizhou.codey",
   "plugins": {
     "fs": {
       "requireLiteralLeadingDot": false
     },
     "os": {},
     "updater": {
-      "active": false
+      "active": false,
+      "pubkey": "",
+      "endpoints": []
     }
   },
   "app": {
@@ -65,7 +67,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "Arthas",
+        "title": "Codey",
         "width": 800,
         "minWidth": 680,
         "minHeight": 430,

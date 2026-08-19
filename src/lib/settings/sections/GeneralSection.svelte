@@ -6,7 +6,7 @@
     const noopHandler = () => {};
     export let translate: (key: string, params?: Record<string, string | number>) => string = key => key;
     export let themes: Array<Record<string, unknown>> = [];
-    export let arthasTheme = "";
+    export let codeyTheme = "";
     export let uiLang = "en";
     export let onThemeSelect: (event: CustomEvent) => void = noopHandler;
     export let onLanguageSelect: (event: CustomEvent) => void = noopHandler;
@@ -33,7 +33,7 @@
             <Select
                 label={translate("settings.theme")}
                 items={themes}
-                selected={arthasTheme}
+                selected={codeyTheme}
                 on:select={onThemeSelect}
             />
         </div>

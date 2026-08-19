@@ -66,10 +66,10 @@
         { id: 1, tabname: "Agent", labelKey: "sidebar.codex", icon: AiIcon, content: CodexPanel },
     ];
 
-    const PROJECT_URL = "https://github.com/lokizhou/arthas";
+    const PROJECT_URL = "https://github.com/lokizhou/codey";
     const PROJECT_ISSUES_URL = `${PROJECT_URL}/issues/new/choose`;
-    const LAST_VERSION_KEY = "arthas:lastVersion";
-    const WELCOME_NOTIFICATION_KEY = "arthas:notifications:welcome:v1";
+    const LAST_VERSION_KEY = "codey:lastVersion";
+    const WELCOME_NOTIFICATION_KEY = "codey:notifications:welcome:v1";
 
     function safeGetLocalStorage(key: string): string | null {
         try {

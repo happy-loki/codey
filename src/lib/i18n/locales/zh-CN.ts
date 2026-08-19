@@ -73,7 +73,7 @@ export default {
         systemDictationMacShortcut: "macOS 听写快捷键",
         systemDictationHintTitle: "使用系统自带听写",
         systemDictationHintBody:
-            "Arthas 只负责触发系统听写界面（Windows: Win+H；macOS: 系统快捷键）。macOS 请在此选择与 系统设置 > 键盘 > 听写 一致的快捷键。",
+            "Codey 只负责触发系统听写界面（Windows: Win+H；macOS: 系统快捷键）。macOS 请在此选择与 系统设置 > 键盘 > 听写 一致的快捷键。",
         fontSize: "字体大小",
         fontFamily: "字体族",
         lineHeight: "行高",
@@ -100,15 +100,15 @@ export default {
         httpsProxy: "HTTPS 代理",
         noProxy: "不走代理的域名",
         proxyManualHint: "请输入完整的代理地址，例如 http://127.0.0.1:7890。",
-        proxyRestartHint: "修改代理设置后需重启 Arthas 生效。",
+        proxyRestartHint: "修改代理设置后需重启 Codey 生效。",
         on: "开启",
         off: "关闭",
         about: "关于",
-        aboutOverview: "关于 Arthas",
+        aboutOverview: "关于 Codey",
         aboutCurrentVersion: "当前版本：{version}",
         aboutThanksHeading: "致谢",
         aboutThanksDescription:
-            "Arthas 集成了以下开源项目，特别感谢它们的社区：",
+            "Codey 集成了以下开源项目，特别感谢它们的社区：",
         appVersionLoading: "加载中...",
         autoUpdate: "自动更新",
         autoUpdateHint: "开启后会自动检查并后台下载更新；下载完成后会提示你重启安装。",
@@ -201,9 +201,9 @@ export default {
             success: "成功",
         },
         welcome: {
-            title: "欢迎使用 Arthas",
+            title: "欢迎使用 Codey",
             message:
-                "Arthas 仍处于内测阶段，如遇到问题或有功能建议，欢迎反馈。",
+                "Codey 仍处于内测阶段，如遇到问题或有功能建议，欢迎反馈。",
         },
         actions: {
             learnMore: "了解详情",
@@ -217,8 +217,8 @@ export default {
             availableUnknownTitle: "发现新版本",
             availableFallbackMessage: "有新版本可下载。",
             downloadingTitle: "正在下载新版本",
-            downloading: "更新包下载中，请不要关闭 Arthas。",
-            downloadingWithProgress: "更新包下载中，请不要关闭 Arthas。已完成 {progress}%。",
+            downloading: "更新包下载中，请不要关闭 Codey。",
+            downloadingWithProgress: "更新包下载中，请不要关闭 Codey。已完成 {progress}%。",
             upToDate: "当前已是最新版本",
             checkFailed: "检查更新失败",
             installFailed: "安装更新失败",
@@ -575,7 +575,7 @@ export default {
                 refreshing: "刷新中…",
                 savedRestart: "✓ 已保存，重启 Agent 后生效。",
                 globalManagedHint:
-                    "这些内容由全局 Codex 环境管理，Arthas 仅提供查看，不会写入或修改。",
+                    "这些内容由全局 Codex 环境管理，Codey 仅提供查看，不会写入或修改。",
             },
             rule: {
                 title: "Agent 特性",
@@ -610,7 +610,7 @@ export default {
                 applyHint:
                     "提示：MCP 配置的新增/禁用/删除/字段变更，需要新建会话后才会影响智能体可用工具。",
                 readOnlyHint:
-                    "MCP 由全局 Codex 环境管理，Arthas 仅查看服务状态和工具详情。请使用 Codex CLI 或全局配置修改。",
+                    "MCP 由全局 Codex 环境管理，Codey 仅查看服务状态和工具详情。请使用 Codex CLI 或全局配置修改。",
                 enableAll: "全部启用",
                 disableAll: "全部禁用",
                 noServers: "未配置 MCP。",
@@ -693,7 +693,7 @@ export default {
                 savedBaseUrl: "当前已保存的 Base URL：{baseUrl}",
                 restartPrefix: "切换 Provider 或 Base URL 后，需要 ",
                 restartAction: "重启",
-                restartAppName: "Arthas",
+                restartAppName: "Codey",
                 restartSuffix: " 才能完全生效。",
                 login: "使用全局 Codex CLI 配置",
                 errors: {

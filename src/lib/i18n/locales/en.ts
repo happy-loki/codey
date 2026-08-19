@@ -100,19 +100,19 @@ export default {
         noProxy: "No-proxy domains",
         proxyManualHint: "Enter full proxy URLs such as http://127.0.0.1:7890.",
         proxyRestartHint:
-            "Changing proxy settings requires restarting Arthas to take effect.",
+            "Changing proxy settings requires restarting Codey to take effect.",
         on: "On",
         off: "Off",
         about: "About",
-        aboutOverview: "About Arthas",
+        aboutOverview: "About Codey",
         aboutCurrentVersion: "Current version: {version}",
         aboutThanksHeading: "Acknowledgements",
         aboutThanksDescription:
-            "Arthas integrates these open source projects. Thank you to their communities:",
+            "Codey integrates these open source projects. Thank you to their communities:",
         appVersionLoading: "Loading…",
         autoUpdate: "Automatic updates",
         autoUpdateHint:
-            "When enabled, Arthas checks for updates and downloads them in the background. You'll be prompted to restart after the download finishes.",
+            "When enabled, Codey checks for updates and downloads them in the background. You'll be prompted to restart after the download finishes.",
         updateStatusLabel: "Status",
         updateStatusIdle: "No update activity",
         updateStatusChecking: "Checking for updates…",
@@ -204,9 +204,9 @@ export default {
             success: "Success",
         },
         welcome: {
-            title: "Welcome to Arthas",
+            title: "Welcome to Codey",
             message:
-                "Arthas is in alpha. If you discover issues or need features, let us know below.",
+                "Codey is in alpha. If you discover issues or need features, let us know below.",
         },
         actions: {
             learnMore: "Learn More",
@@ -220,8 +220,8 @@ export default {
             availableUnknownTitle: "Update available",
             availableFallbackMessage: "A new version is available to download.",
             downloadingTitle: "Downloading update",
-            downloading: "Downloading the update. Please keep Arthas open.",
-            downloadingWithProgress: "Downloading the update. Please keep Arthas open. {progress}% complete.",
+            downloading: "Downloading the update. Please keep Codey open.",
+            downloadingWithProgress: "Downloading the update. Please keep Codey open. {progress}% complete.",
             upToDate: "You're up to date",
             checkFailed: "Update check failed",
             installFailed: "Update installation failed",
@@ -374,7 +374,7 @@ export default {
     workspaceInit: {
         title: "Initialize {dirName}",
         message:
-            "To use it for the first time, Arthas needs to create a folder:\n{dirPath}\n\nCreate & open now?",
+            "To use it for the first time, Codey needs to create a folder:\n{dirPath}\n\nCreate & open now?",
         confirm: "Create & open",
         cancel: "Cancel",
     },
@@ -588,7 +588,7 @@ export default {
                 refreshing: "Refreshing…",
                 savedRestart: "✓ Saved. Restart Agent to apply.",
                 globalManagedHint:
-                    "These values are managed by the global Codex environment. Arthas only displays them and never modifies them.",
+                    "These values are managed by the global Codex environment. Codey only displays them and never modifies them.",
             },
             rule: {
                 title: "Agent Features",
@@ -625,7 +625,7 @@ export default {
                 applyHint:
                     "Note: Adding/disabling/removing/changing MCP config only affects tools in new conversations.",
                 readOnlyHint:
-                    "MCP is managed by the global Codex environment. Arthas only shows server status and tool details. Use the Codex CLI or global config to make changes.",
+                    "MCP is managed by the global Codex environment. Codey only shows server status and tool details. Use the Codex CLI or global config to make changes.",
                 enableAll: "Enable All",
                 disableAll: "Disable All",
                 noServers: "No MCP servers configured.",
@@ -711,7 +711,7 @@ export default {
                 savedBaseUrl: "Saved base URL: {baseUrl}",
                 restartPrefix: "After changing Provider or Base URL, ",
                 restartAction: "restart",
-                restartAppName: "Arthas",
+                restartAppName: "Codey",
                 restartSuffix: " for the change to fully take effect.",
                 login: "Use global Codex CLI config",
                 errors: {

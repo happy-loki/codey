@@ -1,6 +1,6 @@
-# Arthas
+# Codey
 
-Arthas 是一个基于 Tauri 2 的本地优先桌面工作区。它把文件树、编辑器、终端、Git、Markdown、Draw.io、白板和 Excalidraw 等工具放在同一个工作界面中，并通过官方 Codex CLI 的 `app-server` 提供 Agent 对话能力。
+Codey 是一个基于 Tauri 2 的本地优先桌面工作区。它把文件树、编辑器、终端、Git、Markdown、Draw.io、白板和 Excalidraw 等工具放在同一个工作界面中，并通过官方 Codex CLI 的 `app-server` 提供 Agent 对话能力。
 
 ## 核心能力
 
@@ -14,7 +14,7 @@ Arthas 是一个基于 Tauri 2 的本地优先桌面工作区。它把文件树�
 
 ## Codex 集成方式
 
-Arthas 是 Codex 的桌面客户端，不包含 Codex runtime，也不从源码编译 Codex。
+Codey 是 Codex 的桌面客户端，不包含 Codex runtime，也不从源码编译 Codex。
 
 启动 Agent 时，Rust 后端会查找并启动用户机器上的：
 
@@ -24,17 +24,17 @@ codex app-server
 
 双方通过标准输入输出进行逐行 JSON-RPC 通信。Codex 的运行时版本、登录状态、模型、配置和扩展由用户安装的 Codex CLI 自己负责。
 
-Arthas 遵循以下边界：
+Codey 遵循以下边界：
 
 - 使用用户全局安装的 `codex` CLI；Windows、macOS、Linux 均依赖系统可执行入口
 - 不设置自定义 `CODEX_HOME`
-- 不创建或维护 Arthas 私有 Codex home
+- 不创建或维护 Codey 私有 Codex home
 - 不写入、迁移或修复用户的 `~/.codex`
 - 不安装、卸载、启用或禁用 Codex skills、plugins、marketplaces
 - 不修改 Codex 全局配置、MCP、provider 或 model catalog
 - 不编译或依赖 `external/codex`
 
-因此，用户在 Codex CLI 中已有的全局配置和登录状态会由外部 `codex app-server` 按官方规则使用。Arthas 自己的设置只影响 Arthas UI 和本地工作区。
+因此，用户在 Codex CLI 中已有的全局配置和登录状态会由外部 `codex app-server` 按官方规则使用。Codey 自己的设置只影响 Codey UI 和本地工作区。
 
 ## 环境要求
 
@@ -49,7 +49,7 @@ Arthas 遵循以下边界：
 codex --version
 ```
 
-如果 Arthas 找不到 Codex，请检查当前桌面进程继承到的 `PATH`。使用 nvm、fnm、Volta、Homebrew 或其他包管理器安装 Codex 时，需要确保对应的可执行入口对 Arthas 可见。Windows 的 `WindowsApps` 包目录不作为绕过权限的方式使用。
+如果 Codey 找不到 Codex，请检查当前桌面进程继承到的 `PATH`。使用 nvm、fnm、Volta、Homebrew 或其他包管理器安装 Codex 时，需要确保对应的可执行入口对 Codey 可见。Windows 的 `WindowsApps` 包目录不作为绕过权限的方式使用。
 
 ## 开发
 
@@ -101,7 +101,7 @@ yarn tauri-build-debug
 输出位于：
 
 ```text
-src-tauri/target/debug/arthas.exe
+src-tauri/target/debug/codey.exe
 ```
 
 构建 Release 桌面二进制：
@@ -113,7 +113,7 @@ yarn tauri-build
 输出位于：
 
 ```text
-src-tauri/target/release/arthas.exe
+src-tauri/target/release/codey.exe
 ```
 
 当前构建命令直接生成可运行二进制，不生成 MSI 安装包。后续公开版本的构建和发布应由 GitHub Actions 负责；自动更新能力保留，更新产物应来自公开仓库的 Release。
@@ -144,7 +144,7 @@ public/                      静态资源
 - 服务器地址、内部 IP 或私有发布配置
 - 用户个人的 Codex 配置和工作区数据
 
-Arthas 需要用户自行准备 Codex 的认证环境。项目不会替用户保存或迁移 Codex 凭据。
+Codey 需要用户自行准备 Codex 的认证环境。项目不会替用户保存或迁移 Codex 凭据。
 
 ## 当前状态
 

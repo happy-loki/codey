@@ -1,5 +1,5 @@
 param(
-  [Parameter(Mandatory=$true)][string]$Name,  # 主进程名，不含 .exe（如 arthas）
+  [Parameter(Mandatory=$true)][string]$Name,  # 主进程名，不含 .exe（如 codey）
   [int]$Interval = 1,                         # 采样间隔秒
   [switch]$Watch                              # 持续刷新
 )

@@ -64,7 +64,7 @@
     let editorLetterSpacing: number | string = "";
     let editorTabSize: number | string = "";
     let editorLineWrapping = false;
-    let arthasTheme: string = "";
+    let codeyTheme: string = "";
     let terminalOptions: any = {};
     let uiFontSize: string | number = "";
     let uiFontFamily: string = DEFAULT_UI_FONT_FAMILY;
@@ -80,7 +80,7 @@
     let uiSettingsObj: Record<string, any> = {};
     let aiSettingsObj: Record<string, any> = {};
     let terminalSettingsObj: Record<string, any> = {};
-    let arthasSettingsObj: Record<string, any> = {};
+    let codeySettingsObj: Record<string, any> = {};
     let updateSettingsObj: UpdatePreferences = { ...DEFAULT_UPDATE_SETTINGS };
     let autoCheckUpdates = DEFAULT_UPDATE_SETTINGS.autoCheck;
     let updateStatus: string = "";
@@ -232,9 +232,9 @@
     }
 
     async function persistProxySettings(next: ProxySettings) {
-        arthasSettingsObj = { ...arthasSettingsObj, proxy: next };
+        codeySettingsObj = { ...codeySettingsObj, proxy: next };
         const settings = await appSettings;
-        await settings.set("arthas", arthasSettingsObj);
+        await settings.set("codey", codeySettingsObj);
         await settings.save();
     }
 
@@ -286,7 +286,7 @@
         let uiDirty = false;
         let aiDirty = false;
         let terminalDirty = false;
-        let arthasDirty = false;
+        let codeyDirty = false;
         let updatesDirty = false;
 
         editorSettingsObj = ensureObject(await settings.get("editor"));
@@ -307,20 +307,20 @@
             editorDirty = true;
         }
 
-        arthasSettingsObj = ensureObject(await settings.get("arthas"));
-        arthasTheme = typeof arthasSettingsObj.theme === "string" && arthasSettingsObj.theme.trim().length ? arthasSettingsObj.theme : "Light";
-        if (arthasSettingsObj.theme !== arthasTheme) {
-            arthasSettingsObj.theme = arthasTheme;
-            arthasDirty = true;
+        codeySettingsObj = ensureObject(await settings.get("codey"));
+        codeyTheme = typeof codeySettingsObj.theme === "string" && codeySettingsObj.theme.trim().length ? codeySettingsObj.theme : "Light";
+        if (codeySettingsObj.theme !== codeyTheme) {
+            codeySettingsObj.theme = codeyTheme;
+            codeyDirty = true;
         }
 
         const proxySettings = sanitizeProxySettings(
-            Object.prototype.hasOwnProperty.call(arthasSettingsObj, "proxy") ? arthasSettingsObj.proxy : DEFAULT_PROXY_SETTINGS
+            Object.prototype.hasOwnProperty.call(codeySettingsObj, "proxy") ? codeySettingsObj.proxy : DEFAULT_PROXY_SETTINGS
         );
-        if (!proxySettingsEqualRaw(arthasSettingsObj.proxy, proxySettings)) {
-            arthasDirty = true;
+        if (!proxySettingsEqualRaw(codeySettingsObj.proxy, proxySettings)) {
+            codeyDirty = true;
         }
-        arthasSettingsObj = { ...arthasSettingsObj, proxy: proxySettings };
+        codeySettingsObj = { ...codeySettingsObj, proxy: proxySettings };
         setProxyState(proxySettings);
 
         const rawUpdates = await settings.get("updates");
@@ -386,7 +386,7 @@
         if (uiDirty) writes.push(["ui", uiSettingsObj]);
         if (aiDirty) writes.push(["ai", aiSettingsObj]);
         if (terminalDirty) writes.push(["terminal", terminalSettingsObj]);
-        if (arthasDirty) writes.push(["arthas", arthasSettingsObj]);
+        if (codeyDirty) writes.push(["codey", codeySettingsObj]);
         if (updatesDirty) writes.push(["updates", updateSettingsObj]);
 
         if (writes.length) {
@@ -708,15 +708,15 @@
     async function handleThemeSelect(e) {
         const settings = await appSettings;
         const name = e.detail.selection.name;
-        arthasTheme = name;
-        arthasSettingsObj = { ...arthasSettingsObj, theme: name };
-        await settings.set("arthas", arthasSettingsObj);
+        codeyTheme = name;
+        codeySettingsObj = { ...codeySettingsObj, theme: name };
+        await settings.set("codey", codeySettingsObj);
         await settings.save();
     }
 
     async function handleProxyModeChange(value: string) {
         const normalized = normalizeProxyMode(value);
-        const current = sanitizeProxySettings(arthasSettingsObj.proxy);
+        const current = sanitizeProxySettings(codeySettingsObj.proxy);
         if (current.mode === normalized) {
             if (proxyMode !== normalized) {
                 setProxyState({ ...current, mode: normalized });
@@ -733,7 +733,7 @@
     }
 
     async function handleProxyFieldCommit(field: ProxyField) {
-        const current = sanitizeProxySettings(arthasSettingsObj.proxy);
+        const current = sanitizeProxySettings(codeySettingsObj.proxy);
         const rawValue = field === "http" ? proxyHttp : field === "https" ? proxyHttps : proxyNoProxy;
         const trimmed = sanitizeProxyValue(rawValue);
         if (trimmed !== rawValue) {
@@ -961,7 +961,7 @@
                 <GeneralSection
                     {translate}
                     themes={themeOptions}
-                    arthasTheme={arthasTheme}
+                    codeyTheme={codeyTheme}
                     uiLang={uiLang}
                     onThemeSelect={handleThemeSelect}
                     onLanguageSelect={handleLanguageSelect}

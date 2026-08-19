@@ -56,7 +56,7 @@ export const toasts = writable([]);
 let notificationlist: Notification[] = [];
 let toastlist: ToastNotification[] = [];
 
-const READ_STORAGE_PREFIX = "arthas:notifications:read:";
+const READ_STORAGE_PREFIX = "codey:notifications:read:";
 
 function getReadStorageKey(key: string) {
     return `${READ_STORAGE_PREFIX}${key}`;

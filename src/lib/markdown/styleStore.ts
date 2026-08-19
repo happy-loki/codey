@@ -126,7 +126,7 @@ const INLINE_SELECTORS: Inline[] = [
 
 const ALLOWED_CUSTOM_KEYS = new Set<Block | Inline>([...BLOCK_SELECTORS, ...INLINE_SELECTORS]);
 
-const STORAGE_KEY = "arthas.markdownStyleConfig";
+const STORAGE_KEY = "codey.markdownStyleConfig";
 
 function loadInitialState(): StyleConfig {
   if (typeof window === "undefined") {

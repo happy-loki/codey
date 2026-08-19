@@ -1,8 +1,8 @@
 [package]
-name = "arthas"
+name = "codey"
 version = "0.0.49"
 description = "A Tauri App"
-authors = ["Arthas Team"]
+authors = ["Codey Team"]
 license = ""
 repository = ""
 edition = "2021"

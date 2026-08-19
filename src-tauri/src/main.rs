@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use log::{error, info};
+use log::info;
 #[cfg(all(target_os = "windows", not(debug_assertions)))]
 use std::sync::Once;
 use std::sync::{Mutex, OnceLock};
@@ -58,8 +58,8 @@ impl MenuLanguage {
 
     fn detect() -> Self {
         let candidates = [
-            std::env::var("ARTHAS_MENU_LANG").ok(),
-            std::env::var("ARTHAS_LANG").ok(),
+            std::env::var("CODEY_MENU_LANG").ok(),
+            std::env::var("CODEY_LANG").ok(),
             std::env::var("LANG").ok(),
             std::env::var("LC_ALL").ok(),
         ];
@@ -507,11 +507,6 @@ fn main() {
     // Match the Codex CLI runtime stack size instead of Tauri's default Tokio runtime.
     let _tauri_runtime = install_tauri_async_runtime();
 
-    let original = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        original(info);
-        error!("[FATAL]: {:?}", info.to_string());
-    }));
     // Note: cline_core::wire_lifecycle removed - was for Cline
     let builder = tauri::Builder::default();
     #[cfg(not(debug_assertions))]

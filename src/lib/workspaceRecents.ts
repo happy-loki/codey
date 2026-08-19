@@ -5,7 +5,7 @@ export type WorkspaceModule = "whiteboard" | "drawio";
 
 type WorkspaceRecentsStore = Record<string, Partial<Record<WorkspaceModule, string>>>;
 
-const STORAGE_KEY = "arthas.workspaceRecents.v1";
+const STORAGE_KEY = "codey.workspaceRecents.v1";
 const GLOBAL_KEY = "__global__";
 
 function hasLocalStorage(): boolean {

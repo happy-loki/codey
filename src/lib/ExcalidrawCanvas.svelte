@@ -102,11 +102,11 @@
         children.push(
             reactModule.createElement(
                 mainMenuComponent,
-                { key: "arthas-menu-root" },
+                { key: "codey-menu-root" },
                 reactModule.createElement(
                     mainMenuComponent.Item,
                     {
-                        key: "arthas-new-whiteboard",
+                        key: "codey-new-whiteboard",
                         onSelect: handleCreate,
                         icon: newIcon,
                     },

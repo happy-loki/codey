@@ -2,8 +2,8 @@ import { monaco } from "./instance";
 import darkDimmed from "./themes/dark-dimmed.json";
 import lightColorblind from "./themes/light.json";
 
-const MONACO_DARK_ID = "arthas-dark-dimmed";
-const MONACO_LIGHT_ID = "arthas-light";
+const MONACO_DARK_ID = "codey-dark-dimmed";
+const MONACO_LIGHT_ID = "codey-light";
 
 const prefersDark =
     typeof window !== "undefined"

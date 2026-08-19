@@ -220,7 +220,7 @@
         const blocks = container.querySelectorAll<HTMLElement>("pre code");
         blocks.forEach((block) => {
             // 避免重复高亮
-            if (block.dataset.__arthasHighlighted === "true") return;
+            if (block.dataset.__codeyHighlighted === "true") return;
             try {
                 if (block.className && !block.className.includes("language-")) {
                     // 尝试从文本内容自动检测
@@ -230,7 +230,7 @@
                 } else {
                     hljs.highlightElement(block);
                 }
-                block.dataset.__arthasHighlighted = "true";
+                block.dataset.__codeyHighlighted = "true";
             } catch (error) {
                 console.warn("Code highlight failed", error);
             }
@@ -239,7 +239,7 @@
         // 为每个代码块创建语言标签 + 复制按钮
         const pres = container.querySelectorAll<HTMLPreElement>("pre");
         pres.forEach((pre) => {
-            if (pre.dataset.__arthasDecorated === "true") return;
+            if (pre.dataset.__codeyDecorated === "true") return;
             const code = pre.querySelector("code");
             if (!code) return;
 
@@ -247,7 +247,7 @@
                 // 有些渲染器/高亮器可能会改变 pre 的直接子节点结构，
                 // 这里避免对非直系子节点做 insertBefore，防止抛出 NotFoundError。
                 if (pre.querySelector(".code-header")) {
-                    pre.dataset.__arthasDecorated = "true";
+                    pre.dataset.__codeyDecorated = "true";
                     return;
                 }
 
@@ -298,7 +298,7 @@
                     code.parentNode === pre ? code : (pre.firstChild ?? null);
 
                 pre.insertBefore(header, referenceNode);
-                pre.dataset.__arthasDecorated = "true";
+                pre.dataset.__codeyDecorated = "true";
             } catch (error) {
                 console.warn("Code decoration failed", error);
             }

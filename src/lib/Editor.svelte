@@ -189,7 +189,7 @@
             triggerDefaultClipboard("cut");
             return;
         }
-        editor.executeEdits("arthas-context-menu", [
+        editor.executeEdits("codey-context-menu", [
             { range, text: "", forceMoveMarkers: true }
         ]);
     }
@@ -204,7 +204,7 @@
                 return;
             }
             if (txt != null && txt !== "") {
-                editor.executeEdits("arthas-context-menu", [
+                editor.executeEdits("codey-context-menu", [
                     { range: selection, text: txt, forceMoveMarkers: true }
                 ]);
             }
@@ -268,7 +268,7 @@
             ? model.getValueInRange(selection)
             : undefined;
         editor.focus();
-        editor.trigger("arthas", "actions.find", query ? { searchString: query } : undefined);
+        editor.trigger("codey", "actions.find", query ? { searchString: query } : undefined);
     }
 
     let ref: HTMLDivElement | null = null;

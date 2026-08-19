@@ -4,24 +4,24 @@
 
 ## 目标
 
-把 Arthas 从“进程内集成 Codex Rust runtime”改成“外部启动 Codex CLI 的 `app-server`”，同时保持现有 Arthas 聊天、线程、工具请求确认等前端交互尽量不变。
+把 Codey 从“进程内集成 Codex Rust runtime”改成“外部启动 Codex CLI 的 `app-server`”，同时保持现有 Codey 聊天、线程、工具请求确认等前端交互尽量不变。
 
 新的边界是：
 
-- Arthas 只做 Codex 客户端和桌面壳。
+- Codey 只做 Codex 客户端和桌面壳。
 - 后端通过 stdin/stdout 与 `codex app-server` 做逐行 JSON-RPC 通信。
 - 前端继续使用现有 Tauri commands：`codex_thread_start`、`codex_turn_start`、`codex_model_list`、`codex_respond_to_request` 等。
 - 前端继续接收现有事件：`codex:notification`、`codex:request`。
-- Arthas 不再设置或继承 `CODEX_HOME`。
-- Arthas 不再安装、修复、启用、禁用 Codex skills/plugins。
-- Arthas 不再写入或注入 Codex config、MCP、model provider、model catalog。
-- Codex home 固定交给 `codex-cli` 官方默认规则处理：Arthas 启动外部 `codex app-server` 时移除 `CODEX_HOME`，让 Codex 使用标准 `~/.codex`。
+- Codey 不再设置或继承 `CODEX_HOME`。
+- Codey 不再安装、修复、启用、禁用 Codex skills/plugins。
+- Codey 不再写入或注入 Codex config、MCP、model provider、model catalog。
+- Codex home 固定交给 `codex-cli` 官方默认规则处理：Codey 启动外部 `codex app-server` 时移除 `CODEX_HOME`，让 Codex 使用标准 `~/.codex`。
 
 ## 非目标
 
 - 不自动帮用户修复 WindowsApps 安装目录。WindowsApps 包目录可以作为诊断线索，但不能硬编码为可执行入口。
 - 不迁移或修改用户全局 `~/.codex` 配置。
-- 不保留 Arthas Gateway、bundled browser/chrome plugin、内置 skill 自动安装等 Arthas 私有 Codex 环境能力。
+- 不保留 Codey Gateway、bundled browser/chrome plugin、内置 skill 自动安装等 Codey 私有 Codex 环境能力。
 
 ## 参考实现
 
@@ -82,7 +82,7 @@
 
 ### 删除/停用启动副作用
 
-- 不创建 `%LOCALAPPDATA%/arthas/codex` 作为 Codex home。
+- 不创建 `%LOCALAPPDATA%/codey/codex` 作为 Codex home。
 - 不调用 `std::env::set_var("CODEX_HOME", ...)`。
 - 启动外部 `codex app-server` 子进程时显式移除父进程里的 `CODEX_HOME`。
 - 不移除 `OPENAI_API_KEY` / `CODEX_API_KEY`。
@@ -91,25 +91,25 @@
 - 不调用 Control Plane model catalog sync。
 - 不调用 `append_node_repl_mcp_overrides`。
 - 不写 `config.toml`。
-- 不注入 Arthas MCP runtime overrides。
+- 不注入 Codey MCP runtime overrides。
 - 不设置 Codex originator/user-agent/build override。
 
 ### 保留
 
-- Arthas 自己的 embedded MCP server 可以继续存在，供 Arthas 本身的数据集工具使用。
+- Codey 自己的 embedded MCP server 可以继续存在，供 Codey 本身的数据集工具使用。
 - 但不自动写进 Codex 全局配置，也不通过 CLI overrides 注入给 Codex。
 
 ### 验收
 
-- 启动 Arthas 不会新增或修改 `%LOCALAPPDATA%/arthas/codex`。
-- 启动 Arthas 不会修改 `~/.codex/config.toml`、`skills/`、`plugins/`。
+- 启动 Codey 不会新增或修改 `%LOCALAPPDATA%/codey/codex`。
+- 启动 Codey 不会修改 `~/.codex/config.toml`、`skills/`、`plugins/`。
 - 即使父进程存在 `CODEX_HOME`，外部 `codex app-server` 也不继承它，始终回落到 Codex CLI 官方默认 home。
 
 ## 阶段 3：Codex CLI 发现与诊断
 
 ### 查找顺序
 
-1. Arthas 显式设置的 Codex binary path/command。
+1. Codey 显式设置的 Codex binary path/command。
 2. 当前 `PATH` 里的 `codex`。
 3. 常见 PATH 补充：
    - Windows: `%APPDATA%/npm`、nvm/nvm-windows、fnm、Volta、Bun、`~/.cargo/bin`、Scoop、Chocolatey、`%LOCALAPPDATA%/Microsoft/WindowsApps`。
@@ -127,15 +127,15 @@
 
 严格“不影响 Codex 环境”时，写入入口必须处理：
 
-- settings 保存：禁用、改为只读，或明确变成“打开全局 Codex 配置文件”而不是 Arthas 写入。
+- settings 保存：禁用、改为只读，或明确变成“打开全局 Codex 配置文件”而不是 Codey 写入。
 - skills 导入/删除/启用：禁用或隐藏。
 - plugin install/uninstall/enable/marketplace：禁用或隐藏。
 - bundled official plugin 修复入口：移除。
 
 ### 验收
 
-- UI 中没有会静默修改 `~/.codex` 的 Arthas 操作。
-- 用户要改 Codex 环境时，必须离开 Arthas 自动流程，改用 Codex 自己的 CLI/配置方式。
+- UI 中没有会静默修改 `~/.codex` 的 Codey 操作。
+- 用户要改 Codex 环境时，必须离开 Codey 自动流程，改用 Codex 自己的 CLI/配置方式。
 
 ## 第一轮实施结果
 
@@ -154,22 +154,22 @@
 
 以下事项已完成：
 
-1. settings 中的 Codex UI 偏好改为 Arthas 本地偏好文件，不再写入全局 Codex `config.toml`。
+1. settings 中的 Codex UI 偏好改为 Codey 本地偏好文件，不再写入全局 Codex `config.toml`。
 2. MCP 状态和工具信息保留查看能力，编辑、启用、禁用等写入入口改为只读或明确拒绝。
-3. Skills、Plugins、Marketplace 的写入入口明确拒绝，不再由 Arthas 自动安装、修复或切换。
+3. Skills、Plugins、Marketplace 的写入入口明确拒绝，不再由 Codey 自动安装、修复或切换。
 4. `docs/` 只保留本次外部 app-server 迁移文档，旧进程内集成总结和私有发布说明已删除。
 
 ## 第三轮实施结果
 
 以下事项已完成：
 
-1. 移除 Agent 面板对 Arthas account/authMode 的前端门禁；未读取到 account 时不再跳转旧账号设置页。
+1. 移除 Agent 面板对 Codey account/authMode 的前端门禁；未读取到 account 时不再跳转旧账号设置页。
 2. Agent 启动后直接进入线程/聊天工作区，模型、历史、新会话按外部 `codex-cli` runtime 能力加载。
 3. Settings 移除旧账号入口，不再显示旧登录页。
-4. 后端 `codex_account_login` / `codex_account_logout` / `codex_cancel_login_account` 改为明确拒绝，避免 Arthas 修改全局 Codex 登录态。
+4. 后端 `codex_account_login` / `codex_account_logout` / `codex_cancel_login_account` 改为明确拒绝，避免 Codey 修改全局 Codex 登录态。
 
 ## 当前仍需关注
 
 1. 用户机器需要提供可执行的全局 `codex` CLI；WindowsApps 包目录只用于诊断，不绕过 AppX 权限。
-2. 外部 Codex CLI 的 app-server 协议版本变化需要通过兼容性测试发现，Arthas 不再通过编译 `external/codex` 来锁定运行时版本。
+2. 外部 Codex CLI 的 app-server 协议版本变化需要通过兼容性测试发现，Codey 不再通过编译 `external/codex` 来锁定运行时版本。
 3. 应用内自动更新能力保留；后续 updater endpoint 应指向 GitHub Actions/Release 产出的公开更新 manifest 和二进制产物，不再使用私有 release 仓库、自托管更新服务或本地发布脚本。

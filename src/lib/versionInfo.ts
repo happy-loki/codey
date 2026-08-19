@@ -1,6 +1,6 @@
-const LAST_VERSION_KEY = "arthas:lastVersion";
-const PENDING_VERSION_KEY = "arthas:pendingUpdateVersion";
-const PENDING_NOTES_KEY = "arthas:pendingUpdateNotes";
+const LAST_VERSION_KEY = "codey:lastVersion";
+const PENDING_VERSION_KEY = "codey:pendingUpdateVersion";
+const PENDING_NOTES_KEY = "codey:pendingUpdateNotes";
 
 export type PendingChangelog = {
     version: string;

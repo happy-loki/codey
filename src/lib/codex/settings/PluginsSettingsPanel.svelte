@@ -181,7 +181,7 @@
         <div>
             <h3>Plugins</h3>
             <p class="hint">
-                Plugins 和 marketplace 由全局 Codex 环境管理，Arthas 仅显示现有内容，不执行安装、卸载或启停操作。
+                Plugins 和 marketplace 由全局 Codex 环境管理，Codey 仅显示现有内容，不执行安装、卸载或启停操作。
                 {#if workspaceDir}
                     当前项目：{workspaceName || workspaceDir}
                 {/if}

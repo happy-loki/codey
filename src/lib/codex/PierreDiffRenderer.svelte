@@ -292,14 +292,14 @@
 
 <style>
     .pierre-diff-host {
-        --arthas-diff-bg-dark: rgba(13, 14, 19, 0.94);
-        --arthas-diff-bg-light: #ffffff;
+        --codey-diff-bg-dark: rgba(13, 14, 19, 0.94);
+        --codey-diff-bg-light: #ffffff;
         width: 100%;
         min-width: 0;
         overflow: auto;
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
-        background: var(--arthas-diff-bg-dark);
+        background: var(--codey-diff-bg-dark);
     }
 
     .pierre-diff-host.headless {
@@ -309,13 +309,13 @@
     }
 
     .pierre-diff-host[data-tone="overlay"] {
-        --arthas-diff-bg-dark: rgba(0, 0, 0, 0.84);
-        background: var(--arthas-diff-bg-dark);
+        --codey-diff-bg-dark: rgba(0, 0, 0, 0.84);
+        background: var(--codey-diff-bg-dark);
     }
 
     :global(html[data-theme="light"]) .pierre-diff-host {
-        --arthas-diff-bg-light: #ffffff;
-        background: var(--arthas-diff-bg-light);
+        --codey-diff-bg-light: #ffffff;
+        background: var(--codey-diff-bg-light);
         border-color: rgba(15, 23, 42, 0.08);
     }
 
@@ -331,8 +331,8 @@
         min-width: 0;
         font-size: 12px;
         line-height: 18px;
-        --diffs-light-bg: var(--arthas-diff-bg-light);
-        --diffs-dark-bg: var(--arthas-diff-bg-dark);
+        --diffs-light-bg: var(--codey-diff-bg-light);
+        --diffs-dark-bg: var(--codey-diff-bg-dark);
         --diffs-font-size: 12px;
         --diffs-line-height: 18px;
         --diffs-font-family: var(--monospace-font, "Consolas", "Monaco", monospace);

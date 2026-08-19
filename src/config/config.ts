@@ -303,12 +303,12 @@ export async function loadDefaultSettings() {
     const aiDefaults = ensureObject(defaultsAny.ai);
     const terminalDefaults = ensureObject(defaultsAny.terminal);
     const updatesDefaults = ensureObject(defaultsAny.updates);
-    const arthasDefaults = ensureObject(defaultsAny.arthas);
+    const codeyDefaults = ensureObject(defaultsAny.codey);
     const systemDictationDefaults = ensureObject(defaultsAny.system_dictation);
 
-    const applyArthasSettings = async (raw: unknown) => {
-        const obj = { ...arthasDefaults, ...ensureObject(raw) };
-        const themeValue = typeof obj.theme === "string" && obj.theme.trim().length ? obj.theme : (arthasDefaults.theme ?? "Light");
+    const applyCodeySettings = async (raw: unknown) => {
+        const obj = { ...codeyDefaults, ...ensureObject(raw) };
+        const themeValue = typeof obj.theme === "string" && obj.theme.trim().length ? obj.theme : (codeyDefaults.theme ?? "Light");
         await loadTheme(themeValue);
     };
 
@@ -416,7 +416,7 @@ export async function loadDefaultSettings() {
 
     await migrateMonoFontSettingsIfNeeded();
 
-    await applyArthasSettings(await settings.get("arthas"));
+    await applyCodeySettings(await settings.get("codey"));
     applyUiSettings(await settings.get("ui"));
     applyAiSettings(await settings.get("ai"));
     applyEditorSettings(await settings.get("editor"));
@@ -424,7 +424,7 @@ export async function loadDefaultSettings() {
     applyUpdateSettings(await settings.get("updates"));
     applySystemDictationSettings(await settings.get("system_dictation"));
 
-    settings.onKeyChange("arthas", applyArthasSettings);
+    settings.onKeyChange("codey", applyCodeySettings);
     settings.onKeyChange("ui", applyUiSettings);
     settings.onKeyChange("ai", applyAiSettings);
     settings.onKeyChange("editor", applyEditorSettings);

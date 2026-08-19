@@ -67,7 +67,7 @@ export type UpdateAnnouncement = {
     storedAt?: number;
 };
 
-const UPDATE_ANNOUNCEMENT_KEY = "arthas:updateAnnouncement";
+const UPDATE_ANNOUNCEMENT_KEY = "codey:updateAnnouncement";
 
 function safeGetLocalStorage(key: string): string | null {
     try {

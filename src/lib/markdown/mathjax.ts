@@ -12,7 +12,7 @@ declare global {
   interface Window {
     MathJax?: MathJaxInstance;
     MathJaxAddContainer?: (math: any, doc: any) => void;
-    __arthasMathJaxPromise__?: Promise<MathJaxInstance | null>;
+    __codeyMathJaxPromise__?: Promise<MathJaxInstance | null>;
   }
 }
 
@@ -114,8 +114,8 @@ async function loadMathJax(): Promise<MathJaxInstance | null> {
     return window.MathJax;
   }
 
-  if (!window.__arthasMathJaxPromise__) {
-    window.__arthasMathJaxPromise__ = (async () => {
+  if (!window.__codeyMathJaxPromise__) {
+    window.__codeyMathJaxPromise__ = (async () => {
       ensureConfig();
       await import("mathjax/es5/tex-svg-full.js");
       const instance = window.MathJax;
@@ -126,12 +126,12 @@ async function loadMathJax(): Promise<MathJaxInstance | null> {
       return instance;
     })().catch((error) => {
       console.warn("[markdown] MathJax 加载失败", error);
-      window.__arthasMathJaxPromise__ = undefined;
+      window.__codeyMathJaxPromise__ = undefined;
       return null;
     });
   }
 
-  return window.__arthasMathJaxPromise__ ?? null;
+  return window.__codeyMathJaxPromise__ ?? null;
 }
 
 let typesetQueue: Promise<void> = Promise.resolve();

@@ -931,7 +931,7 @@ export async function moveFile(source: string, dest: string, file: string) {
             `Are you sure you want to move "${filename}" from "./${source
                 .split(sep)
                 .pop()}" into "./${dest.split(sep).pop()}?"`,
-            { title: "Arthas: Move File" }
+            { title: "Codey: Move File" }
         ))
     ) {
         return;
@@ -1425,7 +1425,7 @@ export async function pasteFile(dest) {
             `Are you sure you want to copy "${filename}" from "./${fileBasename(
                 copied
             )}" into "./${fileBasename(dest)}?"`,
-            { title: "Arthas: Move File" }
+            { title: "Codey: Move File" }
         ))
     ) {
         return;

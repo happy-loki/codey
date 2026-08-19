@@ -943,7 +943,7 @@ fn normalize_string(input: Option<String>) -> Option<String> {
 
 fn create_client() -> Result<reqwest::Client, String> {
     reqwest::Client::builder()
-        .user_agent("arthas-wechat-integration")
+        .user_agent("codey-wechat-integration")
         .build()
         .map_err(|err| err.to_string())
 }

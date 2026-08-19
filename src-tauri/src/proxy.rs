@@ -205,11 +205,11 @@ fn read_proxy_settings(path: &Path) -> ProxySettings {
         }
     };
 
-    let Some(arthas) = json.get("arthas") else {
+    let Some(codey) = json.get("codey") else {
         return settings;
     };
 
-    let Some(proxy) = arthas.get("proxy") else {
+    let Some(proxy) = codey.get("proxy") else {
         return settings;
     };
 

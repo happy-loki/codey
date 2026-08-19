@@ -112,7 +112,7 @@ pub fn configure_log_path(app: &mut tauri::App) {
     use std::path::Path;
 
     let app_log_dir = app.path().app_log_dir().unwrap();
-    let old_log_path = app_log_dir.join("arthas.log");
+    let old_log_path = app_log_dir.join("codey.log");
     if !Path::exists(&old_log_path) {
         return;
     }
@@ -122,19 +122,19 @@ pub fn configure_log_path(app: &mut tauri::App) {
         .unwrap()
         .format(&format)
         .unwrap();
-    let log_name = format!("arthas_log-{}.log", time);
+    let log_name = format!("codey_log-{}.log", time);
 
     let new_log_path = app_log_dir.join(log_name);
     fs::rename(old_log_path, new_log_path).unwrap();
 }
 
 /// Optional debugging aid: capture Codex `tracing` logs to a file in the same directory as
-/// Arthas logs, with ANSI disabled (so files do not contain escape sequences).
+/// Codey logs, with ANSI disabled (so files do not contain escape sequences).
 ///
-/// Enable via: `ARTHAS_CAPTURE_CODEX_STDERR=1` (legacy name) or `ARTHAS_CAPTURE_CODEX_TRACING=1`
-/// Optional file name override: `ARTHAS_CODEX_STDERR_LOG_FILE=<name.log>` (legacy name)
+/// Enable via: `CODEY_CAPTURE_CODEX_STDERR=1` (legacy name) or `CODEY_CAPTURE_CODEX_TRACING=1`
+/// Optional file name override: `CODEY_CODEX_STDERR_LOG_FILE=<name.log>` (legacy name)
 pub fn maybe_capture_codex_tracing(app: &mut tauri::App) {
-    if !(env_truthy("ARTHAS_CAPTURE_CODEX_TRACING") || env_truthy("ARTHAS_CAPTURE_CODEX_STDERR")) {
+    if !(env_truthy("CODEY_CAPTURE_CODEX_TRACING") || env_truthy("CODEY_CAPTURE_CODEX_STDERR")) {
         return;
     }
 
@@ -149,7 +149,7 @@ pub fn maybe_capture_codex_tracing(app: &mut tauri::App) {
         }
     };
 
-    let file_name = std::env::var("ARTHAS_CODEX_STDERR_LOG_FILE")
+    let file_name = std::env::var("CODEY_CODEX_STDERR_LOG_FILE")
         .ok()
         .filter(|s| !s.trim().is_empty());
     let path = if let Some(file_name) = file_name {
@@ -186,7 +186,7 @@ pub fn maybe_capture_codex_tracing(app: &mut tauri::App) {
         .with_ansi(false)
         .with_writer(writer);
 
-    // Install once for the Arthas process. The external Codex app-server has its own process
+    // Install once for the Codey process. The external Codex app-server has its own process
     // and stderr capture path.
     if tracing_subscriber::registry()
         .with(env_filter)
@@ -195,7 +195,7 @@ pub fn maybe_capture_codex_tracing(app: &mut tauri::App) {
         .is_ok()
     {
         log::info!(
-            "Codex tracing capture enabled (ARTHAS_CAPTURE_CODEX_TRACING/STDERR=1): {}",
+            "Codex tracing capture enabled (CODEY_CAPTURE_CODEX_TRACING/STDERR=1): {}",
             path.display()
         );
     } else {

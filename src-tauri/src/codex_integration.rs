@@ -1,6 +1,6 @@
 /// Codex integration using an external `codex app-server` process.
 ///
-/// Arthas is only a desktop client here. Codex runtime, home directory,
+/// Codey is only a desktop client here. Codex runtime, home directory,
 /// config, skills, plugins, and auth are owned by the user's global Codex CLI.
 use anyhow::{Context, Result};
 use log::{debug, error, info, warn};
@@ -21,19 +21,19 @@ use tokio::sync::{oneshot, Mutex, Notify};
 use crate::codex_protocol_types::RequestId;
 use crate::proxy::{apply_proxy_to_process_env, resolve_proxy_env, resolve_proxy_mode, ProxyMode};
 
-const ARTHAS_CODEX_CLIENT_INFO_NAME: &str = "Arthas";
-const ARTHAS_CODEX_CLIENT_INFO_VERSION: &str = env!("CARGO_PKG_VERSION");
+const CODEY_CODEX_CLIENT_INFO_NAME: &str = "Codey";
+const CODEY_CODEX_CLIENT_INFO_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
 fn codex_environment_write_disabled_message() -> String {
-    "Arthas no longer modifies Codex global config, skills, plugins, or marketplaces. Use the Codex CLI/global config directly.".to_string()
+    "Codey no longer modifies Codex global config, skills, plugins, or marketplaces. Use the Codex CLI/global config directly.".to_string()
 }
 
 fn codex_appx_access_denied_message(candidate: &Path) -> String {
     format!(
-        "ChatGPT/Codex AppX CLI was found at `{}`, but the current Arthas process cannot execute binaries from WindowsApps without the app package identity. Put a runnable `codex.exe`/`codex.cmd` on PATH, or set ARTHAS_CODEX_BIN to a runnable global Codex CLI. Do not change WindowsApps permissions.",
+        "ChatGPT/Codex AppX CLI was found at `{}`, but the current Codey process cannot execute binaries from WindowsApps without the app package identity. Put a runnable `codex.exe`/`codex.cmd` on PATH, or set CODEY_CODEX_BIN to a runnable global Codex CLI. Do not change WindowsApps permissions.",
         candidate.display()
     )
 }
@@ -394,7 +394,7 @@ async fn init_codex_inner<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<()> {
     let proxy_env = resolve_proxy_env(app);
     apply_proxy_to_process_env(proxy_mode, &proxy_env);
     if proxy_mode == ProxyMode::Direct {
-        info!("Arthas proxy mode=direct; disabling proxy for Codex child process.");
+        info!("Codey proxy mode=direct; disabling proxy for Codex child process.");
     }
     ensure_no_proxy_for_localhost();
     debug!(
@@ -416,7 +416,7 @@ async fn init_codex_inner<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<()> {
 }
 
 fn configured_codex_bin() -> Option<String> {
-    env::var("ARTHAS_CODEX_BIN")
+    env::var("CODEY_CODEX_BIN")
         .ok()
         .or_else(|| env::var("CODEX_BIN").ok())
         .map(|value| value.trim().to_string())
@@ -887,16 +887,16 @@ async fn check_codex_installation() -> Result<(PathBuf, Option<String>)> {
         "Codex CLI was not found among the configured PATH locations.".to_string()
     });
     anyhow::bail!(
-        "{detail}. Install Codex and ensure `codex --version` works, or set ARTHAS_CODEX_BIN."
+        "{detail}. Install Codex and ensure `codex --version` works, or set CODEY_CODEX_BIN."
     );
 }
 
 fn build_initialize_params() -> serde_json::Value {
     serde_json::json!({
         "clientInfo": {
-            "name": ARTHAS_CODEX_CLIENT_INFO_NAME,
-            "title": "Arthas",
-            "version": ARTHAS_CODEX_CLIENT_INFO_VERSION,
+            "name": CODEY_CODEX_CLIENT_INFO_NAME,
+            "title": "Codey",
+            "version": CODEY_CODEX_CLIENT_INFO_VERSION,
         },
         "capabilities": {
             "experimentalApi": true,
@@ -1419,7 +1419,7 @@ mod codex_ui_preferences_tests {
     fn saving_ui_preferences_does_not_modify_global_codex_config() {
         let temp_dir = tempfile::tempdir().expect("temporary directory");
         let config_path = temp_dir.path().join("config.toml");
-        let original_config = "[arthas]\nrules = \"legacy\"\n";
+        let original_config = "[codey]\nrules = \"legacy\"\n";
         fs::write(&config_path, original_config).expect("write config");
 
         let preferences_path = temp_dir.path().join("codex_ui_settings.json");
@@ -1697,7 +1697,7 @@ fn codex_ui_settings_path<R: tauri::Runtime>(
     app.path()
         .app_local_data_dir()
         .map(|dir| dir.join(CODEX_UI_SETTINGS_FILE))
-        .map_err(|err| format!("Unable to resolve Arthas UI settings directory: {err}"))
+        .map_err(|err| format!("Unable to resolve Codey UI settings directory: {err}"))
 }
 
 fn read_codex_ui_preferences_from_path(
@@ -1708,7 +1708,7 @@ fn read_codex_ui_preferences_from_path(
         Err(err) if err.kind() == std::io::ErrorKind::NotFound => return Ok(Default::default()),
         Err(err) => {
             return Err(format!(
-                "Unable to read Arthas Codex UI preferences `{}`: {err}",
+                "Unable to read Codey Codex UI preferences `{}`: {err}",
                 path.display()
             ))
         }
@@ -1720,7 +1720,7 @@ fn read_codex_ui_preferences_from_path(
 
     serde_json::from_str(&raw).map_err(|err| {
         format!(
-            "Unable to parse Arthas Codex UI preferences `{}`: {err}",
+            "Unable to parse Codey Codex UI preferences `{}`: {err}",
             path.display()
         )
     })
@@ -1740,18 +1740,18 @@ fn write_codex_ui_preferences_to_path(
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|err| {
             format!(
-                "Unable to create Arthas Codex UI preferences directory `{}`: {err}",
+                "Unable to create Codey Codex UI preferences directory `{}`: {err}",
                 parent.display()
             )
         })?;
     }
 
     let mut raw = serde_json::to_string_pretty(preferences)
-        .map_err(|err| format!("Unable to serialize Arthas Codex UI preferences: {err}"))?;
+        .map_err(|err| format!("Unable to serialize Codey Codex UI preferences: {err}"))?;
     raw.push('\n');
     std::fs::write(path, raw).map_err(|err| {
         format!(
-            "Unable to save Arthas Codex UI preferences `{}`: {err}",
+            "Unable to save Codey Codex UI preferences `{}`: {err}",
             path.display()
         )
     })
@@ -1766,21 +1766,21 @@ fn write_codex_ui_preferences<R: tauri::Runtime>(
 }
 
 fn legacy_codex_ui_preferences(doc: &toml_edit::DocumentMut) -> CodexUiPreferences {
-    let arthas = doc.get("arthas").and_then(|value| value.as_table());
+    let codey = doc.get("codey").and_then(|value| value.as_table());
     CodexUiPreferences {
-        rules: arthas
+        rules: codey
             .and_then(|table| table.get("rules"))
             .and_then(|value| value.as_str())
             .map(ToString::to_string),
-        access_mode: arthas
+        access_mode: codey
             .and_then(|table| table.get("access_mode"))
             .and_then(|value| value.as_str())
             .map(ToString::to_string),
-        selected_model: arthas
+        selected_model: codey
             .and_then(|table| table.get("selected_model"))
             .and_then(|value| value.as_str())
             .map(ToString::to_string),
-        selected_effort: arthas
+        selected_effort: codey
             .and_then(|table| table.get("selected_effort"))
             .and_then(|value| value.as_str())
             .map(ToString::to_string),
@@ -1845,8 +1845,8 @@ pub(crate) fn read_config_doc(path: &std::path::Path) -> Result<toml_edit::Docum
     }
 }
 
-fn arthas_responses_websocket_enabled(doc: &toml_edit::DocumentMut) -> bool {
-    doc.get("arthas")
+fn codey_responses_websocket_enabled(doc: &toml_edit::DocumentMut) -> bool {
+    doc.get("codey")
         .and_then(|v| v.as_table())
         .and_then(|t| t.get("responses_websocket_enabled"))
         .and_then(|v| v.as_bool())
@@ -1972,7 +1972,7 @@ pub async fn codex_settings_load(app: tauri::AppHandle) -> Result<CodexGuiSettin
         read_codex_ui_preferences(&app)?,
         legacy_codex_ui_preferences(&doc),
     );
-    let responses_websocket_enabled = arthas_responses_websocket_enabled(&doc);
+    let responses_websocket_enabled = codey_responses_websocket_enabled(&doc);
     let (memory_generate_enabled, memory_use_enabled, memory_disable_on_external_context_enabled) =
         codex_memory_settings(&doc);
 
@@ -1997,9 +1997,9 @@ pub async fn codex_settings_load(app: tauri::AppHandle) -> Result<CodexGuiSettin
             } else if url.is_some() {
                 "http"
             } else {
-                // If the user's global config defines an `arthas` MCP entry with only tool filters,
-                // keep it grouped as HTTP in the UI. Arthas does not inject a runtime URL here.
-                if name == "arthas" {
+                // If the user's global config defines an `codey` MCP entry with only tool filters,
+                // keep it grouped as HTTP in the UI. Codey does not inject a runtime URL here.
+                if name == "codey" {
                     "http"
                 } else {
                     "stdio"
@@ -2181,7 +2181,7 @@ pub async fn codex_official_bundled_plugins_status(
             "marketplaceName": "openai-bundled",
             "installed": false,
             "sourceAvailable": false,
-            "managedByArthas": false,
+            "managedByCodey": false,
             "writeDisabled": true,
             "message": codex_environment_write_disabled_message(),
         }],

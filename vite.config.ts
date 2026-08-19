@@ -64,7 +64,7 @@ export default defineConfig({
     format: "es",
   },
   // 使用独立的缓存目录，避免与其它仓库/子模块冲突
-  cacheDir: 'node_modules/.vite-arthas',
+  cacheDir: 'node_modules/.vite-codey',
   // to make use of `TAURI_DEBUG` and other env variables
   // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand
   envPrefix: ["VITE_", "TAURI_"],

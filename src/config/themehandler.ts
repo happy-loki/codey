@@ -10,8 +10,8 @@ export function getThemes() {
     return get(themes);
 }
 
-const THEME_SCHEME_KEY = "arthas-theme-scheme";
-const THEME_NAME_KEY = "arthas-theme-name";
+const THEME_SCHEME_KEY = "codey-theme-scheme";
+const THEME_NAME_KEY = "codey-theme-name";
 
 function getInitialScheme(): boolean {
     if (typeof window === "undefined") {
@@ -85,7 +85,7 @@ export async function loadTheme(name: string) {
     copyVar(`--terminal-selectionBackground`, `--ansi-selectionBackground`);
 
     // load custom theme if it exists
-    //const path = await join(await homeDir(), ".arthas", "extensions");
+    //const path = await join(await homeDir(), ".codey", "extensions");
     //if (await exists(path)) {
         //const custom_themes = await readDir(path);
     //}

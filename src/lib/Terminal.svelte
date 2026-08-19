@@ -64,7 +64,7 @@
   const DEFAULT_TERM_ENV: Record<string, string> = {
     TERM: "xterm-256color",
     COLORTERM: "truecolor",
-    TERM_PROGRAM: "arthas",
+    TERM_PROGRAM: "codey",
   };
   const darkTheme = {
     background: "#020817",

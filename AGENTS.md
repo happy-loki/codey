@@ -1,19 +1,19 @@
 # Repository Guidelines
 
-本文件是 Arthas 的开发和维护约定。修改代码前先确认变更属于当前架构，不要根据旧版本的 Codex 集成方式恢复已删除的模块。
+本文件是 Codey 的开发和维护约定。修改代码前先确认变更属于当前架构，不要根据旧版本的 Codex 集成方式恢复已删除的模块。
 
 ## 项目目的
 
-Arthas 是一个 Tauri 2 桌面应用，为本地工作区提供编辑器、文件树、终端、Git、Markdown、Draw.io、白板和 Excalidraw 等能力。Agent 功能由用户机器上安装的官方 Codex CLI 提供。
+Codey 是一个 Tauri 2 桌面应用，为本地工作区提供编辑器、文件树、终端、Git、Markdown、Draw.io、白板和 Excalidraw 等能力。Agent 功能由用户机器上安装的官方 Codex CLI 提供。
 
-Arthas 的职责是：
+Codey 的职责是：
 
 - 提供桌面 UI 和本地工作区工具
 - 通过 Tauri IPC 暴露文件、Git、系统和工作区能力
 - 启动并代理外部 `codex app-server`
 - 将 Codex 的 JSON-RPC 响应和通知转发给前端
 
-Arthas 不拥有 Codex runtime，也不负责管理 Codex 的安装、认证或全局环境。
+Codey 不拥有 Codex runtime，也不负责管理 Codex 的安装、认证或全局环境。
 
 ## 架构
 
@@ -31,7 +31,7 @@ Codex 相关 UI 位于 `src/lib/codex/`，协议类型位于 `src/lib/codex/type
 - `src-tauri/src/codex_integration.rs`：外部 Codex 进程和 JSON-RPC 桥接
 - `src-tauri/src/codex_protocol_types.rs`：后端使用的轻量协议类型
 - `src-tauri/src/commands/`：文件、Git、系统和工作区命令
-- `src-tauri/src/settings.rs`：Arthas 自身的本地设置
+- `src-tauri/src/settings.rs`：Codey 自身的本地设置
 
 ### 外部 Codex app-server
 
@@ -44,11 +44,11 @@ codex app-server
 通信约定如下：
 
 - 每条消息占一行 JSON
-- Arthas 通过 stdin 发送 request、response 和 notification
-- Arthas 从 stdout 读取 Codex 的 response、server request 和 notification
+- Codey 通过 stdin 发送 request、response 和 notification
+- Codey 从 stdout 读取 Codex 的 response、server request 和 notification
 - 带 `id` 的 response 唤醒对应的 pending request
 - 服务端 request 和 notification 通过 Tauri 事件转发到前端
-- 服务端 stderr 只进入 Arthas 日志，不作为协议数据处理
+- 服务端 stderr 只进入 Codey 日志，不作为协议数据处理
 
 初始化时需要完成 app-server 协议规定的 `initialize` request 和 `initialized` notification。保持现有 Tauri command 和前端事件 payload 兼容，避免无必要地改动聊天交互。
 
@@ -74,13 +74,13 @@ codex app-server
 这些约束是架构的一部分，不能为了方便测试或实现功能而绕过：
 
 - 不添加 `external/codex` Rust path dependency
-- 不让正常 Arthas 构建编译 Codex 源码
+- 不让正常 Codey 构建编译 Codex 源码
 - 不设置或继承自定义 `CODEX_HOME`
-- 不创建 `%LOCALAPPDATA%\\arthas\\codex` 等私有 Codex home
+- 不创建 `%LOCALAPPDATA%\\codey\\codex` 等私有 Codex home
 - 不写入用户的官方 `~/.codex`
 - 不修改 Codex `config.toml`
 - 不安装、卸载、修复、启用或禁用 skills、plugins、marketplaces
-- 不注入 Arthas 私有 MCP、provider、model catalog 或配置覆盖
+- 不注入 Codey 私有 MCP、provider、model catalog 或配置覆盖
 - 不迁移用户已有的 Codex 登录状态和凭据
 
 启动外部 CLI 时应移除进程环境中的 `CODEX_HOME`，让 Codex CLI 按官方默认规则选择 home。不要通过修改 WindowsApps 权限来执行 AppX 内部文件；找不到可执行入口时，应给出明确诊断，让用户配置可用的全局 `codex` 命令。
@@ -151,7 +151,7 @@ cd src-tauri
 cargo test
 ```
 
-涉及 Codex 桥接时，还要进行一次真实联调：确认 `codex --version` 可用，启动 Arthas 后能完成初始化、创建或恢复线程、发送一轮对话，并验证服务端通知以及需要用户响应的 request 能回到 UI。不要用 mock 代替唯一的外部进程验收。
+涉及 Codex 桥接时，还要进行一次真实联调：确认 `codex --version` 可用，启动 Codey 后能完成初始化、创建或恢复线程、发送一轮对话，并验证服务端通知以及需要用户响应的 request 能回到 UI。不要用 mock 代替唯一的外部进程验收。
 
 ## 文档和提交
 

@@ -20,7 +20,7 @@ export type AnimationPlaybackPrefs = {
     loop: boolean;
 };
 
-const PREFS_STORAGE_KEY = "arthas:excalidrawAnimation:prefs";
+const PREFS_STORAGE_KEY = "codey:excalidrawAnimation:prefs";
 
 function loadPrefs(): AnimationPlaybackPrefs {
     if (typeof window === "undefined") {

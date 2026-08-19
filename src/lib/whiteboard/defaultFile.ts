@@ -11,7 +11,7 @@ const DEFAULT_WHITEBOARD_DOCUMENT = JSON.stringify(
     {
         type: "excalidraw",
         version: 2,
-        source: "arthas",
+        source: "codey",
         elements: [],
         appState: {
             viewBackgroundColor: "#ffffff",

@@ -89,7 +89,7 @@ import type { SkillMetadata, SkillsListEntry, SkillsListResponse } from "../type
             {
                 id: "system",
                 title: "系统",
-                subtitle: "Arthas/Codex 内置能力，仅显示全局环境中的当前状态。",
+                subtitle: "Codey/Codex 内置能力，仅显示全局环境中的当前状态。",
                 empty: "暂无系统 Skills。",
                 skills: sortSkills(system),
             },
@@ -188,7 +188,7 @@ import type { SkillMetadata, SkillsListEntry, SkillsListResponse } from "../type
         <div>
             <h3>Skills</h3>
             <p class="hint">
-                查看全局 Codex 环境和当前工作区可发现的 Skills。Arthas 不导入、编辑、删除或启停 Skill。
+                查看全局 Codex 环境和当前工作区可发现的 Skills。Codey 不导入、编辑、删除或启停 Skill。
             </p>
         </div>
         <button class="secondary" on:click={() => loadSkills(true)} disabled={loading}>
