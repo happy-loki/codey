@@ -118,6 +118,19 @@ src-tauri/target/release/codey.exe
 
 当前构建命令直接生成可运行二进制，不生成 MSI 安装包。后续公开版本的构建和发布应由 GitHub Actions 负责；自动更新能力保留，更新产物应来自公开仓库的 Release。
 
+## GitHub Actions
+
+公开构建分成两条流水线：
+
+- `ci.yml`：在 `push` 和 `pull_request` 上跑 Windows 和 macOS 的 `yarn build`、`yarn check`、`cargo test`
+- `release.yml`：在 `v*` 标签和手动触发时发布 GitHub Release
+
+发布产物命名为：
+
+- Windows：`codey-v<version>-windows-x64-bin.exe`
+- macOS arm64：`codey-v<version>-macos-arm64-dmg.dmg`
+- macOS x64：`codey-v<version>-macos-x64-dmg.dmg`
+
 ## 项目结构
 
 ```text

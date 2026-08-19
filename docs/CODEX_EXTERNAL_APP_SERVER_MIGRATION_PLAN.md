@@ -173,3 +173,14 @@
 1. 用户机器需要提供可执行的全局 `codex` CLI；WindowsApps 包目录只用于诊断，不绕过 AppX 权限。
 2. 外部 Codex CLI 的 app-server 协议版本变化需要通过兼容性测试发现，Codey 不再通过编译 `external/codex` 来锁定运行时版本。
 3. 应用内自动更新能力保留；后续 updater endpoint 应指向 GitHub Actions/Release 产出的公开更新 manifest 和二进制产物，不再使用私有 release 仓库、自托管更新服务或本地发布脚本。
+
+## GitHub 发布流水线
+
+公开发布改为 GitHub Actions 驱动：
+
+- `ci.yml` 在 `push` 和 `pull_request` 上验证 Windows 与 macOS
+- `release.yml` 在 `v*` 标签和手动触发时发布 Release
+- Windows 产物保持直接 `.exe`
+- macOS 产物输出 `.dmg`
+
+这样可以把构建、验证和发布都收敛到公开仓库，后续自动更新也可以直接指向 GitHub Release 产物。
