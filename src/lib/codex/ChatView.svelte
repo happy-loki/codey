@@ -57,9 +57,11 @@
         ThreadGoalClearedNotification,
         ThreadGoalStatus,
         ThreadGoalUpdatedNotification,
+        CommandAction,
     } from "./types";
     import type { CollaborationMode } from "./protocol/generated/CollaborationMode";
     import type { ModeKind } from "./protocol/generated/ModeKind";
+    import type { ParsedCommand } from "./protocol/generated/ParsedCommand";
     import {
         approvalsReviewerForAccessMode,
         codexApprovalPolicyForAccessMode,
@@ -97,7 +99,7 @@
     const DEBUG_CHAT_VIEW = (() => {
         try {
             return typeof window !== "undefined" &&
-                window.localStorage?.getItem("arthas:debug:chatview") === "1";
+                window.localStorage?.getItem("codey:debug:chatview") === "1";
         } catch {
             return false;
         }
@@ -650,13 +652,13 @@
 
         // Debug hooks for verification in DevTools.
         if (typeof window !== "undefined") {
-            (window as any).__arthasCodexLatestThreadTotals = latestThreadTotals;
-            (window as any).__arthasCodexLatestTotalsByTurn = latestTotalsByTurn;
-            (window as any).__arthasCodexLastCompletedTotals = lastCompletedTotals;
-            (window as any).__arthasCodexResumeBaselineTotals = resumeBaselineTotals;
-            (window as any).__arthasCodexTurnStartTotalsById = turnStartTotalsById;
-            (window as any).__arthasCodexTurnTokenStats = turnTokenStats;
-            (window as any).__arthasCodexTurnModels = turnModelById;
+            (window as any).__codeyCodexLatestThreadTotals = latestThreadTotals;
+            (window as any).__codeyCodexLatestTotalsByTurn = latestTotalsByTurn;
+            (window as any).__codeyCodexLastCompletedTotals = lastCompletedTotals;
+            (window as any).__codeyCodexResumeBaselineTotals = resumeBaselineTotals;
+            (window as any).__codeyCodexTurnStartTotalsById = turnStartTotalsById;
+            (window as any).__codeyCodexTurnTokenStats = turnTokenStats;
+            (window as any).__codeyCodexTurnModels = turnModelById;
         }
 
         const contextWindow = usage?.modelContextWindow ?? null;
@@ -1218,7 +1220,7 @@
                     outputSchema: null,
                     collaborationMode: collaborationModeForTurn,
                     metadata: {
-                        arthasOrigin: "desktop",
+                        codeyOrigin: "desktop",
                     },
                 },
             });
@@ -1229,8 +1231,8 @@
             if (startedTurnId) {
                 turnModelById = { ...turnModelById, [startedTurnId]: effectiveModel };
                 if (typeof window !== "undefined") {
-                    (window as any).__arthasCodexTurnModels = turnModelById;
-                    (window as any).__arthasCodexLatestThreadTotals = latestThreadTotals;
+                    (window as any).__codeyCodexTurnModels = turnModelById;
+                    (window as any).__codeyCodexLatestThreadTotals = latestThreadTotals;
                 }
             }
 
@@ -1943,6 +1945,40 @@ let userInteracting = false;
         };
     }
 
+    function parsedCommandsToCommandActions(
+        parsedCmd: ParsedCommand[] | null | undefined
+    ): CommandAction[] {
+        return (parsedCmd ?? []).map((parsed): CommandAction => {
+            switch (parsed.type) {
+                case "read":
+                    return {
+                        type: "read",
+                        command: parsed.cmd,
+                        name: parsed.name,
+                        path: parsed.path,
+                    };
+                case "list_files":
+                    return {
+                        type: "listFiles",
+                        command: parsed.cmd,
+                        path: parsed.path,
+                    };
+                case "search":
+                    return {
+                        type: "search",
+                        command: parsed.cmd,
+                        query: parsed.query,
+                        path: parsed.path,
+                    };
+                default:
+                    return {
+                        type: "unknown",
+                        command: parsed.cmd,
+                    };
+            }
+        });
+    }
+
     // Handle incoming requests from Codex
     export function handleRequest(request: any) {
         debugLog("[ChatView] Request:", request.method, request.params);
@@ -2091,6 +2127,7 @@ let userInteracting = false;
             pendingApproval = null;
 
             // CommandExecutionRequestApprovalParams are optional-heavy; provide enough for ApprovalDialog display.
+            const commandActions = parsedCommandsToCommandActions(params.parsedCmd);
             const uiParams: CommandExecutionRequestApprovalParams = {
                 threadId: params.conversationId,
                 turnId: "",
@@ -2098,6 +2135,7 @@ let userInteracting = false;
                 reason: params.reason,
                 command: params.command.join(" "),
                 cwd: params.cwd,
+                commandActions,
             };
 
             pendingApproval = {
@@ -2112,7 +2150,7 @@ let userInteracting = false;
                     cwd: params.cwd,
                     processId: null,
                     status: "inProgress",
-                    commandActions: [],
+                    commandActions,
                     aggregatedOutput: null,
                     exitCode: null,
                     durationMs: null,
@@ -2497,11 +2535,11 @@ let userInteracting = false;
                     }
                     // Debug hook: snapshot the summed usage so it's easy to compare in DevTools.
                     if (typeof window !== "undefined") {
-                        (window as any).__arthasCodexTurnTokenStats = turnTokenStats;
-                        (window as any).__arthasCodexTurnModels = turnModelById;
-                        (window as any).__arthasCodexLatestTotalsByTurn = latestTotalsByTurn;
-                        (window as any).__arthasCodexLastCompletedTotals = lastCompletedTotals;
-                        (window as any).__arthasCodexLatestThreadTotals = latestThreadTotals;
+                        (window as any).__codeyCodexTurnTokenStats = turnTokenStats;
+                        (window as any).__codeyCodexTurnModels = turnModelById;
+                        (window as any).__codeyCodexLatestTotalsByTurn = latestTotalsByTurn;
+                        (window as any).__codeyCodexLastCompletedTotals = lastCompletedTotals;
+                        (window as any).__codeyCodexLatestThreadTotals = latestThreadTotals;
                     }
                     const turnIndex = turns.findIndex(t => t.id === turn.id);
                     if (turnIndex >= 0) {

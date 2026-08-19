@@ -183,6 +183,84 @@
         return displayNames[toolName] || toolName;
     }
 
+    function tokenizeShellCommand(command: string): string[] {
+        const tokens: string[] = [];
+        let current = "";
+        let quote: '"' | "'" | null = null;
+
+        for (let i = 0; i < command.length; i += 1) {
+            const char = command[i];
+            if (quote) {
+                if (char === quote) {
+                    quote = null;
+                } else {
+                    current += char;
+                }
+                continue;
+            }
+
+            if (char === '"' || char === "'") {
+                quote = char;
+                continue;
+            }
+
+            if (/\s/.test(char)) {
+                if (current) {
+                    tokens.push(current);
+                    current = "";
+                }
+                continue;
+            }
+
+            current += char;
+        }
+
+        if (current) tokens.push(current);
+        return tokens;
+    }
+
+    function getExecutableName(executable: string | null | undefined): string {
+        if (!executable) return "";
+        return executable.split(/[/\\]/).pop()?.toLowerCase() || executable.toLowerCase();
+    }
+
+    function isPowerShellExecutable(executable: string | null | undefined): boolean {
+        const name = getExecutableName(executable);
+        return name === "powershell" || name === "powershell.exe" || name === "pwsh" || name === "pwsh.exe";
+    }
+
+    function isCmdExecutable(executable: string | null | undefined): boolean {
+        const name = getExecutableName(executable);
+        return name === "cmd" || name === "cmd.exe";
+    }
+
+    function extractShellWrappedCommand(command: string): string {
+        const tokens = tokenizeShellCommand(command);
+        if (tokens.length < 2) return command.trim();
+
+        if (isPowerShellExecutable(tokens[0])) {
+            const commandIndex = tokens.findIndex((token) =>
+                ["-command", "-c", "/c"].includes(token.toLowerCase())
+            );
+            if (commandIndex >= 0 && commandIndex < tokens.length - 1) {
+                return tokens.slice(commandIndex + 1).join(" ").trim();
+            }
+        }
+
+        if (isCmdExecutable(tokens[0])) {
+            const commandIndex = tokens.findIndex((token) => token.toLowerCase() === "/c");
+            if (commandIndex >= 0 && commandIndex < tokens.length - 1) {
+                return tokens.slice(commandIndex + 1).join(" ").trim();
+            }
+        }
+
+        return command.trim();
+    }
+
+    function formatCommandForDisplay(command: string): string {
+        return extractShellWrappedCommand(command).replace(/\s+/g, " ").trim();
+    }
+
     // 获取颜色
     function getColor(type: string): string {
         const colors = {
@@ -271,14 +349,10 @@
     function getSummary(item: ThreadItem): string {
         switch (item.type) {
             case "commandExecution":
-                // 显示第一个 commandAction 的 command(简洁的命令名)
-                if (item.commandActions && item.commandActions.length > 0) {
-                    const firstAction = item.commandActions[0];
-                    return `Ran: ${firstAction.command}`;
-                }
-                // 如果没有 commandActions,显示完整命令的前50个字符
+                // 只展示原始 shell 命令文本；语义化映射在 ThreadItemFlatList 中完成
                 if (item.command) {
-                    return `Ran: ${item.command.length > 50 ? item.command.substring(0, 50) + '...' : item.command}`;
+                    const displayCommand = formatCommandForDisplay(item.command);
+                    return `Ran: ${displayCommand.length > 50 ? displayCommand.substring(0, 50) + '...' : displayCommand}`;
                 }
                 return "Command execution";
             case "fileChange":
@@ -548,7 +622,7 @@
 
         const url = output.match(/https?:\/\/[^\s"')]+/i)?.[0]?.replace(/[.,;:!?]+$/, "") ?? "";
         const target = url ? ` ${url}` : "";
-        return `官方 Browser Use 安全策略拒绝访问${target}。这不是插件安装失败，也不是 Arthas 没有转发授权请求；该策略在用户授权之前生效，因此不会产生 mcpServer/elicitation/request 弹窗。请换一个允许访问的目标，或让用户手动提供该页面内容。`;
+        return `官方 Browser Use 安全策略拒绝访问${target}。这不是插件安装失败，也不是 Codey 没有转发授权请求；该策略在用户授权之前生效，因此不会产生 mcpServer/elicitation/request 弹窗。请换一个允许访问的目标，或让用户手动提供该页面内容。`;
     }
 
     function getCollabToolLabel(tool: string): string {
@@ -1144,7 +1218,7 @@
             const href = target.getAttribute("href") || "";
             if (!href) return;
 
-            if (isAnchor && target.dataset.arthasInternalFileLink === "true") {
+            if (isAnchor && target.dataset.codeyInternalFileLink === "true") {
                 event.preventDefault();
                 event.stopPropagation();
                 const path = target.dataset.filePath?.trim();
@@ -1159,7 +1233,7 @@
 
             // Upstream Codex can emit editor citations using a configured URI opener.
             // We treat vscode-style links as trusted internal-file links and open them
-            // in the Arthas editor instead of delegating to an external app.
+            // in the Codey editor instead of delegating to an external app.
             if (href.startsWith("vscode://") || href.startsWith("vscode-insiders://")) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -1227,11 +1301,11 @@
 
             if (/^https?:\/\//i.test(href)) {
                 anchor.classList.remove("read-file-inline-pill");
-                delete anchor.dataset.arthasInternalFileLink;
-                if (anchor.dataset.arthasPillDecorated === "true") {
-                    const originalLabel = anchor.dataset.arthasPillLabel || anchor.textContent || "";
+                delete anchor.dataset.codeyInternalFileLink;
+                if (anchor.dataset.codeyPillDecorated === "true") {
+                    const originalLabel = anchor.dataset.codeyPillLabel || anchor.textContent || "";
                     anchor.textContent = originalLabel;
-                    delete anchor.dataset.arthasPillDecorated;
+                    delete anchor.dataset.codeyPillDecorated;
                 }
                 return;
             }
@@ -1246,25 +1320,25 @@
 
             if (!displayDescriptor) {
                 anchor.classList.remove("read-file-inline-pill");
-                delete anchor.dataset.arthasInternalFileLink;
-                if (anchor.dataset.arthasPillDecorated === "true") {
-                    const originalLabel = anchor.dataset.arthasPillLabel || anchor.textContent || "";
+                delete anchor.dataset.codeyInternalFileLink;
+                if (anchor.dataset.codeyPillDecorated === "true") {
+                    const originalLabel = anchor.dataset.codeyPillLabel || anchor.textContent || "";
                     anchor.textContent = originalLabel;
-                    delete anchor.dataset.arthasPillDecorated;
+                    delete anchor.dataset.codeyPillDecorated;
                 }
                 return;
             }
 
             const label = displayDescriptor.referenceText || displayDescriptor.displayName;
             anchor.classList.add("read-file-inline-pill");
-            anchor.dataset.arthasInternalFileLink = "true";
-            anchor.dataset.arthasPillLabel = label;
+            anchor.dataset.codeyInternalFileLink = "true";
+            anchor.dataset.codeyPillLabel = label;
             anchor.setAttribute("title", displayDescriptor.tooltip);
             anchor.dataset.filePath = displayDescriptor.absolutePath;
             anchor.dataset.lineStart = String(displayDescriptor.startLine ?? 1);
             anchor.dataset.lineEnd = displayDescriptor.endLine ? String(displayDescriptor.endLine) : "";
 
-            if (anchor.dataset.arthasPillDecorated === "true") {
+            if (anchor.dataset.codeyPillDecorated === "true") {
                 const labelEl = anchor.querySelector<HTMLElement>(".pill-name");
                 if (labelEl) {
                     labelEl.textContent = label;
@@ -1273,7 +1347,7 @@
             }
 
             anchor.innerHTML = `${getReadFilePillIconSvg()}<span class="pill-name">${escapeHtml(label)}</span>`;
-            anchor.dataset.arthasPillDecorated = "true";
+            anchor.dataset.codeyPillDecorated = "true";
         });
     }
 
@@ -1628,7 +1702,7 @@
     let cardElement: HTMLDivElement | null = null;
     $: commandText =
         item.type === "commandExecution" && typeof item.command === "string"
-            ? item.command
+            ? formatCommandForDisplay(item.command)
             : "";
     $: commandOutputTextRaw =
         item.type === "commandExecution" && typeof item.aggregatedOutput === "string"
