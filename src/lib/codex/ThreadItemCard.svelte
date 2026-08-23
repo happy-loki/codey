@@ -1664,8 +1664,9 @@
                     const match = output.match(/Absolute path:\s*(.+)/);
                     if (match) dirPath = match[1].trim();
                 }
-                const dirName = dirPath ? (dirPath.split(/[/\\]/).pop() || dirPath) : '(unknown)';
-                return `List ${dirName}`;
+                // Keep the full directory path in the summary. Basenames are often
+                // identical across a workspace, making `List backend` ambiguous.
+                return `List ${dirPath || '(unknown)'}`;
             default:
                 return `Tool: ${toolName}`;
         }

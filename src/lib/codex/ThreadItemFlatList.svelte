@@ -299,6 +299,18 @@
         if (!path) return null;
         const trimmed = path.trim();
         if (!trimmed || /^-\w+/.test(trimmed) || /^\d+$/.test(trimmed)) return null;
+
+        // A shell variable is not a concrete file path. In particular, PowerShell
+        // scripts commonly use `Get-Content $f` inside a loop; rendering `$f` as a
+        // read card creates a misleading pseudo-file (and can attach line ranges to it).
+        // Keep the original command card when the variable cannot be resolved safely.
+        if (
+            /^(?:\$(?:\{[^}]+\}|[A-Za-z_][\w:.-]*(?:\[[^\]]+\])?|_)|%[^%]+%|![^!]+!|\$\()/.test(
+                trimmed
+            )
+        ) {
+            return null;
+        }
         return trimmed;
     }
 
@@ -794,6 +806,26 @@
         );
     }
 
+    function normalizeEmbeddedWindowsAbsolutePath(path: string): string {
+        let normalized = path.trim();
+
+        // Shells sometimes preserve a relative-looking prefix before an absolute
+        // drive path (for example `.\\D:\\repo\\file`). It must not be joined to cwd.
+        normalized = normalized.replace(/^(?:\.[\\/]|[\\/])(?=[a-zA-Z]:[\\/])/, "");
+
+        // Guard against paths that were already joined once by a producer:
+        // `D:\\repo\\D:\\repo\\file` should resolve to the second drive path.
+        const driveMatches = Array.from(normalized.matchAll(/[a-zA-Z]:[\\/]/g));
+        if (driveMatches.length > 1) {
+            const secondDriveIndex = driveMatches[1].index ?? -1;
+            if (secondDriveIndex > 0 && /[\\/]$/.test(normalized.slice(0, secondDriveIndex))) {
+                normalized = normalized.slice(secondDriveIndex);
+            }
+        }
+
+        return normalized;
+    }
+
     function normalizeJoinedPath(path: string): string {
         if (/^[\\/]{2}/.test(path)) return path;
         const slashPath = path.replace(/\\/g, "/");
@@ -823,7 +855,10 @@
         const normalized = normalizeCommandActionPath(path);
         if (!normalized) return null;
         const fileUriPath = parseFileUriPath(normalized);
-        const pathValue = convertSlashDrivePath(fileUriPath ?? normalized, cwd);
+        const pathValue = convertSlashDrivePath(
+            normalizeEmbeddedWindowsAbsolutePath(fileUriPath ?? normalized),
+            cwd
+        );
         if (isAbsoluteCommandPath(pathValue) || !cwd) {
             return normalizeJoinedPath(pathValue);
         }
@@ -992,7 +1027,8 @@
     ): ParsedCommandAction[] {
         const explicitActions = (item.commandActions ?? [])
             .filter((action) => action.type !== "unknown")
-            .map((action) => enrichCommandActionFromShell(action, item));
+            .map((action) => enrichCommandActionFromShell(action, item))
+            .filter((action) => action.type !== "read" || Boolean(normalizeCommandActionPath(action.path)));
         if (explicitActions.length > 0) {
             return explicitActions;
         }
@@ -1040,7 +1076,11 @@
                 const paths = splitCommaPaths(rawPath);
                 const targets = paths.length ? paths : [null];
                 for (const path of targets) {
-                    actions.push({ type: "listFiles", command: segment.text, path });
+                    actions.push({
+                        type: "listFiles",
+                        command: segment.text,
+                        path: path ? resolveCommandActionPath(path, effectiveCwd) ?? path : null,
+                    });
                 }
                 continue;
             }
@@ -1052,7 +1092,12 @@
                 const path = normalizeCommandActionPath(
                     findOptionValue(tokens, ["-path", "-literalpath"])
                 );
-                actions.push({ type: "search", command: segment.text, query, path });
+                actions.push({
+                    type: "search",
+                    command: segment.text,
+                    path: path ? resolveCommandActionPath(path, effectiveCwd) ?? path : null,
+                    query,
+                });
                 continue;
             }
 
@@ -1061,7 +1106,11 @@
                 if (tokens.includes("--files")) {
                     const targets = positionals.length ? positionals : [null];
                     for (const path of targets) {
-                        actions.push({ type: "listFiles", command: segment.text, path });
+                        actions.push({
+                            type: "listFiles",
+                            command: segment.text,
+                            path: path ? resolveCommandActionPath(path, effectiveCwd) ?? path : null,
+                        });
                     }
                     continue;
                 }
@@ -1076,7 +1125,11 @@
                     type: "search",
                     command: segment.text,
                     query,
-                    path: paths.length ? paths.join(", ") : null,
+                    path: paths.length
+                        ? paths
+                              .map((path) => resolveCommandActionPath(path, effectiveCwd) ?? path)
+                              .join(", ")
+                        : null,
                 });
             }
         }
@@ -1088,6 +1141,12 @@
         action: CommandAction,
         item: Extract<ThreadItem, { type: "commandExecution" }>
     ): ParsedCommandAction {
+        if (action.type === "listFiles" || action.type === "search") {
+            return {
+                ...action,
+                path: action.path ? resolveCommandActionPath(action.path, item.cwd) ?? action.path : null,
+            };
+        }
         if (action.type !== "read") return action;
         const command = action.command || item.command || "";
         const range = inferReadLineRangeFromCommand(command, action.path);
