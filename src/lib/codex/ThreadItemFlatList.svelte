@@ -1601,14 +1601,17 @@
                     return;
                 }
 
-                projectCommandExecutionItem(item).forEach((projectedItem) => {
+                projectCommandExecutionItem(item).forEach((projectedItem, projectedIndex) => {
                     const baseId = projectedItem.id ?? item.id ?? `${tIndex}-${iIndex}`;
                     const needsTypeSuffix =
                         projectedItem.type === "enteredReviewMode" ||
                         projectedItem.type === "exitedReviewMode";
-                    const key = needsTypeSuffix
-                        ? `${turn.id}:${baseId}:${projectedItem.type}`
-                        : `${turn.id}:${baseId}`;
+                    // Some Responses-compatible providers reuse or omit response item ids.
+                    // The source position is part of the key so repeated searches/tools remain
+                    // distinct rows instead of being reused by Svelte/the virtualizer.
+                    const key = `${turn.id}:${iIndex}:${projectedIndex}:${baseId}${
+                        needsTypeSuffix ? `:${projectedItem.type}` : ""
+                    }`;
                     const baseRow: ItemRow = {
                         kind: "item",
                         key,

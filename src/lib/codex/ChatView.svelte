@@ -2547,29 +2547,42 @@ let userInteracting = false;
                         const existingItems = existingTurn.items || [];
                         const newItems = turn.items || [];
 
-                        // Map new items by id for fast lookup.
-                        const newById = new Map<string, ThreadItem>();
-                        for (const item of newItems) {
-                            if (item && item.id) {
-                                newById.set(item.id, item);
+                        // Match completed items by occurrence, not by a single id->item map.
+                        // Responses-compatible providers may reuse/omit ids for repeated web
+                        // searches, so a map would overwrite earlier searches and break the
+                        // timeline order.
+                        const consumedNewIndexes = new Set<number>();
+                        const findReplacementIndex = (existing: ThreadItem): number => {
+                            if (!existing) return -1;
+                            for (let index = 0; index < newItems.length; index += 1) {
+                                if (consumedNewIndexes.has(index)) continue;
+                                const candidate = newItems[index];
+                                if (
+                                    candidate?.type === existing.type &&
+                                    ((Boolean(existing.id) && candidate.id === existing.id) ||
+                                        (!existing.id && !candidate.id))
+                                ) {
+                                    return index;
+                                }
                             }
-                        }
+                            return -1;
+                        };
 
-                        // Start from existing items to preserve their visual order,
-                        // updating any that also appear in the completed turn.
+                        // Start from existing items to preserve their visual order, replacing
+                        // each occurrence with the corresponding completed payload.
                         const mergedItems: ThreadItem[] = existingItems.map((existing) => {
-                            const replacement = existing.id ? newById.get(existing.id) : undefined;
-                            return replacement ?? existing;
+                            const replacementIndex = findReplacementIndex(existing);
+                            if (replacementIndex < 0) return existing;
+                            consumedNewIndexes.add(replacementIndex);
+                            return newItems[replacementIndex];
                         });
 
-                        // Append any brand‑new items from the completed turn that
-                        // were never seen during streaming.
-                        for (const item of newItems) {
-                            if (!item || !item.id) continue;
-                            if (!mergedItems.some((existing) => existing.id === item.id)) {
-                                mergedItems.push(item);
-                            }
-                        }
+                        // Append completed items that were not observed during streaming. Keep
+                        // every occurrence, including duplicate or empty ids.
+                        newItems.forEach((item, index) => {
+                            if (!item || consumedNewIndexes.has(index)) return;
+                            mergedItems.push(item);
+                        });
 
                         turns[turnIndex] = {
                             // Preserve local fields (like expanded state) but
@@ -2763,9 +2776,8 @@ let userInteracting = false;
                     }
 
                     const itemsForTurn = turns[turnIndex].items;
-                    // Prefer to match both id and type so that items which share
-                    // the same id across different types (e.g. userMessage and
-                    // enteredReviewMode with id "0") don't stomp each other.
+                    // Prefer the first matching occurrence so repeated items are completed in
+                    // the same order as their item/started notifications.
                     let itemIndex = itemsForTurn.findIndex(
                         (i) => i.id === completedItem.id && i.type === completedItem.type
                     );
