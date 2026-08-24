@@ -122,7 +122,7 @@ src-tauri/target/release/codey.exe
 
 公开构建分成两条流水线：
 
-- `ci.yml`：在 `push` 和 `pull_request` 上跑 Windows 和 macOS 的 `yarn build`、`yarn check`、`cargo test`
+- `ci.yml`：在 `push` 和 `pull_request` 上跑 Windows 和 macOS 的 `yarn build`、`yarn check`、`cargo test`，并上传未发布的桌面构建 artifact
 - `release.yml`：在 `v*` 标签和手动触发时发布 GitHub Release
 
 发布产物命名为：
@@ -130,6 +130,20 @@ src-tauri/target/release/codey.exe
 - Windows：`codey-v<version>-windows-x64-bin.exe`
 - macOS arm64：`codey-v<version>-macos-arm64-dmg.dmg`
 - macOS x64：`codey-v<version>-macos-x64-dmg.dmg`
+
+### macOS 发布凭证
+
+CI 的 macOS 检查构建使用 ad-hoc 签名，不需要 Apple 凭证。正式 Release 使用 `Developer ID Application` 证书并进行公证；以下 secret 应只配置在 `happy-loki/codey` 仓库：
+
+- 必需：`APPLE_CERTIFICATE`（包含私钥的 `Developer ID Application` `.p12` 文件的 base64 内容）、`APPLE_CERTIFICATE_PASSWORD`
+- 可选：`APPLE_SIGNING_IDENTITY`（不填时由证书自动推断）、`APPLE_PROVIDER_SHORT_NAME`
+- 公证二选一：
+  - App Store Connect API（具备 Developer 权限）：`APPLE_API_KEY`、`APPLE_API_ISSUER`、`APPLE_API_KEY_P8`（`.p8` 文件内容）
+  - Apple ID：`APPLE_ID`、`APPLE_PASSWORD`（app-specific password）、`APPLE_TEAM_ID`
+
+Codey 不发布到 App Store。证书必须在 Mac 上生成 CSR 并导出带私钥的 `.p12`。可以全程在 Mac clone 当前仓库后写入 GitHub Secrets，也可以把 `.p12` 拷回 Windows 再写。完整操作步骤见 [docs/MACOS_RELEASE_SIGNING.md](docs/MACOS_RELEASE_SIGNING.md)。
+
+当前 workflow 让 Tauri 自动导入临时钥匙串，因此不额外需要 `KEYCHAIN_PASSWORD`。不要把证书、私钥或密码提交到仓库。
 
 ## 项目结构
 

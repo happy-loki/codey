@@ -7,6 +7,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
+
 jobs:
   verify:
     name: ${{ matrix.name }}
@@ -17,15 +23,23 @@ jobs:
         include:
           - name: Windows
             os: windows-latest
+            build_args: --no-bundle
+            artifact_name: codey-windows-x64
+            artifact_path: src-tauri/target/release/codey.exe
+            apple_signing_identity: ""
           - name: macOS
-            os: macos-14
+            os: macos-15
+            build_args: --bundles dmg
+            artifact_name: codey-macos-arm64
+            artifact_path: src-tauri/target/release/bundle/dmg/*.dmg
+            apple_signing_identity: "-"
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: yarn
@@ -50,3 +64,16 @@ jobs:
 
       - name: Rust tests
         run: cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Build desktop artifact
+        env:
+          CI: true
+          APPLE_SIGNING_IDENTITY: ${{ matrix.apple_signing_identity }}
+        run: yarn tauri build ${{ matrix.build_args }}
+
+      - name: Upload desktop artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_path }}
+          if-no-files-found: error

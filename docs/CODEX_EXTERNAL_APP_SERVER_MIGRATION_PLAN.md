@@ -182,5 +182,6 @@
 - `release.yml` 在 `v*` 标签和手动触发时发布 Release
 - Windows 产物保持直接 `.exe`
 - macOS 产物输出 `.dmg`
+- CI 检查构建使用 macOS ad-hoc 签名；正式 macOS Release 使用 `Developer ID Application` 证书并完成公证，凭证只配置在 `happy-loki/codey` 仓库
 
 这样可以把构建、验证和发布都收敛到公开仓库，后续自动更新也可以直接指向 GitHub Release 产物。

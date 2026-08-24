@@ -6,8 +6,15 @@ on:
       - "v*"
   workflow_dispatch:
 
+concurrency:
+  group: codey-release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
+
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
   release:
@@ -15,30 +22,36 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # Every matrix leg uploads to the same GitHub Release. Serializing the
+      # legs avoids a race while the first leg creates that release.
+      max-parallel: 1
       matrix:
         include:
           - name: Windows
             os: windows-latest
             args: --no-bundle
+            target: x86_64-pc-windows-msvc
             upload_plain_binary: true
             asset_suffix: windows-x64
           - name: macOS arm64
-            os: macos-14
-            args: ""
+            os: macos-15
+            args: --target aarch64-apple-darwin
+            target: aarch64-apple-darwin
             upload_plain_binary: false
             asset_suffix: macos-arm64
           - name: macOS x64
             os: macos-15-intel
-            args: ""
+            args: --target x86_64-apple-darwin
+            target: x86_64-apple-darwin
             upload_plain_binary: false
             asset_suffix: macos-x64
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: yarn
@@ -46,6 +59,8 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Cache Rust
         uses: swatinem/rust-cache@v2
@@ -55,16 +70,98 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Configure macOS signing and notarization
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PROVIDER_SHORT_NAME: ${{ secrets.APPLE_PROVIDER_SHORT_NAME }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$APPLE_CERTIFICATE" || -z "$APPLE_CERTIFICATE_PASSWORD" ]]; then
+            echo "Codey macOS releases require APPLE_CERTIFICATE and APPLE_CERTIFICATE_PASSWORD."
+            exit 1
+          fi
+
+          has_api_credentials=false
+          if [[ -n "$APPLE_API_KEY" || -n "$APPLE_API_ISSUER" || -n "$APPLE_API_KEY_P8" ]]; then
+            has_api_credentials=true
+            if [[ -z "$APPLE_API_KEY" || -z "$APPLE_API_ISSUER" || -z "$APPLE_API_KEY_P8" ]]; then
+              echo "APPLE_API_KEY, APPLE_API_ISSUER, and APPLE_API_KEY_P8 must be configured together."
+              exit 1
+            fi
+            api_key_path="$RUNNER_TEMP/AuthKey.p8"
+            printf '%s' "$APPLE_API_KEY_P8" > "$api_key_path"
+            chmod 600 "$api_key_path"
+            {
+              echo "APPLE_API_KEY=$APPLE_API_KEY"
+              echo "APPLE_API_ISSUER=$APPLE_API_ISSUER"
+              echo "APPLE_API_KEY_PATH=$api_key_path"
+            } >> "$GITHUB_ENV"
+          fi
+
+          has_apple_id_credentials=false
+          if [[ -n "$APPLE_ID" || -n "$APPLE_PASSWORD" ]]; then
+            has_apple_id_credentials=true
+          fi
+
+          if [[ "$has_api_credentials" == true && "$has_apple_id_credentials" == true ]]; then
+            echo "Configure either App Store Connect API key credentials or Apple ID credentials, not both."
+            exit 1
+          fi
+
+          if [[ "$has_api_credentials" == false && ( "$has_apple_id_credentials" == true || -n "$APPLE_TEAM_ID" ) ]]; then
+            if [[ -z "$APPLE_ID" || -z "$APPLE_PASSWORD" || -z "$APPLE_TEAM_ID" ]]; then
+              echo "APPLE_ID, APPLE_PASSWORD, and APPLE_TEAM_ID must be configured together."
+              exit 1
+            fi
+          fi
+
+          if [[ "$has_api_credentials" == false && "$has_apple_id_credentials" == false ]]; then
+            echo "Configure either APPLE_API_KEY/APPLE_API_ISSUER/APPLE_API_KEY_P8 or APPLE_ID/APPLE_PASSWORD/APPLE_TEAM_ID."
+            exit 1
+          fi
+
+          if [[ "$has_api_credentials" == false ]]; then
+            {
+              echo "APPLE_ID=$APPLE_ID"
+              echo "APPLE_PASSWORD=$APPLE_PASSWORD"
+              echo "APPLE_TEAM_ID=$APPLE_TEAM_ID"
+            } >> "$GITHUB_ENV"
+          fi
+
+          # Tauri infers the identity from the certificate when this is omitted.
+          if [[ -n "$APPLE_SIGNING_IDENTITY" ]]; then
+            echo "APPLE_SIGNING_IDENTITY=$APPLE_SIGNING_IDENTITY" >> "$GITHUB_ENV"
+          fi
+
+          if [[ -n "$APPLE_PROVIDER_SHORT_NAME" ]]; then
+            echo "APPLE_PROVIDER_SHORT_NAME=$APPLE_PROVIDER_SHORT_NAME" >> "$GITHUB_ENV"
+          fi
+
       - name: Build and publish
         uses: tauri-apps/tauri-action@action-v1.0.0
         env:
+          CI: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE || '' }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
         with:
-          tagName: v__VERSION__
-          releaseName: Codey v__VERSION__
+          tauriScript: yarn tauri
+          tagName: ${{ github.event_name == 'push' && github.ref_name || 'v__VERSION__' }}
+          releaseName: Codey ${{ github.event_name == 'push' && github.ref_name || 'v__VERSION__' }}
           releaseBody: Automated GitHub release for Codey.
           releaseDraft: false
           prerelease: false
+          uploadUpdaterJson: false
           args: ${{ matrix.args }}
           uploadPlainBinary: ${{ matrix.upload_plain_binary }}
           releaseAssetNamePattern: "codey-v[version]-${{ matrix.asset_suffix }}-[bundle][ext]"
