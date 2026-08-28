@@ -71,6 +71,10 @@ yarn dev
 yarn start-window
 ```
 
+默认不会把外部 `codex app-server` 的常规 tracing 或工具输出刷到 WebView；子进程默认使用
+`warn,codex_otel.log_only=off`。需要临时排查 app-server 时，分别设置 Codey 的
+`RUST_LOG=debug` 和子进程专用的 `CODEY_CODEX_RUST_LOG=debug`。
+
 执行前端类型和 Svelte 检查：
 
 ```bash

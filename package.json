@@ -10,7 +10,7 @@
         "start": "vite preview",
         "check": "svelte-check --tsconfig ./tsconfig.json",
         "tauri": "tauri",
-        "start-window": "cross-env CODEY_CAPTURE_CODEX_TRACING=1 CODEY_CODEX_TRACING_STDOUT=1 RUST_LOG=debug yarn tauri dev --features devtools",
+        "start-window": "yarn tauri dev --features devtools",
         "tauri-build-debug": "yarn build && cargo build --manifest-path src-tauri/Cargo.toml",
         "tauri-build": "yarn build && cargo build --manifest-path src-tauri/Cargo.toml --release",
         "sync:version": "node scripts/sync-version.mjs"

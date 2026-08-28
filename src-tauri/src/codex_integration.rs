@@ -3,7 +3,7 @@
 /// Codey is only a desktop client here. Codex runtime, home directory,
 /// config, skills, plugins, and auth are owned by the user's global Codex CLI.
 use anyhow::{Context, Result};
-use log::{debug, error, info, warn};
+use log::{debug, error, info, trace, warn};
 use std::collections::HashMap;
 use std::env;
 use std::ffi::{OsStr, OsString};
@@ -23,6 +23,9 @@ use crate::proxy::{apply_proxy_to_process_env, resolve_proxy_env, resolve_proxy_
 
 const CODEY_CODEX_CLIENT_INFO_NAME: &str = "Codey";
 const CODEY_CODEX_CLIENT_INFO_VERSION: &str = env!("CARGO_PKG_VERSION");
+// Keep the app-server's high-volume telemetry out of the stderr channel by default.
+// `CODEY_CODEX_RUST_LOG` remains an explicit escape hatch for troubleshooting.
+const DEFAULT_CODEX_CHILD_RUST_LOG: &str = "warn,codex_otel.log_only=off";
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -771,6 +774,112 @@ fn sanitize_codex_child_environment(command: &mut Command) {
         info!("Removing CODEX_HOME for external Codex child so codex-cli uses its official default home.");
     }
     command.env_remove("CODEX_HOME");
+
+    // `RUST_LOG` belongs to the Codey process. Do not inherit it into the external
+    // app-server: its INFO telemetry includes full tool output and can flood the
+    // stderr pipe and the development WebView. Keep detailed child logging opt-in
+    // through a Codey-specific variable instead.
+    command.env_remove("RUST_LOG");
+    command.env_remove("RUST_LOG_STYLE");
+    command.env("RUST_LOG", codex_child_rust_log());
+    if let Some(value) = env::var_os("CODEY_CODEX_RUST_LOG_STYLE") {
+        command.env("RUST_LOG_STYLE", value);
+    }
+}
+
+fn codex_child_rust_log() -> OsString {
+    env::var_os("CODEY_CODEX_RUST_LOG")
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| OsString::from(DEFAULT_CODEX_CHILD_RUST_LOG))
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum CodexStderrLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+    Other,
+}
+
+fn classify_codex_stderr_line(line: &str) -> CodexStderrLevel {
+    let trimmed = line.trim();
+
+    // JSON logging has a top-level `level` field. Do not inspect arbitrary string
+    // fields: tool output may legitimately contain words such as "error".
+    if let Ok(value) = serde_json::from_str::<serde_json::Value>(trimmed) {
+        if let Some(level) = value
+            .get("level")
+            .and_then(serde_json::Value::as_str)
+            .and_then(parse_codex_stderr_level)
+        {
+            return level;
+        }
+    }
+
+    // The default tracing formatter puts the RFC3339 timestamp and level first.
+    // Restrict parsing to those fields so continuation lines cannot be promoted by
+    // words appearing in their message body.
+    let mut fields = trimmed.split_whitespace();
+    let timestamp = fields.next().unwrap_or_default();
+    if looks_like_codex_timestamp(timestamp) {
+        if let Some(level) = fields.next().and_then(parse_codex_stderr_level) {
+            return level;
+        }
+    }
+
+    // Preserve the common plain-text diagnostics emitted before tracing is ready,
+    // while still requiring an explicit prefix.
+    let lower = trimmed.to_ascii_lowercase();
+    if lower.starts_with("error:") {
+        return CodexStderrLevel::Error;
+    }
+    if lower.starts_with("warning:") || lower.starts_with("warn:") {
+        return CodexStderrLevel::Warn;
+    }
+
+    CodexStderrLevel::Other
+}
+
+fn parse_codex_stderr_level(value: &str) -> Option<CodexStderrLevel> {
+    let normalized = value
+        .trim_matches(|ch: char| !ch.is_ascii_alphabetic())
+        .to_ascii_uppercase();
+    match normalized.as_str() {
+        "TRACE" => Some(CodexStderrLevel::Trace),
+        "DEBUG" => Some(CodexStderrLevel::Debug),
+        "INFO" => Some(CodexStderrLevel::Info),
+        "WARN" | "WARNING" => Some(CodexStderrLevel::Warn),
+        "ERROR" => Some(CodexStderrLevel::Error),
+        _ => None,
+    }
+}
+
+fn looks_like_codex_timestamp(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() >= 19
+        && bytes[4] == b'-'
+        && bytes[7] == b'-'
+        && bytes[10] == b'T'
+        && bytes[13] == b':'
+        && bytes[16] == b':'
+}
+
+fn log_codex_stderr_line(line: &str) {
+    match classify_codex_stderr_line(line) {
+        // Routine tracing and continuation lines are available when Codey logging
+        // is explicitly raised to DEBUG/TRACE, but stay out of the normal WebView.
+        CodexStderrLevel::Trace => {
+            trace!("Codex app-server stderr: {line}");
+        }
+        CodexStderrLevel::Debug => debug!("Codex app-server stderr: {line}"),
+        CodexStderrLevel::Info | CodexStderrLevel::Other => {
+            debug!("Codex app-server stderr: {line}");
+        }
+        CodexStderrLevel::Warn => warn!("Codex app-server stderr: {line}"),
+        CodexStderrLevel::Error => error!("Codex app-server stderr: {line}"),
+    }
 }
 
 fn build_codex_command_for_bin(bin: &Path, args: &[&str]) -> Result<Command> {
@@ -993,7 +1102,7 @@ async fn start_external_codex_app_server<R: tauri::Runtime>(
         let mut lines = BufReader::new(stderr).lines();
         while let Ok(Some(line)) = lines.next_line().await {
             if !line.trim().is_empty() {
-                warn!("Codex app-server stderr: {line}");
+                log_codex_stderr_line(&line);
             }
         }
     });
@@ -2215,7 +2324,10 @@ fn default_codex_home_dir() -> Option<std::path::PathBuf> {
 
 #[cfg(test)]
 mod codex_external_environment_tests {
-    use super::default_codex_home_dir;
+    use super::{
+        classify_codex_stderr_line, codex_child_rust_log, default_codex_home_dir, CodexStderrLevel,
+        DEFAULT_CODEX_CHILD_RUST_LOG,
+    };
     use std::env;
     use std::ffi::OsString;
     use std::sync::{Mutex as StdMutex, OnceLock as StdOnceLock};
@@ -2259,6 +2371,65 @@ mod codex_external_environment_tests {
         let _codex_home = EnvVarGuard::set("CODEX_HOME", Some(custom.as_os_str().to_os_string()));
 
         assert_eq!(default_codex_home_dir(), Some(user_home.join(".codex")));
+    }
+
+    #[test]
+    fn codex_stderr_classifies_tracing_levels_without_promoting_info() {
+        assert_eq!(
+            classify_codex_stderr_line("2026-08-28T08:58:01Z  INFO session_loop: enter"),
+            CodexStderrLevel::Info
+        );
+        assert_eq!(
+            classify_codex_stderr_line("2026-08-28T08:58:01Z  WARN session_loop: retry"),
+            CodexStderrLevel::Warn
+        );
+        assert_eq!(
+            classify_codex_stderr_line("2026-08-28T08:58:01Z ERROR session_loop: failed"),
+            CodexStderrLevel::Error
+        );
+        assert_eq!(
+            classify_codex_stderr_line("plain diagnostic from app-server"),
+            CodexStderrLevel::Other
+        );
+        assert_eq!(
+            classify_codex_stderr_line("- JSON-RPC error code `-32001`"),
+            CodexStderrLevel::Other
+        );
+        assert_eq!(
+            classify_codex_stderr_line(
+                "2026-08-28T08:58:01Z  INFO app_server: JSON-RPC error code -32001"
+            ),
+            CodexStderrLevel::Info
+        );
+        assert_eq!(
+            classify_codex_stderr_line("Error: app-server failed to start"),
+            CodexStderrLevel::Error
+        );
+        assert_eq!(
+            classify_codex_stderr_line(
+                r#"{"timestamp":"2026-08-28T08:58:01Z","level":"ERROR","message":"failed"}"#,
+            ),
+            CodexStderrLevel::Error
+        );
+    }
+
+    #[test]
+    fn codex_child_logging_defaults_to_quiet_telemetry_and_honors_override() {
+        let _guard = ENV_LOCK.get_or_init(|| StdMutex::new(())).lock().unwrap();
+        let _override = EnvVarGuard::set("CODEY_CODEX_RUST_LOG", None);
+        assert_eq!(
+            codex_child_rust_log(),
+            OsString::from(DEFAULT_CODEX_CHILD_RUST_LOG)
+        );
+
+        let _override = EnvVarGuard::set(
+            "CODEY_CODEX_RUST_LOG",
+            Some(OsString::from("debug,codex_otel.log_only=info")),
+        );
+        assert_eq!(
+            codex_child_rust_log(),
+            OsString::from("debug,codex_otel.log_only=info")
+        );
     }
 
     #[cfg(target_os = "windows")]

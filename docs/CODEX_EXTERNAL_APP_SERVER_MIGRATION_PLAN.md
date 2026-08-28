@@ -68,7 +68,10 @@
   - server request emit `codex:request`。
   - server notification emit `codex:notification`。
 - stderr loop：
-  - 只记录日志，不写 Codex 环境。
+  - 持续 drain stderr，但默认通过 `warn,codex_otel.log_only=off` 关闭高频工具输出 telemetry。
+  - Codey 只从结构化日志行的级别字段识别 `TRACE/DEBUG/INFO/WARN/ERROR`；普通续行使用低级别记录，
+    不扫描正文中的单词，避免把 `JSON-RPC error code` 误判成错误。
+  - 子进程不继承 Codey 的 `RUST_LOG`；需要调试时使用专用的 `CODEY_CODEX_RUST_LOG`。
 
 ### 验收
 
