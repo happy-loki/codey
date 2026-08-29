@@ -91,6 +91,7 @@
     // filesystem fuzzy-search flow used by file attachments.
     let mentionMenuOpen = false;
     let mentionMenuWrapper: HTMLDivElement | null = null;
+    let mentionMenuList: HTMLDivElement | null = null;
     let mentionToken: MentionToken | null = null;
     let mentionCandidates: MentionCandidate[] = [];
     let filteredMentionCandidates: MentionCandidate[] = [];
@@ -237,6 +238,16 @@ type DirEntrySummary = {
         mentionSelectedIndex = 0;
     }
 
+    function scrollSelectedMentionIntoView() {
+        void tick().then(() => {
+            if (!mentionMenuOpen || filteredMentionCandidates.length === 0) return;
+            const selectedItem = mentionMenuList?.querySelector<HTMLElement>(
+                `[data-mention-index="${mentionSelectedIndex}"]`
+            );
+            selectedItem?.scrollIntoView({ block: "nearest", inline: "nearest" });
+        });
+    }
+
     function refreshMentionMenu(cursor = textarea?.selectionStart ?? input.length) {
         if (actionsDisabled || isProcessing) {
             closeMentionMenu();
@@ -266,6 +277,7 @@ type DirEntrySummary = {
             Math.max(0, filteredMentionCandidates.length - 1)
         );
         mentionMenuOpen = true;
+        scrollSelectedMentionIntoView();
 
         // Keep the resource picker mutually exclusive with the other composer panels.
         slashMenuOpen = false;
@@ -405,11 +417,13 @@ type DirEntrySummary = {
                     filteredMentionCandidates.length - 1,
                     mentionSelectedIndex + 1
                 );
+                scrollSelectedMentionIntoView();
                 return;
             }
             if (e.key === "ArrowUp" && filteredMentionCandidates.length > 0) {
                 e.preventDefault();
                 mentionSelectedIndex = Math.max(0, mentionSelectedIndex - 1);
+                scrollSelectedMentionIntoView();
                 return;
             }
             if (e.key === "Enter" && !e.shiftKey) {
@@ -1190,11 +1204,12 @@ type DirEntrySummary = {
             {:else if filteredMentionCandidates.length === 0}
                 <div class="mention-menu-status">没有匹配的 Skill 或 Plugin</div>
             {:else}
-                <div class="mention-menu-list">
+                <div class="mention-menu-list" bind:this={mentionMenuList}>
                     {#each filteredMentionCandidates as candidate, idx (candidate.id)}
                         <button
                             type="button"
                             class="mention-menu-item"
+                            data-mention-index={idx}
                             class:selected={idx === mentionSelectedIndex}
                             role="option"
                             aria-selected={idx === mentionSelectedIndex}
