@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from "svelte";
+    import { createEventDispatcher, onMount, tick } from "svelte";
     import { convertFileSrc, invoke } from "@tauri-apps/api/core";
     import { join, tempDir } from "@tauri-apps/api/path";
     import { writeFile } from "@tauri-apps/plugin-fs";
@@ -14,6 +14,16 @@
         type ComposerAttachment
     } from "./composerStore";
     import type { ThreadGoal, ThreadGoalStatus } from "./types";
+    import type { PluginListResponse, SkillsListResponse } from "./types";
+    import {
+        buildMentionCandidates,
+        filterMentionCandidates,
+        findMentionToken,
+        mentionsPresentInText,
+        type ComposerMention,
+        type MentionCandidate,
+        type MentionToken,
+    } from "./mentionUtils";
     import {
         Folder as FolderIcon,
         FileText,
@@ -27,7 +37,8 @@
         Panda,
         Pause,
         RotateCcw,
-        Check
+        Check,
+        Puzzle,
     } from "lucide-svelte";
     import FileTypeIcon from "../Icons/FileTypeIcon.svelte";
     import { dismissSystemDictation, isSystemDictationSupported, triggerSystemDictation } from "../system_dictation/tauri";
@@ -75,6 +86,39 @@
     let selectedBranchIndex = 0;
     let contextMenuOpen = false;
     let contextCircleWrapper: HTMLDivElement | null = null;
+
+    // @ completion is deliberately limited to Codex resources. It never starts the
+    // filesystem fuzzy-search flow used by file attachments.
+    let mentionMenuOpen = false;
+    let mentionMenuWrapper: HTMLDivElement | null = null;
+    let mentionToken: MentionToken | null = null;
+    let mentionCandidates: MentionCandidate[] = [];
+    let filteredMentionCandidates: MentionCandidate[] = [];
+    let mentionSelectedIndex = 0;
+    let mentionCatalogLoading = false;
+    let mentionCatalogError: string | null = null;
+    let mentionCatalogLoadedFor: string | null = null;
+    let mentionCatalogLoadingFor: string | null = null;
+    let mentionCatalogRequestId = 0;
+    let mentionWorkspaceKey = "";
+    let composerMentions: ComposerMention[] = [];
+    let mentionDismissedKey: string | null = null;
+
+    $: if (mentionWorkspaceKey !== (cwd || "")) {
+        mentionWorkspaceKey = cwd || "";
+        mentionCatalogRequestId += 1;
+        mentionCatalogLoadedFor = null;
+        mentionCatalogLoadingFor = null;
+        mentionCatalogLoading = false;
+        mentionCatalogError = null;
+        mentionCandidates = [];
+        filteredMentionCandidates = [];
+        composerMentions = [];
+        mentionMenuOpen = false;
+        mentionToken = null;
+        mentionSelectedIndex = 0;
+        mentionDismissedKey = null;
+    }
 
     // System dictation (OS voice typing). We only trigger the OS UI; text is inserted by the OS.
     let systemDictationSupported = true;
@@ -152,7 +196,10 @@ type DirEntrySummary = {
             input = value;
         },
         getElement: () => textarea,
-        afterValueUpdate: () => autoResize(),
+        afterValueUpdate: () => {
+            autoResize();
+            refreshMentionMenu();
+        },
         enableUndoRedo: true,
         onPaste: handleClipboardPaste,
         allowNativePasteFallback: true
@@ -176,11 +223,214 @@ type DirEntrySummary = {
         }
     }
 
+    function mentionTokenKey(token: MentionToken): string {
+        return `${token.start}:${token.end}:${token.query}`;
+    }
+
+    function closeMentionMenu(rememberDismissal = true) {
+        if (rememberDismissal && mentionToken) {
+            mentionDismissedKey = mentionTokenKey(mentionToken);
+        }
+        mentionMenuOpen = false;
+        mentionToken = null;
+        filteredMentionCandidates = [];
+        mentionSelectedIndex = 0;
+    }
+
+    function refreshMentionMenu(cursor = textarea?.selectionStart ?? input.length) {
+        if (actionsDisabled || isProcessing) {
+            closeMentionMenu();
+            return;
+        }
+
+        const nextToken = findMentionToken(input, cursor);
+        if (!nextToken) {
+            closeMentionMenu(false);
+            return;
+        }
+
+        const nextTokenKey = mentionTokenKey(nextToken);
+        if (mentionDismissedKey === nextTokenKey) {
+            closeMentionMenu(false);
+            return;
+        }
+        mentionDismissedKey = null;
+
+        mentionToken = nextToken;
+        filteredMentionCandidates = filterMentionCandidates(
+            mentionCandidates,
+            nextToken.query
+        );
+        mentionSelectedIndex = Math.min(
+            mentionSelectedIndex,
+            Math.max(0, filteredMentionCandidates.length - 1)
+        );
+        mentionMenuOpen = true;
+
+        // Keep the resource picker mutually exclusive with the other composer panels.
+        slashMenuOpen = false;
+        branchPickerOpen = false;
+        goalPanelOpen = false;
+
+        if (
+            mentionCatalogLoadedFor !== mentionWorkspaceKey &&
+            !(mentionCatalogLoading && mentionCatalogLoadingFor === mentionWorkspaceKey)
+        ) {
+            void loadMentionCatalog();
+        }
+    }
+
+    async function loadMentionCatalog() {
+        const workspaceKey = cwd || "";
+        if (mentionCatalogLoadedFor === workspaceKey) return;
+        if (mentionCatalogLoading && mentionCatalogLoadingFor === workspaceKey) return;
+
+        const requestId = ++mentionCatalogRequestId;
+        mentionCatalogLoading = true;
+        mentionCatalogLoadingFor = workspaceKey;
+        mentionCatalogError = null;
+
+        const skillsParams = {
+            forceReload: false,
+            cwds: workspaceKey ? [workspaceKey] : [],
+        };
+        const pluginParams = workspaceKey ? { cwds: [workspaceKey] } : {};
+
+        const [skillsResult, pluginsResult] = await Promise.allSettled([
+            invoke<SkillsListResponse>("codex_skills_list", { params: skillsParams }),
+            invoke<PluginListResponse>("codex_plugin_list", { params: pluginParams }),
+        ]);
+
+        // A workspace can change while the app-server requests are in flight. Do not let
+        // an older response replace the catalog for the new workspace.
+        if (requestId !== mentionCatalogRequestId || workspaceKey !== (cwd || "")) {
+            return;
+        }
+
+        const skillEntries =
+            skillsResult.status === "fulfilled" &&
+            Array.isArray(skillsResult.value?.data)
+                ? skillsResult.value.data
+                : [];
+        const skills = skillEntries.flatMap((entry) =>
+            Array.isArray(entry?.skills) ? entry.skills : []
+        );
+        const marketplaceEntries =
+            pluginsResult.status === "fulfilled" &&
+            Array.isArray(pluginsResult.value?.marketplaces)
+                ? pluginsResult.value.marketplaces
+                : [];
+        const plugins = marketplaceEntries.flatMap((marketplace) =>
+            Array.isArray(marketplace?.plugins) ? marketplace.plugins : []
+        );
+
+        mentionCandidates = buildMentionCandidates(skills, plugins);
+        mentionCatalogLoadedFor = workspaceKey;
+        mentionCatalogLoading = false;
+        mentionCatalogLoadingFor = null;
+        if (skillsResult.status === "rejected" && pluginsResult.status === "rejected") {
+            mentionCatalogError = "无法读取 Codex Skills/Plugins。";
+        }
+        refreshMentionMenu();
+    }
+
+    function handleInput(event: Event) {
+        const target = event.currentTarget as HTMLTextAreaElement;
+        input = target.value;
+        mentionDismissedKey = null;
+        autoResize();
+        refreshMentionMenu(target.selectionStart ?? input.length);
+    }
+
+    function handleTextareaSelectionChange(event?: Event) {
+        if (event?.type === "click") {
+            mentionDismissedKey = null;
+        }
+        refreshMentionMenu(textarea?.selectionStart ?? input.length);
+    }
+
+    function chooseMention(candidate: MentionCandidate) {
+        const token = mentionToken ?? findMentionToken(input, textarea?.selectionStart ?? input.length);
+        if (!token) return;
+
+        const before = input.slice(0, token.start);
+        const after = input.slice(token.end);
+        const separator =
+            !after || !/^[\s,.;!?()[\]{}<>]/u.test(after) ? " " : "";
+        const replacement = `${candidate.insertText}${separator}`;
+        // Replace any existing completed token as a whole when the cursor is inside it.
+        // This also drops its old binding before the new resource is attached.
+        const replacedToken = input.slice(token.start, token.end);
+        input = `${before}${replacement}${after}`;
+        composerMentions = [
+            ...composerMentions.filter((binding) => binding.token !== replacedToken),
+            {
+                kind: candidate.kind,
+                name: candidate.name,
+                path: candidate.path,
+                token: candidate.insertText,
+            },
+        ];
+        mentionDismissedKey = mentionTokenKey({
+            start: token.start,
+            end: token.start + candidate.insertText.length,
+            query: candidate.insertText.slice(1),
+        });
+        closeMentionMenu(false);
+        autoResize();
+
+        void tick().then(() => {
+            if (!textarea) return;
+            textarea.focus();
+            const nextCursor = token.start + replacement.length;
+            textarea.setSelectionRange(nextCursor, nextCursor);
+        });
+    }
+
     function handleKeyDown(e: KeyboardEvent) {
         clipboardController.handleKeyDown(e);
         if (e.defaultPrevented) {
             return;
         }
+
+        if (mentionMenuOpen) {
+            if (e.key === "Escape") {
+                e.preventDefault();
+                closeMentionMenu();
+                return;
+            }
+            if (e.key === "ArrowDown" && filteredMentionCandidates.length > 0) {
+                e.preventDefault();
+                mentionSelectedIndex = Math.min(
+                    filteredMentionCandidates.length - 1,
+                    mentionSelectedIndex + 1
+                );
+                return;
+            }
+            if (e.key === "ArrowUp" && filteredMentionCandidates.length > 0) {
+                e.preventDefault();
+                mentionSelectedIndex = Math.max(0, mentionSelectedIndex - 1);
+                return;
+            }
+            if (e.key === "Enter" && !e.shiftKey) {
+                const candidate = filteredMentionCandidates[mentionSelectedIndex];
+                if (candidate) {
+                    e.preventDefault();
+                    chooseMention(candidate);
+                    return;
+                }
+            }
+            if (e.key === "Tab") {
+                const candidate = filteredMentionCandidates[mentionSelectedIndex];
+                if (candidate) {
+                    e.preventDefault();
+                    chooseMention(candidate);
+                    return;
+                }
+                closeMentionMenu();
+            }
+        }
+
         if (e.key === "Enter" && !e.shiftKey) {
             if (shouldBlockImeEnter(e)) {
                 return;
@@ -200,9 +450,13 @@ type DirEntrySummary = {
         dispatch("send", {
             message: trimmed,
             autoContext: autoContext,
-            attachments
+            attachments,
+            mentions: mentionsPresentInText(trimmed, composerMentions),
         });
         input = "";
+        composerMentions = [];
+        mentionDismissedKey = null;
+        closeMentionMenu(false);
         clearAttachments();
         if (textarea) {
             textarea.style.height = "auto";
@@ -260,6 +514,7 @@ type DirEntrySummary = {
         if (slashMenuOpen) {
             branchPickerOpen = false;
             goalPanelOpen = false;
+            closeMentionMenu();
         }
     }
 
@@ -280,6 +535,7 @@ type DirEntrySummary = {
         if (goalPanelOpen) {
             slashMenuOpen = false;
             branchPickerOpen = false;
+            closeMentionMenu();
             goalDraft = activeGoal?.objective || input.trim();
             goalTokenBudgetDraft = activeGoal?.tokenBudget ? String(activeGoal.tokenBudget) : "";
         }
@@ -316,10 +572,11 @@ type DirEntrySummary = {
         dispatch("goalClear");
     }
 
-    $: if (actionsDisabled && (slashMenuOpen || branchPickerOpen || goalPanelOpen)) {
+    $: if (actionsDisabled && (slashMenuOpen || branchPickerOpen || goalPanelOpen || mentionMenuOpen)) {
         slashMenuOpen = false;
         branchPickerOpen = false;
         goalPanelOpen = false;
+        closeMentionMenu();
     }
 
     $: if (!goalPanelOpen && !activeGoal) {
@@ -357,6 +614,7 @@ type DirEntrySummary = {
     function openBranchPicker() {
         branchPickerOpen = true;
         branchError = null;
+        closeMentionMenu();
         if (branchOptions.length === 0) {
             void fetchBranchOverview();
         } else {
@@ -783,6 +1041,11 @@ type DirEntrySummary = {
                     closeBranchPicker();
                 }
             }
+            if (mentionMenuOpen) {
+                if (!mentionMenuWrapper || !mentionMenuWrapper.contains(event.target as Node)) {
+                    closeMentionMenu();
+                }
+            }
         };
         document.addEventListener("click", handleClick);
         return () => {
@@ -906,6 +1169,64 @@ type DirEntrySummary = {
 </script>
 
 <div class="input-box">
+    {#if mentionMenuOpen}
+        <div
+            class="mention-menu"
+            bind:this={mentionMenuWrapper}
+            role="listbox"
+            aria-label="Codex resources"
+        >
+            <div class="mention-menu-header">
+                <span class="mention-menu-symbol">@</span>
+                <span>选择 Codex 资源</span>
+                {#if mentionToken?.query}
+                    <span class="mention-menu-query">{mentionToken.query}</span>
+                {/if}
+            </div>
+            {#if mentionCatalogLoading}
+                <div class="mention-menu-status">正在读取 Skills 和 Plugins...</div>
+            {:else if mentionCatalogError && filteredMentionCandidates.length === 0}
+                <div class="mention-menu-status mention-menu-error">{mentionCatalogError}</div>
+            {:else if filteredMentionCandidates.length === 0}
+                <div class="mention-menu-status">没有匹配的 Skill 或 Plugin</div>
+            {:else}
+                <div class="mention-menu-list">
+                    {#each filteredMentionCandidates as candidate, idx (candidate.id)}
+                        <button
+                            type="button"
+                            class="mention-menu-item"
+                            class:selected={idx === mentionSelectedIndex}
+                            role="option"
+                            aria-selected={idx === mentionSelectedIndex}
+                            title={candidate.source}
+                            on:mousedown|preventDefault
+                            on:mousemove={() => (mentionSelectedIndex = idx)}
+                            on:click|stopPropagation={() => chooseMention(candidate)}
+                        >
+                            <span class:plugin={candidate.kind === "plugin"} class="mention-kind-icon">
+                                {#if candidate.kind === "plugin"}
+                                    <Puzzle size={15} stroke-width={2} aria-hidden="true" />
+                                {:else}
+                                    <Sparkles size={15} stroke-width={2} aria-hidden="true" />
+                                {/if}
+                            </span>
+                            <span class="mention-item-copy">
+                                <span class="mention-item-title">
+                                    <span>{candidate.displayName}</span>
+                                    <span class="mention-item-kind">{candidate.kind === "plugin" ? "Plugin" : "Skill"}</span>
+                                </span>
+                                <span class="mention-item-token">{candidate.insertText}</span>
+                                {#if candidate.description}
+                                    <span class="mention-item-description">{candidate.description}</span>
+                                {/if}
+                                <span class="mention-item-source">{candidate.source}</span>
+                            </span>
+                        </button>
+                    {/each}
+                </div>
+            {/if}
+        </div>
+    {/if}
     {#if branchPickerOpen}
         <div class="branch-picker" bind:this={branchPickerWrapper}>
             <div class="branch-search">
@@ -1101,7 +1422,10 @@ type DirEntrySummary = {
                     bind:value={input}
                     on:keydown={handleKeyDown}
                     on:paste={handlePasteEvent}
-                    on:input={autoResize}
+                    on:input={handleInput}
+                    on:click={handleTextareaSelectionChange}
+                    on:select={handleTextareaSelectionChange}
+                    on:keyup={handleTextareaSelectionChange}
                     on:contextmenu|preventDefault={clipboardController.handleContextMenu}
                     placeholder={$t("codex.composer.placeholder")}
                     disabled={isProcessing}
@@ -1874,6 +2198,209 @@ type DirEntrySummary = {
     .goal-status-actions button:disabled {
         opacity: 0.45;
         cursor: not-allowed;
+    }
+
+    .mention-menu {
+        position: absolute;
+        bottom: calc(100% + 10px);
+        left: 0;
+        right: 0;
+        max-height: min(360px, 60vh);
+        padding: 10px;
+        overflow: hidden;
+        border-radius: 12px;
+        background: rgba(17, 24, 39, 0.98);
+        border: 1px solid rgba(99, 102, 241, 0.28);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42);
+        color: var(--text-primary, #fff);
+        z-index: 30;
+    }
+
+    :global(html[data-theme="light"]) .mention-menu {
+        background: rgba(255, 255, 255, 0.98);
+        border-color: rgba(79, 70, 229, 0.2);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+        color: var(--text-primary, #111);
+    }
+
+    .mention-menu-header {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 24px;
+        padding: 0 4px 8px;
+        color: var(--text-secondary, #a5b4fc);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    :global(html[data-theme="light"]) .mention-menu-header {
+        color: #4338ca;
+    }
+
+    .mention-menu-symbol {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        background: rgba(99, 102, 241, 0.16);
+        color: #c4b5fd;
+        font-size: 13px;
+        line-height: 1;
+    }
+
+    :global(html[data-theme="light"]) .mention-menu-symbol {
+        background: rgba(79, 70, 229, 0.1);
+        color: #4338ca;
+    }
+
+    .mention-menu-query {
+        max-width: 35%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text-secondary, #94a3b8);
+        font-weight: 500;
+    }
+
+    .mention-menu-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .mention-menu-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        width: 100%;
+        min-width: 0;
+        padding: 8px 9px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.12s, border-color 0.12s;
+    }
+
+    .mention-menu-item:hover,
+    .mention-menu-item.selected {
+        background: rgba(99, 102, 241, 0.13);
+        border-color: rgba(99, 102, 241, 0.24);
+    }
+
+    :global(html[data-theme="light"]) .mention-menu-item:hover,
+    :global(html[data-theme="light"]) .mention-menu-item.selected {
+        background: rgba(79, 70, 229, 0.08);
+        border-color: rgba(79, 70, 229, 0.16);
+    }
+
+    .mention-kind-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        border-radius: 6px;
+        background: rgba(148, 163, 184, 0.12);
+        color: #a5b4fc;
+    }
+
+    .mention-kind-icon.plugin {
+        color: #f0abfc;
+        background: rgba(217, 70, 239, 0.13);
+    }
+
+    :global(html[data-theme="light"]) .mention-kind-icon {
+        color: #4f46e5;
+        background: rgba(79, 70, 229, 0.08);
+    }
+
+    :global(html[data-theme="light"]) .mention-kind-icon.plugin {
+        color: #a21caf;
+        background: rgba(192, 38, 211, 0.08);
+    }
+
+    .mention-item-copy {
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .mention-item-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .mention-item-title > span:first-child {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mention-item-kind {
+        flex: 0 0 auto;
+        color: var(--text-secondary, #94a3b8);
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .mention-item-token,
+    .mention-item-source,
+    .mention-item-description {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mention-item-token {
+        color: #c4b5fd;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 11px;
+    }
+
+    :global(html[data-theme="light"]) .mention-item-token {
+        color: #4f46e5;
+    }
+
+    .mention-item-description,
+    .mention-item-source,
+    .mention-menu-status {
+        color: var(--text-secondary, #94a3b8);
+        font-size: 11px;
+        line-height: 1.35;
+    }
+
+    .mention-item-source {
+        color: color-mix(in srgb, var(--text-secondary, #94a3b8) 78%, transparent);
+    }
+
+    .mention-menu-status {
+        padding: 10px 5px 6px;
+    }
+
+    .mention-menu-error {
+        color: #fca5a5;
+    }
+
+    :global(html[data-theme="light"]) .mention-menu-error {
+        color: #b91c1c;
     }
 
     .branch-picker {

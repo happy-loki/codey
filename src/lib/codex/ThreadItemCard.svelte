@@ -24,6 +24,7 @@
         Globe2,
         MessageSquare,
         GitBranch,
+        Puzzle,
         Send,
         PauseCircle,
         X,
@@ -1361,6 +1362,20 @@
         return input?.type === "image" || input?.type === "localImage";
     }
 
+    function isResourceMentionInput(
+        input: any
+    ): input is { type: "skill" | "mention"; name: string; path: string } {
+        return (
+            (input?.type === "skill" || input?.type === "mention") &&
+            typeof input.name === "string" &&
+            typeof input.path === "string"
+        );
+    }
+
+    function resourceMentionLabel(input: { type: "skill" | "mention"; name: string }): string {
+        return input.name.trim() || (input.type === "skill" ? "Skill" : "Plugin");
+    }
+
     function isAttachmentText(input: any): input is { type: "text"; text: string } {
         if (!input || input.type !== "text") return false;
         const trimmed = (input.text || "").trim();
@@ -2163,6 +2178,7 @@
                 {@const rest = content.filter((input) => input !== firstText)}
                 {@const attachmentTexts = rest.filter((input) => isAttachmentText(input))}
                 {@const attachmentImages = rest.filter((input) => isImageInput(input))}
+                {@const resourceMentions = rest.filter((input) => isResourceMentionInput(input))}
                 {#if isReviewPrompt}
                     <div class="review-prompt-card">
                         {#if firstText}
@@ -2171,6 +2187,25 @@
                     </div>
                 {:else}
                     <div class="simple-content">
+                        {#if resourceMentions.length}
+                            <div class="resource-mention-row" aria-label="Codex resources">
+                                {#each resourceMentions as mention}
+                                    <div
+                                        class:plugin={mention.type === "mention"}
+                                        class="resource-mention-chip"
+                                        title={mention.path}
+                                    >
+                                        {#if mention.type === "mention"}
+                                            <Puzzle size="1em" class="resource-mention-icon" aria-hidden="true" />
+                                        {:else}
+                                            <BookOpenCheck size="1em" class="resource-mention-icon" aria-hidden="true" />
+                                        {/if}
+                                        <span class="resource-mention-label">{resourceMentionLabel(mention)}</span>
+                                        <span class="resource-mention-kind">{mention.type === "mention" ? "Plugin" : "Skill"}</span>
+                                    </div>
+                                {/each}
+                            </div>
+                        {/if}
                         {#if attachmentTexts.length}
                             <div class="attachment-row in-bubble">
                                 {#each attachmentTexts as input, idx}
@@ -3732,6 +3767,66 @@
         flex-wrap: wrap;
         gap: 6px;
         margin: 0 0 6px 0;
+    }
+
+    .resource-mention-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 0 0 6px 0;
+    }
+
+    .resource-mention-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        max-width: 100%;
+        padding: 6px 10px;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 999px;
+        background: rgba(99, 102, 241, 0.12);
+        color: #c7d2fe;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .resource-mention-chip.plugin {
+        border-color: rgba(217, 70, 239, 0.3);
+        background: rgba(217, 70, 239, 0.11);
+        color: #f5d0fe;
+    }
+
+    :global(html[data-theme="light"]) .resource-mention-chip {
+        border-color: rgba(79, 70, 229, 0.2);
+        background: rgba(79, 70, 229, 0.08);
+        color: #3730a3;
+    }
+
+    :global(html[data-theme="light"]) .resource-mention-chip.plugin {
+        border-color: rgba(192, 38, 211, 0.2);
+        background: rgba(192, 38, 211, 0.07);
+        color: #86198f;
+    }
+
+    .resource-mention-icon {
+        flex: 0 0 auto;
+        opacity: 0.9;
+    }
+
+    .resource-mention-label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .resource-mention-kind {
+        flex: 0 0 auto;
+        opacity: 0.72;
+        font-size: 10px;
+        font-weight: 650;
+        text-transform: uppercase;
     }
 
     .attachment-chip {

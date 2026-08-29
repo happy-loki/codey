@@ -36,6 +36,15 @@ Codey 遵循以下边界：
 
 因此，用户在 Codex CLI 中已有的全局配置和登录状态会由外部 `codex app-server` 按官方规则使用。Codey 自己的设置只影响 Codey UI 和本地工作区。
 
+### ChatView 的 `@` 资源补全
+
+在聊天输入框中输入 `@` 可以选择当前 Codex 环境里的资源：
+
+- 已启用的 Skill（发送为 `UserInput::Skill`，携带 Skill 名称和 `SKILL.md` 路径）
+- 已安装且启用的 Plugin（发送为 `UserInput::Mention`，携带 Plugin 名称和 `plugin://...` 标识）
+
+候选由外部 app-server 的 `skills/list` 和 `plugin/list` 返回，Codey 只负责展示和发送选择结果，不安装、启用或修改这些资源。这个补全不会搜索文件；文件和目录仍使用拖拽或附件入口。当前 app-server 没有独立的 Agent catalog，因此线程或 sub-agent 不会被伪装成 `@` 候选。
+
 ## 环境要求
 
 - Node.js，版本以 `.nvmrc` 为准

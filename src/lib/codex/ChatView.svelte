@@ -20,6 +20,7 @@
     import ThreadItemFlatList from "./ThreadItemFlatList.svelte";
     import type { TurnDiffFileSummary } from "./diffUtils";
     import type { ComposerAttachment } from "./composerStore";
+    import type { ComposerMention } from "./mentionUtils";
     import type {
         ServerNotification,
         ErrorNotification,
@@ -1091,7 +1092,8 @@
     async function sendMessage(
         content: string,
         autoContext: boolean = false,
-        attachments: ComposerAttachment[] = []
+        attachments: ComposerAttachment[] = [],
+        mentions: ComposerMention[] = []
     ) {
         if (!content.trim() || isProcessing) return;
         if (!cwd) {
@@ -1108,8 +1110,31 @@
 
         try {
             // 主问题始终只使用用户键盘输入的内容
-            const mainInput: UserInput = { type: "text", text: content };
+            const mainInput: UserInput = {
+                type: "text",
+                text: content,
+                text_elements: [],
+            };
             const extraInputs: UserInput[] = [];
+
+            // A selected composer resource is sent as a structured protocol item. Keep the
+            // visible @token in the text, but do not infer resources from arbitrary text.
+            const mentionInputs: UserInput[] = [];
+            const seenMentionKeys = new Set<string>();
+            for (const mention of mentions) {
+                const name = (mention?.name || "").trim();
+                const path = (mention?.path || "").trim();
+                if (!name || !path) continue;
+                if (mention.kind === "plugin" && !path.startsWith("plugin://")) continue;
+                const key = `${mention.kind}:${path}`;
+                if (seenMentionKeys.has(key)) continue;
+                seenMentionKeys.add(key);
+                if (mention.kind === "skill") {
+                    mentionInputs.push({ type: "skill", name, path });
+                } else {
+                    mentionInputs.push({ type: "mention", name, path });
+                }
+            }
 
             // If auto context is enabled, prepend editor context
             if (autoContext) {
@@ -1152,6 +1177,7 @@
                         extraInputs.push({
                             type: "text",
                             text: contextText,
+                            text_elements: [],
                         } as UserInput);
                     }
                 } catch (error) {
@@ -1163,7 +1189,12 @@
             // 来自编辑器 / 输入框的附件（代码片段、图片等）
             const attachmentInputs: UserInput[] = attachments.map((att) => att.input);
 
-            const inputs: UserInput[] = [mainInput, ...extraInputs, ...attachmentInputs];
+            const inputs: UserInput[] = [
+                mainInput,
+                ...mentionInputs,
+                ...extraInputs,
+                ...attachmentInputs,
+            ];
 
             const effectiveModel = selectedModel || null;
             pendingModelForNextTurn = effectiveModel;
@@ -3243,7 +3274,13 @@ let userInteracting = false;
             {/if}
 
             <InputBox
-                on:send={(e) => sendMessage(e.detail.message, e.detail.autoContext, e.detail.attachments)}
+                on:send={(e) =>
+                    sendMessage(
+                        e.detail.message,
+                        e.detail.autoContext,
+                        e.detail.attachments,
+                        e.detail.mentions
+                    )}
                 on:interrupt={interruptTurn}
                 on:requestCodeReview={startCodeReview}
                 on:goalSet={setThreadGoal}

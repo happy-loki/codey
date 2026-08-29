@@ -177,6 +177,18 @@
 2. 外部 Codex CLI 的 app-server 协议版本变化需要通过兼容性测试发现，Codey 不再通过编译 `external/codex` 来锁定运行时版本。
 3. 应用内自动更新能力保留；后续 updater endpoint 应指向 GitHub Actions/Release 产出的公开更新 manifest 和二进制产物，不再使用私有 release 仓库、自托管更新服务或本地发布脚本。
 
+## ChatView `@` 资源补全
+
+聊天输入框支持以 `@` 开始的资源候选，但刻意不复用文件模糊搜索：
+
+- 候选来自外部 app-server 的 `skills/list` 与 `plugin/list`。
+- 只显示 `enabled` 的 Skill，以及 `installed && enabled` 的 Plugin。
+- 选择 Skill 后发送 `UserInput::Skill { name, path }`。
+- 选择 Plugin 后发送 `UserInput::Mention { name, path }`，其中 `path` 使用 `plugin://<plugin-id>`。
+- 可见的 `@token` 保留在主文本中；删除 token 后不会发送对应的结构化资源项。
+- Codey 不安装、启用、禁用或修复资源，也不写入官方 Codex home。
+- app-server 当前没有独立的 Agent catalog；thread/sub-agent 列表不作为 `@` 候选。
+
 ## GitHub 发布流水线
 
 公开发布改为 GitHub Actions 驱动：
