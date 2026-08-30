@@ -182,6 +182,20 @@
         return normalized.replace(/\/+$/g, "");
     }
 
+    function getErrorMessage(error: unknown): string {
+        if (typeof error === "string") return error;
+        if (error instanceof Error) return error.message;
+        if (error && typeof error === "object" && "message" in error) {
+            const message = (error as { message?: unknown }).message;
+            if (typeof message === "string") return message;
+        }
+        try {
+            return JSON.stringify(error);
+        } catch {
+            return String(error);
+        }
+    }
+
     function measureEventLoopLag(label: string) {
         const start = performance.now();
         setTimeout(() => {
@@ -1086,7 +1100,16 @@
             });
             setCurrentView("chat");
         } catch (error) {
+            const message = getErrorMessage(error);
             console.error("Failed to resume thread:", error);
+            if (/already has an active writer/i.test(message)) {
+                addNotification(
+                    NotifType.Warning,
+                    $t("codex.threads.resumeConflictTitle"),
+                    [],
+                    $t("codex.threads.resumeConflictMessage")
+                );
+            }
         }
     }
 

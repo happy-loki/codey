@@ -427,6 +427,9 @@ export default {
             foreignWorkspaceBlockedTitle: "Open in matching workspace",
             foreignWorkspaceBlockedMessage:
                 "This thread belongs to {threadCwd}, but your current workspace is {currentCwd}. Open that folder as the workspace to continue this conversation.",
+            resumeConflictTitle: "Thread is in use by another process",
+            resumeConflictMessage:
+                "This thread is currently owned by another Codey, Codex CLI, or editor process and cannot be resumed here. Close the process using it, then try again.",
         },
         thread: {
             compactedBanner: "Agent compacted this thread to free up context.",

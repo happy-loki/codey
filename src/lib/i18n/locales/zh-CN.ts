@@ -419,6 +419,9 @@ export default {
             foreignWorkspaceBlockedTitle: "请先切换到对应工作区",
             foreignWorkspaceBlockedMessage:
                 "该会话创建于工作区：{threadCwd}\n当前工作区：{currentCwd}\n请先在左侧文件树中打开上述目录作为工作区，然后再恢复此会话。",
+            resumeConflictTitle: "会话正在被其他进程使用",
+            resumeConflictMessage:
+                "该会话当前正由另一个 Codey、Codex CLI 或编辑器进程占用，暂时无法恢复。请关闭正在使用它的进程，稍后再试。",
         },
         thread: {
             compactedBanner: "Agent 已压缩此会话以释放上下文",
