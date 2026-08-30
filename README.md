@@ -6,6 +6,7 @@ Codey 是一个基于 Tauri 2 的本地优先桌面工作区。它把文件树�
 
 - 通过 Codex Agent 进行对话、创建线程、恢复历史线程和执行任务
 - 文件树、文本编辑器、Markdown 预览和图片预览
+- ChatView 支持标准 Markdown 媒体嵌入（`![说明](路径)`）和明确写出的音频/视频 HTML；相对媒体路径按当前工作区解析，本地文件通过 Tauri asset protocol 加载。普通 Markdown 文件链接保持编辑器跳转行为（相对路径也会按当前工作区解析）。为保证安全，不支持任意 iframe、script 或其他嵌入式页面。
 - 本地终端与工作区管理
 - Git 状态和常用 Git 操作
 - Draw.io、白板、Excalidraw 等可视化工具

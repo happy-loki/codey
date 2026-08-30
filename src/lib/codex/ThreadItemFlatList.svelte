@@ -71,6 +71,8 @@
     // If set, we treat the matching item card as "streaming" to avoid heavy rendering work.
     // (The parent ChatView owns the streaming state; we only decorate the card.)
     export let streamingItemId: string | null = null;
+    // Workspace directory used to resolve relative media references in chat Markdown.
+    export let mediaBaseDir: string | null = null;
 
     type StatusRow = {
         kind: "status";
@@ -2049,6 +2051,7 @@
                                                     item={row.item}
                                                     isStreaming={!!streamingItemId && streamingItemId === (row.sourceItemId ?? row.item.id)}
                                                     isReviewPrompt={row.isReviewPrompt}
+                                                    {mediaBaseDir}
                                                     hideLeadingIcon
                                                     on:openThread={(e) => emitOpenThread(e.detail.threadId)}
                                                 />
@@ -2067,6 +2070,7 @@
                                                 item={row.item}
                                                 isStreaming={!!streamingItemId && streamingItemId === (row.sourceItemId ?? row.item.id)}
                                                 isReviewPrompt={row.isReviewPrompt}
+                                                {mediaBaseDir}
                                                 on:openThread={(e) => emitOpenThread(e.detail.threadId)}
                                             />
                                         </div>

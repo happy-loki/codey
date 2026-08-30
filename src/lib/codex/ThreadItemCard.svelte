@@ -41,6 +41,7 @@
     import { writeText } from "@tauri-apps/plugin-clipboard-manager";
     import { openContextMenu } from "../utility/contextMenuService";
     import FileTypeIcon from "../Icons/FileTypeIcon.svelte";
+    import { resolveLocalPath } from "../markdown/mediaUtils";
 
     export let item: ThreadItem;
     export let isStreaming = false;
@@ -49,6 +50,8 @@
     export let renderAsReasoning = false;
     // 如果为 true，userMessage 作为 review 提示 header 样式渲染
     export let isReviewPrompt = false;
+    // Workspace directory used to resolve relative media references in chat Markdown.
+    export let mediaBaseDir: string | null = null;
     const dispatch = createEventDispatcher<{
         openThread: { threadId: string };
     }>();
@@ -844,6 +847,39 @@
         };
     }
 
+    function createRelativeFileDescriptor(
+        href: string,
+        referenceText?: string
+    ): FileLinkDescriptor | null {
+        if (!mediaBaseDir) return null;
+
+        const trimmed = (href || "").trim();
+        if (!trimmed || /^(?:https?|mailto|tel|file|asset|tauri|blob|data|vscode(?:-insiders)?):/i.test(trimmed)) {
+            return null;
+        }
+
+        const fragmentIndex = trimmed.indexOf("#");
+        const rawPath = fragmentIndex >= 0 ? trimmed.slice(0, fragmentIndex) : trimmed;
+        const fragment = fragmentIndex >= 0 ? trimmed.slice(fragmentIndex + 1) : "";
+        const suffix = splitLineColumnSuffix(rawPath);
+        const absolutePath = resolveLocalPath(suffix.path, mediaBaseDir);
+        if (!absolutePath) return null;
+
+        const lineColumnFromFragment = parseLineAndColumnFromFragment(fragment);
+        const line = fragment ? lineColumnFromFragment.line : (suffix.line ?? 1);
+        const column = fragment ? lineColumnFromFragment.column : (suffix.column ?? 1);
+        const displayName = absolutePath.split(/[/\\]/).pop() || absolutePath;
+
+        return {
+            absolutePath,
+            displayName,
+            tooltip: absolutePath,
+            referenceText: referenceText || displayName,
+            startLine: line,
+            endLine: line,
+        };
+    }
+
     function consumeTrailingLineSuffix(
         anchor: HTMLAnchorElement,
         descriptor: FileLinkDescriptor
@@ -1278,6 +1314,23 @@
                 return;
             }
 
+            // Streaming Markdown is intentionally not decorated into a file pill yet,
+            // but a relative file link should still be usable while the response grows.
+            const relativeFile = createRelativeFileDescriptor(
+                href,
+                target.textContent?.trim() || undefined
+            );
+            if (relativeFile) {
+                event.preventDefault();
+                event.stopPropagation();
+                openInternalFilePath(
+                    relativeFile.absolutePath,
+                    relativeFile.startLine ?? 1,
+                    1
+                );
+                return;
+            }
+
             // All other href forms are considered unsupported for in-app file opening.
             // Prevent default navigation so plain `/D:/...` or relative markdown links
             // cannot blow away the current ChatView route.
@@ -1313,7 +1366,8 @@
 
             const descriptor = VSCODE_URI_PATTERN.test(href)
                 ? createVsCodeDescriptor(href, anchor.textContent?.trim() || undefined)
-                : createAbsoluteFileDescriptor(href, anchor.textContent?.trim() || undefined);
+                : createAbsoluteFileDescriptor(href, anchor.textContent?.trim() || undefined) ||
+                  createRelativeFileDescriptor(href, anchor.textContent?.trim() || undefined);
 
             const displayDescriptor = descriptor
                 ? consumeTrailingLineSuffix(anchor, descriptor)
@@ -1921,7 +1975,7 @@
                 {#if displayType === "reasoning"}
                     <!-- Reasoning 标题用 markdown 渲染 -->
                     <div class="item-summary-markdown" on:click={handleReferenceClick}>
-                        <MarkdownRenderer content={normalizeMarkdown(summary)} plain />
+                        <MarkdownRenderer content={normalizeMarkdown(summary)} mediaBaseDir={mediaBaseDir} plain />
                     </div>
                 {:else}
                     <span class="item-summary">{summaryText}</span>
@@ -2152,7 +2206,11 @@
                     </div>
                 {:else if item.type === "plan"}
                     <div class="markdown-wrapper plan" on:click={handleReferenceClick}>
-                        <MarkdownRenderer content={renderMarkdownContent(item.text || "")} enhance={!isStreaming} />
+                        <MarkdownRenderer
+                            content={renderMarkdownContent(item.text || "")}
+                            mediaBaseDir={mediaBaseDir}
+                            enhance={!isStreaming}
+                        />
                     </div>
                 {:else if item.type === "contextCompaction"}
                     <div class="context-compaction-card">
@@ -2277,12 +2335,20 @@
                             </div>
                         {:else}
                                 <div class="markdown-wrapper reasoning" on:click={handleReferenceClick}>
-                                <MarkdownRenderer content={agentMessageMarkdownContent} enhance={!isStreaming} />
+                                <MarkdownRenderer
+                                    content={agentMessageMarkdownContent}
+                                    mediaBaseDir={mediaBaseDir}
+                                    enhance={!isStreaming}
+                                />
                             </div>
                         {/if}
                     {:else}
                         <div class="markdown-wrapper" on:click={handleReferenceClick}>
-                            <MarkdownRenderer content={agentMessageMarkdownContent} enhance={!isStreaming} />
+                            <MarkdownRenderer
+                                content={agentMessageMarkdownContent}
+                                mediaBaseDir={mediaBaseDir}
+                                enhance={!isStreaming}
+                            />
                         </div>
                         {/if}
                 </div>
@@ -2331,7 +2397,11 @@
                         {#if summaryText}
                             <div class="image-generation-header">
                                 <div class="image-generation-summary markdown-wrapper" on:click={handleReferenceClick}>
-                                    <MarkdownRenderer content={renderMarkdownContent(summaryText)} enhance={!isStreaming} />
+                                    <MarkdownRenderer
+                                        content={renderMarkdownContent(summaryText)}
+                                        mediaBaseDir={mediaBaseDir}
+                                        enhance={!isStreaming}
+                                    />
                                 </div>
                             </div>
                         {/if}
@@ -2378,7 +2448,11 @@
                                     {#each item.content as contentText}
                                         {#if contentText}
                                             <div class="markdown-wrapper reasoning" on:click={handleReferenceClick}>
-                                                <MarkdownRenderer content={normalizeMarkdown(contentText)} plain />
+                                                <MarkdownRenderer
+                                                    content={normalizeMarkdown(contentText)}
+                                                    mediaBaseDir={mediaBaseDir}
+                                                    plain
+                                                />
                                             </div>
                                         {/if}
                                     {/each}
@@ -2386,7 +2460,11 @@
                             {:else if hasReasoningSummaryBody}
                                 <div class="reasoning-content">
                                     <div class="markdown-wrapper reasoning" on:click={handleReferenceClick}>
-                                        <MarkdownRenderer content={normalizeMarkdown(reasoningSummaryBody)} plain />
+                                        <MarkdownRenderer
+                                            content={normalizeMarkdown(reasoningSummaryBody)}
+                                            mediaBaseDir={mediaBaseDir}
+                                            plain
+                                        />
                                     </div>
                                 </div>
                             {/if}
@@ -2395,7 +2473,11 @@
                             {#if item.text}
                                 <div class="reasoning-content">
                                     <div class="markdown-wrapper reasoning" on:click={handleReferenceClick}>
-                                        <MarkdownRenderer content={normalizeMarkdown(item.text)} plain />
+                                        <MarkdownRenderer
+                                            content={normalizeMarkdown(item.text)}
+                                            mediaBaseDir={mediaBaseDir}
+                                            plain
+                                        />
                                     </div>
                                 </div>
                             {/if}

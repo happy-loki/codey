@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Marked } from "marked";
+    import { Marked, Renderer, type Tokens } from "marked";
     import DOMPurify from "isomorphic-dompurify";
     import hljs from "highlight.js";
     import githubDarkCss from "highlight.js/styles/github-dark.css?raw";
@@ -7,9 +7,12 @@
     import { onMount, afterUpdate, onDestroy } from "svelte";
     import { copyPlainTextToClipboard } from "../utility/textClipboard";
     import { typesetMathInElement } from "../markdown/mathjax";
+    import { resolveMediaSrcset, resolveMediaUrl } from "../markdown/mediaUtils";
 
     export let content: string;
     export let plain = false;
+    // Workspace directory used to resolve relative image/audio/video references.
+    export let mediaBaseDir: string | null = null;
     // When false, still render Markdown, but skip expensive post-processing like syntax highlighting
     // and MathJax. Also coalesces frequent updates to at most once per animation frame (streaming).
     export let enhance = true;
@@ -20,6 +23,7 @@
     let themeObserver: MutationObserver | null = null;
     let renderRaf: number | null = null;
     let scheduledContent: string | null = null;
+    let scheduledMediaBaseDir: string | null = null;
     let lastEnhanced = enhance;
 
     const COPY_ICON_SVG = `
@@ -41,10 +45,54 @@
     const markdown = new Marked({
         breaks: true,
         gfm: true,
+        renderer: {
+            image(this: Renderer, token: Tokens.Image) {
+                // Keep a marker so post-processing can distinguish Markdown's
+                // ![alt](url) embed from an explicit HTML <img> element.
+                const rendered = Renderer.prototype.image.call(this, token);
+                return rendered.replace(
+                    /^<img\b/i,
+                    '<img data-codey-markdown-image="true"'
+                );
+            },
+        },
     });
 
     const SAFE_MARKDOWN_URI_PATTERN =
-        /^(?:(?:https?|mailto|tel|file|vscode|vscode-insiders):|[A-Za-z]:[\\/]|\\\\|\/(?!\/)|#|\.{1,2}\/|[^A-Za-z:/?#][^:]*$|[A-Za-z][^:]*$)/i;
+        /^(?:(?:https?|mailto|tel|file|asset|tauri|blob|vscode|vscode-insiders):|data:(?:image\/(?:png|jpeg|gif|webp|avif|apng|jxl|bmp|svg\+xml|x-icon|vnd\.microsoft\.icon|tiff)|audio\/[a-z0-9.+-]+|video\/[a-z0-9.+-]+|application\/(?:ogg|vnd\.apple\.mpegurl))(?:;[^,]*)?,|[A-Za-z]:(?:[\\/]|%2f|%5c)|(?:\\\\|%5c%5c)|(?:\/\/\?\/(?:[A-Za-z]:|UNC(?:\/|$)))|(?:(?:%5c|%2f){0,2}(?:\?|%3f)(?:%5c|%2f)(?:[A-Za-z]:|UNC(?:%5c|%2f)))|\/(?!\/)|#|\.{1,2}\/|[^A-Za-z:/?#][^:]*$|[A-Za-z][^:]*$)/i;
+
+    // Only explicit Markdown media elements are enhanced. Ordinary Markdown
+    // links remain anchors so ThreadItemCard can route file references to the
+    // editor as it did before media support was added.
+    const MEDIA_HTML_HINT = /<(?:img|picture|audio|video|source|track)\b/i;
+    type MediaKind = "image" | "audio" | "video";
+    const AUDIO_EXTENSIONS = new Set([
+        "mp3",
+        "wav",
+        "ogg",
+        "oga",
+        "opus",
+        "m4a",
+        "aac",
+        "flac",
+        "weba",
+        "mid",
+        "midi",
+    ]);
+    const VIDEO_EXTENSIONS = new Set([
+        "mp4",
+        "webm",
+        "mov",
+        "m4v",
+        "ogv",
+        "avi",
+        "mkv",
+        "wmv",
+        "mpeg",
+        "mpg",
+        "3gp",
+        "m3u8",
+    ]);
 
     // Cache rendered HTML for non-streaming content.
     // Virtualized rows are frequently unmounted/remounted during scroll; caching avoids
@@ -96,11 +144,130 @@
         return result;
     }
 
-    function renderContent(text: string): string {
+    function getMediaKind(value: string, mimeType = ""): MediaKind {
+        const normalizedMime = mimeType.trim().toLowerCase();
+        if (normalizedMime.startsWith("audio/") || normalizedMime === "application/ogg") {
+            return "audio";
+        }
+        if (
+            normalizedMime.startsWith("video/") ||
+            normalizedMime === "application/vnd.apple.mpegurl"
+        ) {
+            return "video";
+        }
+
+        const dataMime = value.trim().match(/^data:([^;,]+)/i)?.[1]?.toLowerCase() ?? "";
+        if (dataMime) return getMediaKind("", dataMime);
+
+        let decodedPath = value.trim();
+        try {
+            decodedPath = decodeURIComponent(decodedPath);
+        } catch {
+            // Keep the original URL when it contains malformed percent escapes.
+        }
+        const extension =
+            decodedPath.match(/\.([a-z0-9]+)(?:[?#].*)?$/i)?.[1]?.toLowerCase() ?? "";
+        if (AUDIO_EXTENSIONS.has(extension)) return "audio";
+        if (VIDEO_EXTENSIONS.has(extension)) return "video";
+        return "image";
+    }
+
+    function rewriteUrlAttribute(element: Element, attribute: string, baseDir: string | null) {
+        const value = element.getAttribute(attribute);
+        if (!value) return;
+        const resolved = resolveMediaUrl(value, baseDir);
+        if (resolved) {
+            element.setAttribute(attribute, resolved);
+        } else {
+            element.removeAttribute(attribute);
+        }
+    }
+
+    function rewriteSrcsetAttribute(element: Element, baseDir: string | null) {
+        const value = element.getAttribute("srcset");
+        if (!value) return;
+        const resolved = resolveMediaSrcset(value, baseDir);
+        if (resolved) {
+            element.setAttribute("srcset", resolved);
+        } else {
+            element.removeAttribute("srcset");
+        }
+    }
+
+    function configurePlayableMedia(media: HTMLAudioElement | HTMLVideoElement) {
+        media.setAttribute("controls", "");
+        if (!media.hasAttribute("preload")) {
+            media.setAttribute("preload", "metadata");
+        }
+        if (media.tagName.toLowerCase() === "video") {
+            media.setAttribute("playsinline", "");
+        }
+    }
+
+    function enhanceMediaHtml(html: string, baseDir: string | null): string {
+        if (typeof DOMParser === "undefined" || !MEDIA_HTML_HINT.test(html)) return html;
+
+        const doc = new DOMParser().parseFromString(html, "text/html");
+
+        doc.querySelectorAll("img").forEach((image) => {
+            const isMarkdownImage = image.hasAttribute("data-codey-markdown-image");
+            const mediaKind = isMarkdownImage
+                ? getMediaKind(
+                      image.getAttribute("src") ?? "",
+                      image.getAttribute("type") ?? ""
+                  )
+                : "image";
+            image.removeAttribute("data-codey-markdown-image");
+            rewriteUrlAttribute(image, "src", baseDir);
+            rewriteSrcsetAttribute(image, baseDir);
+            if (!image.hasAttribute("loading")) image.loading = "lazy";
+            if (!image.hasAttribute("decoding")) image.decoding = "async";
+
+            // Marked emits an <img> for Markdown's ![alt](url) syntax. Treating
+            // only that explicit embed as media keeps [file](clip.mp4) a normal
+            // editor link instead of guessing from every path in the message.
+            if (
+                isMarkdownImage &&
+                (mediaKind === "audio" || mediaKind === "video") &&
+                image.parentElement?.tagName.toLowerCase() !== "picture"
+            ) {
+                const resolvedSrc = image.getAttribute("src");
+                if (resolvedSrc) {
+                    const media = doc.createElement(mediaKind) as HTMLAudioElement | HTMLVideoElement;
+                    media.src = resolvedSrc;
+                    configurePlayableMedia(media);
+                    const label = (image.getAttribute("alt") || image.getAttribute("title") || "").trim();
+                    if (label) media.setAttribute("aria-label", label);
+                    image.replaceWith(media);
+                }
+            }
+        });
+        doc.querySelectorAll("source[srcset]").forEach((source) => {
+            rewriteSrcsetAttribute(source, baseDir);
+        });
+        doc.querySelectorAll("audio, video").forEach((element) => {
+            rewriteUrlAttribute(element, "src", baseDir);
+            if (element.tagName.toLowerCase() === "video") {
+                rewriteUrlAttribute(element, "poster", baseDir);
+            }
+            configurePlayableMedia(element as HTMLAudioElement | HTMLVideoElement);
+        });
+        doc.querySelectorAll("source[src]").forEach((source) => {
+            rewriteUrlAttribute(source, "src", baseDir);
+        });
+        doc.querySelectorAll("audio track, video track").forEach((track) => {
+            rewriteUrlAttribute(track, "src", baseDir);
+        });
+
+        return doc.body.innerHTML;
+    }
+
+    function renderContent(text: string, baseDir: string | null): string {
         try {
             const normalized = normalizeMathDelimiters(text ?? "");
+            const cacheKey = `${normalized}\u0000${baseDir ?? ""}`;
             if (enhance) {
-                const cached = cacheGet(normalized);
+                const cached = cacheGet(cacheKey);
                 if (cached) return cached;
             }
             const html = preserveGfmTaskListCheckboxes(markdown.parse(normalized) as string);
@@ -134,6 +301,11 @@
                     "th",
                     "td",
                     "img",
+                    "picture",
+                    "audio",
+                    "video",
+                    "source",
+                    "track",
                     "hr",
                     "div",
                     "span",
@@ -144,11 +316,32 @@
                     "href",
                     "type",
                     "src",
+                    "srcset",
                     "alt",
                     "title",
                     "class",
+                    "id",
                     "width",
                     "height",
+                    "loading",
+                    "decoding",
+                    "controls",
+                    "controlslist",
+                    "loop",
+                    "muted",
+                    "preload",
+                    "poster",
+                    "playsinline",
+                    "disablepictureinpicture",
+                    "disableremoteplayback",
+                    "kind",
+                    "srclang",
+                    "label",
+                    "default",
+                    "media",
+                    "sizes",
+                    "aria-label",
+                    "data-codey-markdown-image",
                     "viewBox",
                     "fill",
                     "stroke",
@@ -165,10 +358,11 @@
                 ],
                 ALLOWED_URI_REGEXP: SAFE_MARKDOWN_URI_PATTERN,
             });
+            const mediaHtml = enhanceMediaHtml(sanitized, baseDir);
             if (enhance) {
-                cachePut(normalized, sanitized);
+                cachePut(cacheKey, mediaHtml);
             }
-            return sanitized;
+            return mediaHtml;
         } catch (error) {
             console.error("Markdown rendering error:", error);
             return renderFastPlain(text ?? "");
@@ -307,12 +501,15 @@
 
     function scheduleRender() {
         scheduledContent = content ?? "";
+        scheduledMediaBaseDir = mediaBaseDir;
         if (renderRaf !== null) return;
         renderRaf = requestAnimationFrame(() => {
             renderRaf = null;
             const next = scheduledContent ?? "";
+            const nextMediaBaseDir = scheduledMediaBaseDir;
             scheduledContent = null;
-            renderedHtml = renderContent(next);
+            scheduledMediaBaseDir = null;
+            renderedHtml = renderContent(next, nextMediaBaseDir);
         });
     }
 
@@ -322,8 +519,9 @@
                 cancelAnimationFrame(renderRaf);
                 renderRaf = null;
                 scheduledContent = null;
+                scheduledMediaBaseDir = null;
             }
-            renderedHtml = renderContent(content);
+            renderedHtml = renderContent(content, mediaBaseDir);
         } else {
             scheduleRender();
         }
@@ -375,6 +573,7 @@
             renderRaf = null;
         }
         scheduledContent = null;
+        scheduledMediaBaseDir = null;
         themeObserver?.disconnect();
         themeObserver = null;
     });
@@ -617,9 +816,39 @@
     }
 
     .markdown-content :global(img) {
+        display: block;
         max-width: 100%;
+        height: auto;
         border-radius: 4px;
         margin: 8px 0;
+    }
+
+    .markdown-content :global(picture) {
+        display: block;
+        max-width: 100%;
+        margin: 8px 0;
+    }
+
+    .markdown-content :global(picture img) {
+        margin: 0;
+    }
+
+    .markdown-content :global(audio) {
+        display: block;
+        width: min(100%, 520px);
+        max-width: 100%;
+        margin: 10px 0;
+    }
+
+    .markdown-content :global(video) {
+        display: block;
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        max-height: min(70vh, 720px);
+        margin: 10px 0;
+        background: #000;
+        border-radius: 4px;
     }
 
     .markdown-content :global(hr) {

@@ -94,7 +94,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' asset: https://asset.localhost; img-src 'self' asset: https://asset.localhost http://asset.localhost data: https: blob:; font-src 'self' asset: https://asset.localhost data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://ipc.localhost http://127.0.0.1:* ws://127.0.0.1:* http://localhost:* ws://localhost:*",
+      "csp": "default-src 'self' asset: https://asset.localhost; img-src 'self' asset: https://asset.localhost http://asset.localhost data: https: blob:; media-src 'self' asset: https://asset.localhost http://asset.localhost data: https: blob:; font-src 'self' asset: https://asset.localhost data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://ipc.localhost http://127.0.0.1:* ws://127.0.0.1:* http://localhost:* ws://localhost:*",
       "assetProtocol": {
         "enable": true,
         "scope": [

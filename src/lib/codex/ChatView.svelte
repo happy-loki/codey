@@ -3148,6 +3148,7 @@ let userInteracting = false;
                         processingHeader={processingSummaryHeader}
                         processingElapsedSeconds={processingElapsedSeconds}
                         processingPinned={isUserNearBottom}
+                        mediaBaseDir={cwd}
                         undoTurnId={undoTurnId}
                         on:toggleGroup={handleItemGroupToggle}
                         on:undoTurn={(e) => void handleUndoTurn(e.detail.turnId)}
