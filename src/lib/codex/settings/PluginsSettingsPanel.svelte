@@ -77,6 +77,15 @@
         return plugin.interface?.displayName || plugin.name;
     }
 
+    function appNeedsAuth(app: unknown): boolean {
+        return Boolean(
+            app &&
+                typeof app === "object" &&
+                "needsAuth" in app &&
+                Boolean((app as { needsAuth?: unknown }).needsAuth)
+        );
+    }
+
     function pluginIconSrc(plugin: PluginSummary): string {
         const icon = plugin.interface;
         if (!icon) return "";
@@ -325,7 +334,7 @@
                                                         <div class="chips">
                                                             {#if detail.apps.length}
                                                                 {#each detail.apps as app (app.id)}
-                                                                    <span class="chip" class:needs-auth={app.needsAuth}>{app.name}</span>
+                                                                    <span class="chip" class:needs-auth={appNeedsAuth(app)}>{app.name}</span>
                                                                 {/each}
                                                             {:else}
                                                                 <span class="muted-text">无</span>

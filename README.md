@@ -69,6 +69,14 @@ codex --version
 yarn
 ```
 
+同步当前 Codex CLI 的 app-server TypeScript 协议绑定（需要先确认 `codex --version` 可用）：
+
+```bash
+yarn codex:protocol:generate
+```
+
+协议绑定会提交到 `src/lib/codex/protocol/generated/`，不会在普通构建时自动改写。
+
 启动前端开发服务：
 
 ```bash
@@ -192,6 +200,7 @@ Codey 需要用户自行准备 Codex 的认证环境。项目不会替用户保�
 当前项目正在从旧的进程内 Codex 集成收敛到官方 Codex CLI app-server 架构。前端聊天和工作区交互保持原有形态，后端协议桥接使用外部 CLI，因此不同 Codex CLI 版本之间需要通过实际联调验证兼容性。
 
 详细迁移背景和验收基线见 [`docs/CODEX_EXTERNAL_APP_SERVER_MIGRATION_PLAN.md`](docs/CODEX_EXTERNAL_APP_SERVER_MIGRATION_PLAN.md)。
+协议绑定、时间线 item 和通知路由的同步安排见 [`docs/CODEX_APP_SERVER_PROTOCOL_ALIGNMENT.md`](docs/CODEX_APP_SERVER_PROTOCOL_ALIGNMENT.md)。
 
 ## 许可
 

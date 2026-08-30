@@ -59,6 +59,7 @@
         ThreadGoalStatus,
         ThreadGoalUpdatedNotification,
         CommandAction,
+        StrictReviewRequiredNotification,
     } from "./types";
     import type { CollaborationMode } from "./protocol/generated/CollaborationMode";
     import type { ModeKind } from "./protocol/generated/ModeKind";
@@ -204,6 +205,7 @@
             totalTokens: 0,
             inputTokens: 0,
             cachedInputTokens: 0,
+            cacheWriteInputTokens: 0,
             outputTokens: 0,
             reasoningOutputTokens: 0,
         };
@@ -216,6 +218,8 @@
             inputTokens: clamp0((end.inputTokens ?? 0) - (baseline.inputTokens ?? 0)),
             cachedInputTokens:
                 clamp0((end.cachedInputTokens ?? 0) - (baseline.cachedInputTokens ?? 0)),
+            cacheWriteInputTokens:
+                clamp0((end.cacheWriteInputTokens ?? 0) - (baseline.cacheWriteInputTokens ?? 0)),
             outputTokens: clamp0((end.outputTokens ?? 0) - (baseline.outputTokens ?? 0)),
             reasoningOutputTokens:
                 clamp0(
@@ -1803,7 +1807,7 @@ let userInteracting = false;
         if (decision === "accept") {
             return forSession ? "approved_for_session" : "approved";
         }
-        if (decision === "decline") return "denied";
+        if (decision === "decline") return { denied: { rejection: "User declined" } };
         return "abort";
     }
 
@@ -2121,6 +2125,7 @@ let userInteracting = false;
                 threadId: params.conversationId,
                 turnId: "",
                 itemId: params.callId,
+                startedAtMs: Date.now(),
                 reason: params.reason,
                 grantRoot: params.grantRoot,
             };
@@ -2160,9 +2165,12 @@ let userInteracting = false;
             // CommandExecutionRequestApprovalParams are optional-heavy; provide enough for ApprovalDialog display.
             const commandActions = parsedCommandsToCommandActions(params.parsedCmd);
             const uiParams: CommandExecutionRequestApprovalParams = {
+                kind: "command",
                 threadId: params.conversationId,
                 turnId: "",
                 itemId: params.callId,
+                startedAtMs: Date.now(),
+                environmentId: null,
                 reason: params.reason,
                 command: params.command.join(" "),
                 cwd: params.cwd,
@@ -2177,9 +2185,12 @@ let userInteracting = false;
                 item: {
                     type: "commandExecution",
                     id: params.callId,
+                    pluginId: null,
+                    scriptPath: null,
                     command: params.command.join(" "),
                     cwd: params.cwd,
                     processId: null,
+                    source: "agent",
                     status: "inProgress",
                     commandActions,
                     aggregatedOutput: null,
@@ -2419,6 +2430,81 @@ let userInteracting = false;
 
                 break;
             }
+
+            case "hook/started": {
+                const params = notification.params ?? {};
+                if (!matchesThread(params.threadId)) break;
+                const eventName = params.run?.eventName ? ` ${params.run.eventName}` : "";
+                setContextBanner(`Hook${eventName} running`, null);
+                break;
+            }
+
+            case "hook/completed": {
+                const params = notification.params ?? {};
+                if (!matchesThread(params.threadId)) break;
+                const run = params.run;
+                if (run?.status === "failed" || run?.status === "blocked") {
+                    setContextBanner(`Hook failed${run.statusMessage ? `: ${run.statusMessage}` : ""}`, 5000);
+                } else {
+                    setContextBanner(null);
+                }
+                break;
+            }
+
+            case "warning":
+            case "guardianWarning": {
+                const params = notification.params ?? {};
+                if (params.threadId && !matchesThread(params.threadId)) break;
+                const message = typeof params.message === "string" ? params.message.trim() : "";
+                if (message) setContextBanner(message, 6000);
+                break;
+            }
+
+            case "model/rerouted": {
+                const params = notification.params ?? {};
+                if (!matchesThread(params.threadId)) break;
+                const from = params.fromModel || "previous model";
+                const to = params.toModel || "another model";
+                setContextBanner(`Model switched: ${from} -> ${to}`, 5000);
+                break;
+            }
+
+            case "model/safetyBuffering/updated": {
+                const params = notification.params ?? {};
+                if (!matchesThread(params.threadId)) break;
+                if (params.showBufferingUi) {
+                    setContextBanner("Model safety buffering in progress", null);
+                } else {
+                    setContextBanner(null);
+                }
+                break;
+            }
+
+            case "model/verification":
+            case "turn/moderationMetadata":
+            case "thread/status/changed":
+            case "thread/settings/updated":
+            case "item/fileChange/outputDelta":
+            case "item/fileChange/patchUpdated":
+            case "command/exec/outputDelta":
+            case "process/outputDelta":
+            case "process/exited":
+            case "rawResponseItem/completed":
+            case "rawResponse/completed":
+            case "thread/realtime/started":
+            case "thread/realtime/itemAdded":
+            case "thread/realtime/item/started":
+            case "thread/realtime/item/transcript/delta":
+            case "thread/realtime/item/completed":
+            case "thread/realtime/transcript/delta":
+            case "thread/realtime/transcript/done":
+            case "thread/realtime/outputAudio/delta":
+            case "thread/realtime/sdp":
+            case "thread/realtime/error":
+            case "thread/realtime/closed":
+                // Valid protocol events without a dedicated timeline surface yet.
+                debugLog("[ChatView] Protocol notification", method);
+                break;
 
             case "turn/started": {
                 const { turn, threadId: notifThreadId } = notification.params;
@@ -2722,12 +2808,9 @@ let userInteracting = false;
                 reviewInProgress = true;
                 isProcessing = true;
 
-                const riskLabel =
-                    review?.riskLevel && review?.riskScore != null
-                        ? `Guardian review (${review.riskLevel}, ${review.riskScore})`
-                        : review?.riskLevel
-                          ? `Guardian review (${review.riskLevel})`
-                          : "Guardian review";
+                const riskLabel = review?.riskLevel
+                    ? `Guardian review (${review.riskLevel})`
+                    : "Guardian review";
                 contextBanner = `${riskLabel} in progress`;
 
                 if (turnId) {
@@ -2736,6 +2819,24 @@ let userInteracting = false;
                 if (targetItemId) {
                     currentItemId = targetItemId;
                 }
+                break;
+            }
+
+            case "autoApprovalReview/strictReviewRequired": {
+                const notif = notification.params as StrictReviewRequiredNotification;
+                if (!matchesThread(notif.threadId)) {
+                    break;
+                }
+
+                // This is an informational companion to the auto-review lifecycle;
+                // the server still owns the approval decision. Keep the turn in a
+                // visible waiting state until the regular completed/failed event.
+                reviewInProgress = true;
+                isProcessing = true;
+                currentTurnId = notif.turnId || currentTurnId;
+                activeTurnStartedAtMs =
+                    Number.isFinite(notif.startedAtMs) ? notif.startedAtMs : activeTurnStartedAtMs;
+                setContextBanner("Strict approval review required", null);
                 break;
             }
 
@@ -3114,7 +3215,7 @@ let userInteracting = false;
                 break;
 
             default:
-                console.warn("[ChatView] Unhandled notification:", notification);
+                debugWarn("[ChatView] Unhandled notification:", method);
         }
     }
 </script>
@@ -3144,7 +3245,7 @@ let userInteracting = false;
                         streamingItemId={isProcessing ? currentItemId : null}
                         turnDiffs={turnDiffs}
                         turnTokenStats={turnTokenStats}
-                        hasProcessingFooter={isProcessing && currentTurnId}
+                        hasProcessingFooter={Boolean(isProcessing && currentTurnId)}
                         processingHeader={processingSummaryHeader}
                         processingElapsedSeconds={processingElapsedSeconds}
                         processingPinned={isUserNearBottom}

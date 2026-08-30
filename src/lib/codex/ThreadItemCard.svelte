@@ -77,10 +77,10 @@
     function isToolOutput(text: string): boolean {
         if (!text) return false;
         // 检测工具输出的特征
-        return text.includes('Absolute path:') || 
+        return Boolean(text.includes('Absolute path:') ||
                text.includes('L1:') || 
                text.includes('No matches found') ||
-               text.match(/^[\w\/\-\.]+\n[\w\/\-\.]+\n/);
+               text.match(/^[\w\/\-\.]+\n[\w\/\-\.]+\n/));
     }
 
     function parseToolOutput(text: string): ToolOutput | null {
@@ -153,6 +153,10 @@
             fileChange: FileEdit,
             mcpToolCall: Wrench,
             collabAgentToolCall: GitBranch,
+            subAgentActivity: GitBranch,
+            sleep: PauseCircle,
+            dynamicToolCall: Wrench,
+            hookPrompt: MessageSquare,
             webSearch: Globe2,
             todoList: ListTodo,
             imageView: Image,
@@ -277,6 +281,10 @@
             fileChange: "#06b6d4",
             mcpToolCall: "#6366f1",
             collabAgentToolCall: "#0f766e",
+            subAgentActivity: "#0891b2",
+            sleep: "#64748b",
+            dynamicToolCall: "#7c3aed",
+            hookPrompt: "#d97706",
             webSearch: "#ec4899",
             todoList: "#14b8a6",
             imageView: "#a855f7",
@@ -350,7 +358,9 @@
     }
 
     // 获取摘要文本
-    function getSummary(item: ThreadItem): string {
+    type ItemSummary = string | { text: string; icon: typeof Wrench };
+
+    function getSummary(item: ThreadItem): ItemSummary {
         switch (item.type) {
             case "commandExecution":
                 // 只展示原始 shell 命令文本；语义化映射在 ThreadItemFlatList 中完成
@@ -373,17 +383,35 @@
             case "contextCompaction":
                 return "Context compacted";
             case "mcpToolCall":
-                if (getChromeBrowserRecoveryMessage(item)) {
+                if (getChromeBrowserRecoveryMessage(item as any)) {
                     return item.status === "failed"
                         ? "Chrome browser connection needs retry"
                         : "Chrome browser tool";
                 }
-                if (isBrowserUseMcpCall(item)) {
-                    return getBrowserUseSummary(item);
+                if (isBrowserUseMcpCall(item as any)) {
+                    return getBrowserUseSummary(item as any);
                 }
                 return `${item.server}.${item.tool}`;
             case "collabAgentToolCall":
                 return getCollabSummary(item);
+            case "subAgentActivity": {
+                const activity = item as Extract<ThreadItem, { type: "subAgentActivity" }>;
+                const labels: Record<string, string> = {
+                    started: "Subagent started",
+                    interacted: "Subagent updated",
+                    interrupted: "Subagent interrupted",
+                    completed: "Subagent completed",
+                };
+                return labels[activity.kind] ?? "Subagent activity";
+            }
+            case "sleep":
+                return `Waiting ${Math.max(0, Math.round((item as any).durationMs ?? 0))}ms`;
+            case "dynamicToolCall": {
+                const dynamic = item as Extract<ThreadItem, { type: "dynamicToolCall" }>;
+                return `${dynamic.namespace ? `${dynamic.namespace}.` : ""}${dynamic.tool}`;
+            }
+            case "hookPrompt":
+                return "Hook prompt";
             case "functionToolCall":
                 const IconComp = getToolSpecificIcon(item.toolName);
                 return {
@@ -459,7 +487,9 @@
         return parts.join("\n").trim();
     }
 
-    function isChromeBrowserMcpCall(item: ThreadItem): boolean {
+    function isChromeBrowserMcpCall(
+        item: ThreadItem
+    ): item is Extract<ThreadItem, { type: "mcpToolCall" }> {
         return item.type === "mcpToolCall" && item.server === "node_repl" && item.tool === "js";
     }
 
@@ -1745,6 +1775,9 @@
     $: displayType =
         item.type === "agentMessage" && renderAsReasoning ? "reasoning" : item.type;
 
+    let summary: ItemSummary = "";
+    let summaryText = "";
+
     $: IconComponent =
         displayType === "functionToolCall" && typeof summary === "object" && summary.icon
             ? summary.icon
@@ -1975,7 +2008,7 @@
                 {#if displayType === "reasoning"}
                     <!-- Reasoning 标题用 markdown 渲染 -->
                     <div class="item-summary-markdown" on:click={handleReferenceClick}>
-                        <MarkdownRenderer content={normalizeMarkdown(summary)} mediaBaseDir={mediaBaseDir} plain />
+                        <MarkdownRenderer content={normalizeMarkdown(summaryText)} mediaBaseDir={mediaBaseDir} plain />
                     </div>
                 {:else}
                     <span class="item-summary">{summaryText}</span>
@@ -2040,6 +2073,66 @@
                             <Globe2 size="1em" class="web-search-icon" />
                             <span>{item.query}</span>
                         </div>
+                    </div>
+                {:else if item.type === "subAgentActivity"}
+                    <div class="protocol-event-card subagent-activity-card">
+                        <div class="protocol-event-title">
+                            <GitBranch size="1em" aria-hidden="true" />
+                            <span>{summaryText}</span>
+                        </div>
+                        <div class="protocol-event-meta">
+                            <code>{item.agentPath}</code>
+                            <span class="protocol-event-id">{item.agentThreadId}</span>
+                        </div>
+                        {#if item.agentThreadId}
+                            <button
+                                type="button"
+                                class="protocol-event-link"
+                                on:click={() => dispatch("openThread", { threadId: item.agentThreadId })}
+                            >
+                                Open subagent thread
+                            </button>
+                        {/if}
+                    </div>
+                {:else if item.type === "sleep"}
+                    <div class="protocol-event-card sleep-card">
+                        <div class="protocol-event-title">
+                            <PauseCircle size="1em" aria-hidden="true" />
+                            <span>{summaryText}</span>
+                        </div>
+                    </div>
+                {:else if item.type === "dynamicToolCall"}
+                    <div class="protocol-event-card dynamic-tool-card">
+                        <div class="protocol-event-title">
+                            <Wrench size="1em" aria-hidden="true" />
+                            <span>{summaryText}</span>
+                            <span class="protocol-event-status">{item.status}</span>
+                        </div>
+                        {#if item.contentItems?.length}
+                            <div class="protocol-event-output">
+                                {#each item.contentItems as contentItem}
+                                    {#if contentItem.type === "inputText"}
+                                        <span>{contentItem.text}</span>
+                                    {:else}
+                                        <span>{contentItem.type === "inputImage" ? "Image output" : "Audio output"}</span>
+                                    {/if}
+                                {/each}
+                            </div>
+                        {/if}
+                        <details class="protocol-event-details">
+                            <summary>Technical details</summary>
+                            <pre>{JSON.stringify(item.arguments, null, 2)}</pre>
+                        </details>
+                    </div>
+                {:else if item.type === "hookPrompt"}
+                    <div class="protocol-event-card hook-prompt-card">
+                        <div class="protocol-event-title">
+                            <MessageSquare size="1em" aria-hidden="true" />
+                            <span>Hook prompt</span>
+                        </div>
+                        {#each item.fragments ?? [] as fragment (fragment.hookRunId)}
+                            <div class="hook-prompt-fragment">{fragment.text}</div>
+                        {/each}
                     </div>
                 {:else if item.type === "todoList"}
                     <div class="todo-list">
@@ -4364,5 +4457,83 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    .protocol-event-card {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid color-mix(in srgb, var(--item-color) 32%, transparent);
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--item-color) 7%, transparent);
+        color: var(--text-primary, #e5e7eb);
+    }
+
+    .protocol-event-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-weight: 600;
+    }
+
+    .protocol-event-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 12px;
+        color: var(--text-secondary, #94a3b8);
+        font-size: 12px;
+    }
+
+    .protocol-event-meta code,
+    .protocol-event-id {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .protocol-event-link {
+        align-self: flex-start;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: var(--accent-color, #60a5fa);
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .protocol-event-link:hover {
+        text-decoration: underline;
+    }
+
+    .protocol-event-status {
+        margin-left: auto;
+        color: var(--text-secondary, #94a3b8);
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+    .protocol-event-output,
+    .hook-prompt-fragment {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        color: var(--text-secondary, #cbd5e1);
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .protocol-event-details {
+        border-top: 1px dashed color-mix(in srgb, var(--item-color) 24%, transparent);
+        padding-top: 7px;
+        font-size: 12px;
+    }
+
+    .protocol-event-details pre {
+        max-height: 240px;
+        margin: 8px 0 0;
+        overflow: auto;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
     }
 </style>

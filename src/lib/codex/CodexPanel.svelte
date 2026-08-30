@@ -112,6 +112,58 @@
     let persistUiPreferencesTimer: number | null = null;
     let authStatusRequestSeq = 0;
     let pendingCodexRequests: any[] = [];
+    let pendingCodexNotifications: any[] = [];
+
+    // These events are valid app-server notifications but currently have no
+    // dedicated Codey surface. Keep them observable only in opt-in debug logs.
+    const DIAGNOSTIC_NOTIFICATION_METHODS = new Set([
+        "command/exec/outputDelta",
+        "item/commandExecution/terminalInteraction",
+        "process/outputDelta",
+        "process/exited",
+        "rawResponseItem/completed",
+        "rawResponse/completed",
+        "mcpServer/oauthLogin/completed",
+        "mcpServer/startupStatus/updated",
+        "mcpServer/event/stream/notification",
+        "externalAgentConfig/import/progress",
+        "externalAgentConfig/import/completed",
+        "fs/changed",
+        "deprecationNotice",
+        "configWarning",
+        "fuzzyFileSearch/sessionUpdated",
+        "fuzzyFileSearch/sessionCompleted",
+        "thread/realtime/started",
+        "thread/realtime/itemAdded",
+        "thread/realtime/item/started",
+        "thread/realtime/item/transcript/delta",
+        "thread/realtime/item/completed",
+        "thread/realtime/transcript/delta",
+        "thread/realtime/transcript/done",
+        "thread/realtime/outputAudio/delta",
+        "thread/realtime/sdp",
+        "thread/realtime/error",
+        "thread/realtime/closed",
+        "windows/worldWritableWarning",
+        "windowsSandbox/setupCompleted",
+        "account/rateLimits/updated",
+        "app/list/updated",
+        "remoteControl/status/changed",
+        "thread/environment/connected",
+        "thread/environment/disconnected",
+        "thread/queue/changed",
+        "autoApprovalReview/strictReviewRequired",
+    ]);
+
+    function debugNotification(method: string, params: unknown) {
+        try {
+            if (typeof window !== "undefined" && window.localStorage?.getItem("codey:debug:codex-protocol") === "1") {
+                console.debug("[CodexPanel] protocol notification", method, params);
+            }
+        } catch {
+            // Storage may be unavailable in a restricted WebView context.
+        }
+    }
 
     function isKnownModelId(id: string | null | undefined): boolean {
         if (!id) return false;
@@ -164,6 +216,44 @@
 
     $: if (chatViewRef && pendingCodexRequests.length > 0) {
         flushPendingCodexRequests();
+    }
+
+    function notificationThreadId(notification: any): string | null {
+        const value = notification?.params?.threadId ?? notification?.params?.thread_id;
+        return typeof value === "string" && value ? value : null;
+    }
+
+    function shouldQueueNotification(notification: any): boolean {
+        const targetThreadId = notificationThreadId(notification);
+        return Boolean(targetThreadId && currentThreadId && targetThreadId === currentThreadId);
+    }
+
+    function flushPendingCodexNotifications() {
+        if (!chatViewRef || pendingCodexNotifications.length === 0) return;
+        const notifications = pendingCodexNotifications;
+        pendingCodexNotifications = [];
+        for (const notification of notifications) {
+            if (shouldQueueNotification(notification)) {
+                chatViewRef.handleNotification(notification);
+            }
+        }
+    }
+
+    $: if (chatViewRef && pendingCodexNotifications.length > 0) {
+        flushPendingCodexNotifications();
+    }
+
+    function forwardNotificationToChat(notification: any) {
+        if (chatViewRef) {
+            chatViewRef.handleNotification(notification);
+            return;
+        }
+        if (shouldQueueNotification(notification)) {
+            // Component remounts are brief, but an unbounded queue would make a
+            // noisy server stream a memory leak. The newest 200 are sufficient
+            // to bridge a remount without retaining stale history.
+            pendingCodexNotifications = [...pendingCodexNotifications, notification].slice(-200);
+        }
     }
 
     function normalizePath(path: string | null | undefined): string | null {
@@ -1012,7 +1102,6 @@
                 config: null,
                 baseInstructions: null,
                 developerInstructions,
-                experimentalRawEvents: false,
             };
 
             console.log("✅ Starting thread with params:", params);
@@ -1263,43 +1352,71 @@
             }
 
             case "thread/started":
+            case "thread/archived":
+            case "thread/unarchived":
+            case "thread/deleted":
+            case "thread/closed":
+            case "thread/name/updated":
+            case "skills/changed":
+            case "project/changed":
+            case "thread/project/updated":
                 // A new thread only invalidates the list cache. Loading the list immediately can
                 // block local/IM thread creation paths; the list reloads when the user opens it.
                 resetThreadListState();
                 break;
-                
+            case "thread/reverted":
+                resetThreadListState();
+                forwardNotificationToChat(notification);
+                break;
             case "error":
-            case "thread/goal/updated":
-            case "thread/goal/cleared":
+            case "thread/status/changed":
+            case "thread/settings/updated":
             case "thread/tokenUsage/updated":
             case "thread/compacted":
+            case "thread/goal/updated":
+            case "thread/goal/cleared":
             case "turn/started":
             case "turn/interrupted":
             case "turn/failed":
             case "turn/completed":
             case "turn/diff/updated":
             case "turn/plan/updated":
+            case "turn/moderationMetadata":
+            case "hook/started":
+            case "hook/completed":
             case "item/started":
             case "item/autoApprovalReview/started":
             case "item/autoApprovalReview/completed":
+            case "autoApprovalReview/strictReviewRequired":
             case "item/completed":
             case "item/updated":
             case "item/agentMessage/delta":
             case "item/plan/delta":
             case "item/commandExecution/outputDelta":
+            case "item/fileChange/outputDelta":
+            case "item/fileChange/patchUpdated":
             case "item/reasoning/summaryTextDelta":
             case "item/reasoning/summaryPartAdded":
             case "item/reasoning/textDelta":
             case "item/mcpToolCall/progress":
+            case "model/rerouted":
+            case "model/verification":
+            case "model/safetyBuffering/updated":
+            case "warning":
+            case "guardianWarning":
             case "codex/event/plan_delta":
             case "serverRequest/resolved":
-                // Forward to ChatView
-                if (chatViewRef) {
-                    chatViewRef.handleNotification(notification);
-                } else {
-                    console.warn(
-                        `[CodexPanel] Cannot forward notification: chatViewRef=${!!chatViewRef}, currentView=${currentView}`
-                    );
+                forwardNotificationToChat(notification);
+                break;
+
+            default:
+                // Newer app-server versions can add thread-scoped notifications before
+                // Codey has a dedicated presentation. Keep them in the existing ChatView
+                // filtering path so a valid event is not silently discarded.
+                if (shouldQueueNotification(notification)) {
+                    forwardNotificationToChat(notification);
+                } else if (DIAGNOSTIC_NOTIFICATION_METHODS.has(method)) {
+                    debugNotification(method, notification?.params);
                 }
                 break;
         }

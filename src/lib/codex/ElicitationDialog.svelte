@@ -336,7 +336,7 @@
 
     function buildContent() {
         if (params.mode !== "form") return null;
-        const content: Record<string, unknown> = {};
+        const content: Record<string, any> = {};
         for (const field of formFields) {
             const value = valueForField(field);
             if (field.type === "number") {

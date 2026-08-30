@@ -3,24 +3,111 @@
         ApprovalDecision,
         CommandExecutionRequestApprovalParams,
         FileChangeRequestApprovalParams,
+        FileSystemPath,
+        PermissionsRequestApprovalParams,
+        RequestPermissionProfile,
         ThreadItem,
     } from "./types";
     import FileDiffViewer from "./FileDiffViewer.svelte";
 
-    export let params: CommandExecutionRequestApprovalParams | FileChangeRequestApprovalParams;
+    export let params:
+        | CommandExecutionRequestApprovalParams
+        | FileChangeRequestApprovalParams
+        | PermissionsRequestApprovalParams;
     export let requestId: string;
-    export let type: "command" | "fileChange";
+    export let type: "command" | "fileChange" | "permissions";
     export let item: ThreadItem | null | undefined = null;
     export let onResponse: (decision: ApprovalDecision, forSession: boolean) => void;
 
     $: isCommand = type === "command";
+    $: isPermissions = type === "permissions";
     $: commandParams = isCommand ? (params as CommandExecutionRequestApprovalParams) : null;
-    $: fileParams = !isCommand ? (params as FileChangeRequestApprovalParams) : null;
+    $: fileParams = type === "fileChange" ? (params as FileChangeRequestApprovalParams) : null;
+    $: permissionParams = isPermissions ? (params as PermissionsRequestApprovalParams) : null;
     $: fileChangeItem = item && item.type === "fileChange" ? item : null;
     $: commandItem = item && item.type === "commandExecution" ? item : null;
     $: changes = fileChangeItem?.changes || [];
-    $: headingText = isCommand ? "Run this command?" : "Apply these changes?";
+    $: headingText = isCommand
+        ? "Run this command?"
+        : isPermissions
+          ? "Allow additional permissions?"
+          : "Apply these changes?";
     $: expandByDefault = changes.length <= 2;
+
+    type PermissionRow = { label: string; values: string[] };
+
+    function formatPermissionPath(path: FileSystemPath): string {
+        if (path.type === "path") return path.path;
+        if (path.type === "glob_pattern") return path.pattern;
+
+        const special = path.value;
+        if (special.kind === "project_roots") {
+            return special.subpath ? `project roots/${special.subpath}` : "project roots";
+        }
+        if (special.kind === "unknown") {
+            return special.subpath ? `${special.path}/${special.subpath}` : special.path;
+        }
+        return special.kind.replace(/_/g, " ");
+    }
+
+    function buildPermissionRows(
+        permissions: RequestPermissionProfile | null | undefined
+    ): PermissionRow[] {
+        if (!permissions) return [];
+        const rows: PermissionRow[] = [];
+
+        if (permissions.network) {
+            rows.push({
+                label: "Network",
+                values: [permissions.network.enabled === false ? "not enabled" : "enabled"],
+            });
+        }
+
+        const fileSystem = permissions.fileSystem;
+        if (!fileSystem) return rows;
+
+        const entries = Array.isArray(fileSystem.entries) ? fileSystem.entries : [];
+        if (entries.length > 0) {
+            const grouped = new Map<string, string[]>();
+            for (const entry of entries) {
+                const label =
+                    entry.access === "write"
+                        ? "Filesystem write"
+                        : entry.access === "deny"
+                          ? "Filesystem deny"
+                          : "Filesystem read";
+                const values = grouped.get(label) ?? [];
+                values.push(formatPermissionPath(entry.path));
+                grouped.set(label, values);
+            }
+            for (const [label, values] of grouped) rows.push({ label, values });
+        } else {
+            if (fileSystem.read?.length) {
+                rows.push({ label: "Filesystem read", values: [...fileSystem.read] });
+            }
+            if (fileSystem.write?.length) {
+                rows.push({ label: "Filesystem write", values: [...fileSystem.write] });
+            }
+        }
+
+        if (fileSystem.globScanMaxDepth != null) {
+            rows.push({
+                label: "Glob scan depth",
+                values: [String(fileSystem.globScanMaxDepth)],
+            });
+        }
+        return rows;
+    }
+
+    $: permissionRows = buildPermissionRows(permissionParams?.permissions);
+
+    function getLegacyRisk(value: unknown): { riskLevel?: string; description?: string } | null {
+        if (!value || typeof value !== "object") return null;
+        const risk = (value as { risk?: unknown }).risk;
+        return risk && typeof risk === "object"
+            ? (risk as { riskLevel?: string; description?: string })
+            : null;
+    }
 
     function handleApprove(forSession: boolean) {
         onResponse("accept", forSession);
@@ -38,7 +125,7 @@
     </div>
         <div class="sheet-actions">
             <button type="button" class="btn primary" on:click={() => handleApprove(false)}>Allow once</button>
-            {#if isCommand}
+            {#if isCommand || isPermissions}
                 <button type="button" class="btn outline" on:click={() => handleApprove(true)}>Allow this session</button>
             {/if}
             <button type="button" class="btn ghost" on:click={handleDecline}>Reject</button>
@@ -61,11 +148,51 @@
                     </div>
                 {/if}
             </div>
-            {#if commandParams.risk}
-                <div class={`risk-banner risk-${commandParams.risk.riskLevel}`}>
-                    <span class="risk-level">Risk: {commandParams.risk.riskLevel}</span>
-                    <span class="risk-copy">{commandParams.risk.description}</span>
+            <!-- `risk` belonged to an older approval payload. Keep rendering it
+                 when an older CLI sends it without requiring it in the new schema. -->
+            {@const risk = getLegacyRisk(commandParams)}
+            {#if risk}
+                <div class={`risk-banner risk-${risk.riskLevel ?? "unknown"}`}>
+                    <span class="risk-level">Risk: {risk.riskLevel ?? "unknown"}</span>
+                    <span class="risk-copy">{risk.description ?? ""}</span>
                 </div>
+            {/if}
+        {:else if isPermissions && permissionParams}
+            <div class="meta-grid">
+                {#if permissionParams.reason}
+                    <div class="meta-card">
+                        <span class="meta-label">Reason</span>
+                        <span class="meta-value meta-value-wrap">{permissionParams.reason}</span>
+                    </div>
+                {/if}
+                {#if permissionParams.cwd}
+                    <div class="meta-card">
+                        <span class="meta-label">Working dir</span>
+                        <code class="meta-value">{permissionParams.cwd}</code>
+                    </div>
+                {/if}
+                {#if permissionParams.environmentId}
+                    <div class="meta-card">
+                        <span class="meta-label">Environment</span>
+                        <code class="meta-value">{permissionParams.environmentId}</code>
+                    </div>
+                {/if}
+            </div>
+            {#if permissionRows.length > 0}
+                <div class="permission-list">
+                    {#each permissionRows as row (row.label)}
+                        <div class="permission-row">
+                            <span class="permission-label">{row.label}</span>
+                            <div class="permission-values">
+                                {#each row.values as value (value)}
+                                    <code class="permission-value">{value}</code>
+                                {/each}
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+            {:else}
+                <div class="permission-empty">No additional permissions requested.</div>
             {/if}
         {:else if fileParams}
             {#if fileParams.grantRoot}
@@ -251,6 +378,12 @@
         text-overflow: ellipsis;
     }
 
+    .meta-value-wrap {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-family: inherit;
+    }
+
     :global(html[data-theme="light"]) .meta-value {
         color: #0f172a;
     }
@@ -309,6 +442,74 @@
         background: rgba(14, 165, 233, 0.12);
         border-color: rgba(14, 165, 233, 0.35);
         color: #0c4a6e;
+    }
+
+    .permission-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .permission-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 6px 8px;
+        border: 1px solid rgba(14, 165, 233, 0.18);
+        border-radius: 6px;
+        background: rgba(14, 165, 233, 0.06);
+    }
+
+    .permission-label {
+        flex: 0 0 130px;
+        color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .permission-values {
+        min-width: 0;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .permission-value {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        color: var(--text-primary, #f8fafc);
+        font-size: 12px;
+    }
+
+    .permission-empty {
+        color: var(--text-secondary, rgba(255, 255, 255, 0.65));
+        font-size: 12px;
+    }
+
+    :global(html[data-theme="light"]) .permission-row {
+        background: rgba(14, 165, 233, 0.08);
+        border-color: rgba(14, 165, 233, 0.2);
+    }
+
+    :global(html[data-theme="light"]) .permission-label,
+    :global(html[data-theme="light"]) .permission-empty {
+        color: #475569;
+    }
+
+    :global(html[data-theme="light"]) .permission-value {
+        color: #0f172a;
+    }
+
+    @media (max-width: 640px) {
+        .permission-row {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .permission-label {
+            flex-basis: auto;
+        }
     }
 
 </style>

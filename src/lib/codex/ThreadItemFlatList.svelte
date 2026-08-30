@@ -20,6 +20,7 @@
 	        Image,
 	        ListTodo,
 	        MessageSquare,
+	        PauseCircle,
 	        Search,
 	        SquareTerminal,
 	        Wrench,
@@ -1316,6 +1317,14 @@
                 return Wrench;
             case "collabAgentToolCall":
                 return GitBranch;
+            case "subAgentActivity":
+                return GitBranch;
+            case "sleep":
+                return PauseCircle;
+            case "dynamicToolCall":
+                return Wrench;
+            case "hookPrompt":
+                return MessageSquare;
             case "webSearch":
                 return Globe2;
             case "todoList":
@@ -1362,6 +1371,14 @@
                 return "#6366f1";
             case "collabAgentToolCall":
                 return "#0f766e";
+            case "subAgentActivity":
+                return "#0891b2";
+            case "sleep":
+                return "#64748b";
+            case "dynamicToolCall":
+                return "#7c3aed";
+            case "hookPrompt":
+                return "#d97706";
             case "webSearch":
                 return "#ec4899";
             case "todoList":
@@ -1400,6 +1417,7 @@
             ".item-row-body .review-mode-card",
             ".item-row-body .context-compaction-card",
             ".item-row-body .image-generation-header",
+            ".item-row-body .protocol-event-card",
             ".item-row-body .thread-item-card",
         ];
 

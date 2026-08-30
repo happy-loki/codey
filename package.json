@@ -13,6 +13,7 @@
         "start-window": "yarn tauri dev --features devtools",
         "tauri-build-debug": "yarn build && cargo build --manifest-path src-tauri/Cargo.toml",
         "tauri-build": "yarn build && cargo build --manifest-path src-tauri/Cargo.toml --release",
+        "codex:protocol:generate": "node scripts/generate-codex-protocol.mjs",
         "sync:version": "node scripts/sync-version.mjs"
     },
     "dependencies": {
