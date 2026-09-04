@@ -1731,14 +1731,64 @@
         return entries;
     }
 
+    type OutputLineStats = {
+        source: string;
+        lineCount: number;
+        completedNonEmptyLines: number;
+        trailingLineHasContent: boolean;
+    };
+
+    let outputLineStatsCache: OutputLineStats | null = null;
+
+    function scanOutputLineStats(output: string): OutputLineStats {
+        const cached = outputLineStatsCache;
+        if (cached?.source === output) return cached;
+
+        let lineCount = 1;
+        let completedNonEmptyLines = 0;
+        let trailingLineHasContent = false;
+
+        // Command output normally grows by appending deltas. Re-scan only the
+        // suffix in that case; a replacement falls back to a full scan.
+        const start = cached && output.startsWith(cached.source) ? cached.source.length : 0;
+        if (start > 0) {
+            lineCount = cached.lineCount;
+            completedNonEmptyLines = cached.completedNonEmptyLines;
+            trailingLineHasContent = cached.trailingLineHasContent;
+        }
+
+        for (let index = start; index < output.length; index += 1) {
+            const character = output[index];
+            if (character === "\n") {
+                if (trailingLineHasContent) completedNonEmptyLines += 1;
+                trailingLineHasContent = false;
+                lineCount += 1;
+            } else if (!/\s/.test(character)) {
+                trailingLineHasContent = true;
+            }
+        }
+
+        const next: OutputLineStats = {
+            source: output,
+            lineCount,
+            completedNonEmptyLines,
+            trailingLineHasContent,
+        };
+        outputLineStatsCache = next;
+        return next;
+    }
+
     function getToolCallSummary(toolName: string, output: string, args?: string): string {
         const parsedArgs = parseToolArguments(args);
         
         switch (toolName) {
-            case "grep_files":
-                const lines = output.split('\n').filter(l => l.trim());
+            case "grep_files": {
+                const lineStats = scanOutputLineStats(output ?? "");
+                const nonEmptyLineCount =
+                    lineStats.completedNonEmptyLines + (lineStats.trailingLineHasContent ? 1 : 0);
                 const pattern = parsedArgs?.pattern || parsedArgs?.query || '(unknown)';
-                return `Search "${pattern}" → ${lines.length} file(s)`;
+                return `Search "${pattern}" → ${nonEmptyLineCount} file(s)`;
+            }
             case "request_user_input":
                 {
                     const questionCount =
@@ -1746,8 +1796,8 @@
                     const suffix = typeof questionCount === "number" ? ` (${questionCount})` : "";
                     return `Request input${suffix}`;
                 }
-            case "read_file":
-                const lineCount = output.split('\n').length;
+            case "read_file": {
+                const lineStats = scanOutputLineStats(output ?? "");
                 // Try to extract file path from output if not in args
                 let filePath = parsedArgs?.file_path || parsedArgs?.path || parsedArgs?.file;
                 if (!filePath && output.includes('L1:')) {
@@ -1755,7 +1805,8 @@
                     filePath = '(file)';
                 }
                 const fileName = filePath ? (filePath.split(/[/\\]/).pop() || filePath) : '(unknown)';
-                return `Read ${fileName} (${lineCount} lines)`;
+                return `Read ${fileName} (${lineStats.lineCount} lines)`;
+            }
             case "list_dir":
                 // Try to extract directory from output
                 let dirPath = parsedArgs?.path || parsedArgs?.directory;
@@ -1814,28 +1865,45 @@
     const COMMAND_OUTPUT_PREVIEW_LIMIT = 80_000;
     const COMMAND_OUTPUT_HEAD_CHARS = 48_000;
     const COMMAND_OUTPUT_TAIL_CHARS = 24_000;
+    let cachedCommandOutputRaw: string | null = null;
+    let cachedCommandOutputPreview: {
+        text: string;
+        truncated: boolean;
+        omittedChars: number;
+    } | null = null;
 
     function buildCommandOutputPreview(output: string): {
         text: string;
         truncated: boolean;
         omittedChars: number;
     } {
-        if (!output) {
-            return { text: "", truncated: false, omittedChars: 0 };
+        if (cachedCommandOutputRaw === output && cachedCommandOutputPreview) {
+            return cachedCommandOutputPreview;
         }
 
-        if (output.length <= COMMAND_OUTPUT_PREVIEW_LIMIT) {
-            return { text: output.trim(), truncated: false, omittedChars: 0 };
-        }
-
-        const head = output.slice(0, COMMAND_OUTPUT_HEAD_CHARS).trimEnd();
-        const tail = output.slice(-COMMAND_OUTPUT_TAIL_CHARS).trimStart();
-        const omittedChars = Math.max(0, output.length - head.length - tail.length);
-        return {
-            text: `${head}\n\n... output truncated, ${formatCompactNumber(omittedChars)} characters omitted ...\n\n${tail}`,
-            truncated: true,
-            omittedChars,
+        let preview: {
+            text: string;
+            truncated: boolean;
+            omittedChars: number;
         };
+        if (!output) {
+            preview = { text: "", truncated: false, omittedChars: 0 };
+        } else if (output.length <= COMMAND_OUTPUT_PREVIEW_LIMIT) {
+            preview = { text: output.trim(), truncated: false, omittedChars: 0 };
+        } else {
+            const head = output.slice(0, COMMAND_OUTPUT_HEAD_CHARS).trimEnd();
+            const tail = output.slice(-COMMAND_OUTPUT_TAIL_CHARS).trimStart();
+            const omittedChars = Math.max(0, output.length - head.length - tail.length);
+            preview = {
+                text: `${head}\n\n... output truncated, ${formatCompactNumber(omittedChars)} characters omitted ...\n\n${tail}`,
+                truncated: true,
+                omittedChars,
+            };
+        }
+
+        cachedCommandOutputRaw = output;
+        cachedCommandOutputPreview = preview;
+        return preview;
     }
 
     function formatCompactNumber(value: number): string {
@@ -2008,7 +2076,12 @@
                 {#if displayType === "reasoning"}
                     <!-- Reasoning 标题用 markdown 渲染 -->
                     <div class="item-summary-markdown" on:click={handleReferenceClick}>
-                        <MarkdownRenderer content={normalizeMarkdown(summaryText)} mediaBaseDir={mediaBaseDir} plain />
+                        <MarkdownRenderer
+                            content={normalizeMarkdown(summaryText)}
+                            mediaBaseDir={mediaBaseDir}
+                            plain
+                            enhance={!isStreaming}
+                        />
                     </div>
                 {:else}
                     <span class="item-summary">{summaryText}</span>
@@ -2545,6 +2618,7 @@
                                                     content={normalizeMarkdown(contentText)}
                                                     mediaBaseDir={mediaBaseDir}
                                                     plain
+                                                    enhance={!isStreaming}
                                                 />
                                             </div>
                                         {/if}
@@ -2557,6 +2631,7 @@
                                             content={normalizeMarkdown(reasoningSummaryBody)}
                                             mediaBaseDir={mediaBaseDir}
                                             plain
+                                            enhance={!isStreaming}
                                         />
                                     </div>
                                 </div>
@@ -2570,6 +2645,7 @@
                                             content={normalizeMarkdown(item.text)}
                                             mediaBaseDir={mediaBaseDir}
                                             plain
+                                            enhance={!isStreaming}
                                         />
                                     </div>
                                 </div>

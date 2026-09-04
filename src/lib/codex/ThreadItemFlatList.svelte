@@ -126,6 +126,71 @@
     let allRows: FlatRow[] = [];
     let flatRows: FlatRow[] = [];
     const fileSummaryRowCache = new Map<string, { unifiedDiff: string; row: FileSummaryRow | null }>();
+    const turnRowCache = new Map<string, { signature: string; rows: FlatRow[] }>();
+    const commandActionCache = new Map<
+        string,
+        { fingerprint: string; actions: ParsedCommandAction[] }
+    >();
+    const itemObjectIdentity = new WeakMap<object, number>();
+    let nextItemObjectIdentity = 1;
+
+    function getItemObjectIdentity(item: ThreadItem): number {
+        const object = item as object;
+        const existing = itemObjectIdentity.get(object);
+        if (existing) return existing;
+        const identity = nextItemObjectIdentity++;
+        itemObjectIdentity.set(object, identity);
+        return identity;
+    }
+
+    function getTurnStructureSignature(turn: Turn, turnIndex: number): string {
+        const items = turn.items ?? [];
+        const tokenStats = turnTokenStats[turn.id];
+        const diff = turnDiffs[turn.id];
+        return [
+            turn.id,
+            turnIndex,
+            turn.status ?? "",
+            diff?.unifiedDiff ?? "",
+            tokenStats
+                ? JSON.stringify({ usage: tokenStats.usage, cost: tokenStats.cost, model: tokenStats.model })
+                : "",
+            items
+                .map((item) => {
+                    const textPresence =
+                        item.type === "agentMessage"
+                            ? item.text?.trim().length > 0
+                            : item.type === "reasoning"
+                              ? hasReasoningContent(item)
+                              : false;
+                    const contentLength =
+                        item.type === "agentMessage" || item.type === "plan"
+                            ? item.text?.length ?? 0
+                            : item.type === "reasoning"
+                              ? [
+                                    ...(item.content ?? []),
+                                    ...((item.summary ?? []) as string[]),
+                                ].reduce((total, value) => total + (value?.length ?? 0), 0)
+                              : item.type === "todoList"
+                                ? (item.items ?? []).reduce(
+                                      (total, task) => total + (task.text?.length ?? 0),
+                                      0
+                                  )
+                                : 0;
+                    return [
+                        getItemObjectIdentity(item),
+                        item.id,
+                        item.type,
+                        (item as any).status ?? "",
+                        textPresence ? "text" : "empty",
+                        contentLength,
+                        item.type === "commandExecution" ? (item.command ?? "") : "",
+                        item.type === "commandExecution" ? (item.cwd ?? "") : "",
+                    ].join("\u0001");
+                })
+                .join("\u0002"),
+        ].join("\u0003");
+    }
 
     function hasReasoningContent(item: Extract<ThreadItem, { type: "reasoning" }>) {
         const hasContent = item.content?.some((text) => text?.trim().length > 0);
@@ -1025,7 +1090,7 @@
         return pattern || positionals[0] || null;
     }
 
-    function parseCommandActionsFromShell(
+    function parseCommandActionsFromShellUncached(
         item: Extract<ThreadItem, { type: "commandExecution" }>
     ): ParsedCommandAction[] {
         const explicitActions = (item.commandActions ?? [])
@@ -1137,6 +1202,26 @@
             }
         }
 
+        return actions;
+    }
+
+    function parseCommandActionsFromShell(
+        item: Extract<ThreadItem, { type: "commandExecution" }>
+    ): ParsedCommandAction[] {
+        const fingerprint = [
+            item.command ?? "",
+            item.cwd ?? "",
+            JSON.stringify(item.commandActions ?? null),
+        ].join("\u0000");
+        const cached = commandActionCache.get(item.id);
+        if (cached?.fingerprint === fingerprint) return cached.actions;
+
+        const actions = parseCommandActionsFromShellUncached(item);
+        commandActionCache.set(item.id, { fingerprint, actions });
+        if (commandActionCache.size > 500) {
+            const oldest = commandActionCache.keys().next().value;
+            if (oldest) commandActionCache.delete(oldest);
+        }
         return actions;
     }
 
@@ -1597,6 +1682,20 @@
             const status: Turn["status"] | null | undefined = turn.status || "inProgress";
             const isFinished =
                 status === "completed" || status === "failed" || status === "interrupted";
+            const structureSignature = getTurnStructureSignature(turn, tIndex);
+            const hasCommandExecution = items.some(
+                (item) => item.type === "commandExecution"
+            );
+            const cachedTurn = turnRowCache.get(turn.id);
+            // Active turns may mutate item objects in place while deltas stream.
+            // Cache only terminal turns, whose projection is stable by contract.
+            const canCacheTurn = isFinished && !hasCommandExecution;
+            if (canCacheTurn && cachedTurn?.signature === structureSignature) {
+                rows.push(...cachedTurn.rows);
+                return;
+            }
+
+            const turnRowsStart = rows.length;
 
             // 1) userMessage：每个 turn 最多一个，始终在该 turn 的第一行
             //    对于 review turn（带有 enteredReviewMode / exitedReviewMode）：
@@ -1819,7 +1918,19 @@
                     durationMs,
                 });
             }
+
+            if (canCacheTurn) {
+                turnRowCache.set(turn.id, {
+                    signature: structureSignature,
+                    rows: rows.slice(turnRowsStart),
+                });
+            }
         });
+
+        const liveTurnIds = new Set(turns.map((turn) => turn.id));
+        for (const turnId of turnRowCache.keys()) {
+            if (!liveTurnIds.has(turnId)) turnRowCache.delete(turnId);
+        }
 
         return rows;
     })();
@@ -1837,14 +1948,51 @@
         indexAttribute: "data-index",
     });
 
+    // `setOptions` updates the virtualizer's count, but the Svelte adapter only
+    // invalidates its store when the virtualizer notifies. A count/key change
+    // can otherwise leave the previous virtual-item snapshot rendered until a
+    // resize or scroll event happens to notify it.
+    let lastVirtualizerCount = -1;
+    let lastVirtualizerBoundary = "";
+    let lastVirtualizerScrollElement: HTMLDivElement | null = null;
+    let virtualizerRevision = 0;
+    let getRowKey = (index: number) =>
+        index < flatRows.length ? flatRows[index]?.key ?? index : "processing-footer";
+
     // 每当 flatRows 变化时，同步虚拟器配置（数量 + key）
     $: {
         const instance = get(rowVirtualizer);
         const footerCount = hasProcessingFooter ? 1 : 0;
+        // `scrollElement` is bound by ChatView after this component is created.
+        // Include it in this reactive block so the virtualizer re-runs its
+        // mount/update path when the element becomes available; otherwise the
+        // first render can have data but no virtual rows until a later event.
+        const currentScrollElement = scrollElement;
+        const nextCount = flatRows.length + footerCount;
+        const nextBoundary = `${flatRows[0]?.key ?? ""}\u0000${
+            flatRows[flatRows.length - 1]?.key ?? ""
+        }\u0000${footerCount}`;
+        const structureChanged =
+            nextCount !== lastVirtualizerCount ||
+            nextBoundary !== lastVirtualizerBoundary ||
+            currentScrollElement !== lastVirtualizerScrollElement;
+
+        if (structureChanged) {
+            // Change the resolver identity only for structural updates. This
+            // tells virtual-core that item keys may have changed while keeping
+            // the same resolver during text-only streaming updates.
+            getRowKey = (index: number) =>
+                index < flatRows.length ? flatRows[index]?.key ?? index : "processing-footer";
+            virtualizerRevision += 1;
+            lastVirtualizerCount = nextCount;
+            lastVirtualizerBoundary = nextBoundary;
+            lastVirtualizerScrollElement = currentScrollElement;
+        }
+
         instance.setOptions({
-            count: flatRows.length + footerCount,
-            getItemKey: (index) =>
-                index < flatRows.length ? flatRows[index]?.key ?? index : "processing-footer",
+            count: nextCount,
+            getScrollElement: () => currentScrollElement,
+            getItemKey: getRowKey,
         });
     }
 
@@ -1877,6 +2025,17 @@
         };
     }
 
+    // Keep the revision in the each-block dependency list. The virtualizer
+    // store object is intentionally stable, so a structural option update may
+    // otherwise leave the block holding the previous getVirtualItems snapshot.
+    function getVirtualRows(_revision: number, instance: { getVirtualItems: () => any[] }) {
+        return instance.getVirtualItems();
+    }
+
+    function getVirtualTotalSize(_revision: number, instance: { getTotalSize: () => number }) {
+        return instance.getTotalSize();
+    }
+
 </script>
 
 <div class="thread-item-flat-root">
@@ -1887,9 +2046,10 @@
     {:else}
         <div
             class="virtual-canvas"
-            style={`height: ${Math.round($rowVirtualizer.getTotalSize())}px;`}
+            data-virtualizer-revision={virtualizerRevision}
+            style={`height: ${Math.round(getVirtualTotalSize(virtualizerRevision, $rowVirtualizer))}px;`}
         >
-            {#each $rowVirtualizer.getVirtualItems() as virtualRow (virtualRow.key)}
+            {#each getVirtualRows(virtualizerRevision, $rowVirtualizer) as virtualRow (virtualRow.key)}
                 <div
                     class="virtual-row"
                     class:collapsed-group-row={virtualRow.index < flatRows.length &&

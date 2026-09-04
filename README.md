@@ -138,6 +138,8 @@ yarn tauri-build
 src-tauri/target/release/codey.exe
 ```
 
+Release 构建保留 WebView DevTools，运行后可按 `F12` 或 `Ctrl+Shift+I` 查看主窗口控制台。
+
 当前构建命令直接生成可运行二进制，不生成 MSI 安装包。后续公开版本的构建和发布应由 GitHub Actions 负责；自动更新能力保留，更新产物应来自公开仓库的 Release。
 
 ## GitHub Actions

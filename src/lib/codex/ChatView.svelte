@@ -116,13 +116,22 @@
     }
 
     let turns: Turn[] = [];
+    let hasMounted = false;
+    // CodexPanel can reuse this component when the user resumes the thread that
+    // is already attached. Keep track of the exact history array we consumed so
+    // a later resume response is applied even without a component remount.
+    let appliedInitialTurns: Turn[] | null = null;
     type TurnDiffInfo = {
         unifiedDiff: string;
         files: TurnDiffFileSummary[];
     };
     let turnDiffs: Record<string, TurnDiffInfo> = {};
-    const pendingAgentMessageDeltas = new Map<string, string>();
-    const pendingPlanDeltas = new Map<string, string>();
+    const pendingAgentMessageDeltas = new Map<string, string[]>();
+    const pendingPlanDeltas = new Map<string, string[]>();
+    const pendingCommandOutputDeltas = new Map<string, string[]>();
+    const pendingReasoningSummaryDeltas = new Map<string, Map<number, string[]>>();
+    const pendingReasoningTextDeltas = new Map<string, Map<number, string[]>>();
+    let deltaFlushRaf: number | null = null;
     let isProcessing = false;
     let unlistenRequest: any = null;
     let itemsContainer: HTMLDivElement;
@@ -316,6 +325,15 @@
         turnModeById = {};
         sawPlanItemByTurnId = {};
         planImplementPromptedTurnIds = {};
+        pendingAgentMessageDeltas.clear();
+        pendingPlanDeltas.clear();
+        pendingCommandOutputDeltas.clear();
+        pendingReasoningSummaryDeltas.clear();
+        pendingReasoningTextDeltas.clear();
+        if (deltaFlushRaf !== null) {
+            cancelAnimationFrame(deltaFlushRaf);
+            deltaFlushRaf = null;
+        }
         pendingModelForNextTurn = null;
         pendingModeForNextTurn = null;
         forcedModeForNextTurn = null;
@@ -323,6 +341,7 @@
         goalObservedAtMs = null;
         activeTurnStartedAtMs = null;
         activeItemStartedAtMs = null;
+        appliedInitialTurns = null;
         goalLocalElapsedFloorSeconds = 0;
         void loadThreadGoal(threadId);
     }
@@ -499,6 +518,7 @@
 
     onMount(async () => {
         debugLog(`[ChatView] onMount - threadId: ${threadId}, isNewThread: ${isNewThread}`);
+        hasMounted = true;
         attachResizeObserver(itemsContent);
 
         // 新建线程：在第一次 tokenUsage 事件到来前，先乐观显示 0%；
@@ -515,10 +535,7 @@
         // If CodexPanel already fetched a thread/resume response, reuse it to avoid
         // a second resume call (large payloads can block the UI).
         if (!isNewThread) {
-            if (initialTurns && initialTurnsThreadId === threadId) {
-                debugLog("[ChatView] Using initialTurns provided by CodexPanel");
-                setTurnsFromHistory(initialTurns);
-            } else {
+            if (!applyInitialTurnsIfAvailable()) {
                 debugLog("[ChatView] Loading history for existing thread");
                 loadThreadHistory();
             }
@@ -526,6 +543,37 @@
             debugLog("[ChatView] Skipping history load for new thread");
         }
     });
+
+    function applyInitialTurnsIfAvailable(): boolean {
+        if (
+            isNewThread ||
+            !initialTurns ||
+            initialTurnsThreadId !== threadId ||
+            initialTurns === appliedInitialTurns
+        ) {
+            return false;
+        }
+
+        // A resume response is authoritative for an idle thread. Do not replace
+        // a live turn that is already streaming in this component; the normal
+        // notification path remains the source of truth while it is active.
+        if (isProcessing && turns.length > 0) return false;
+
+        appliedInitialTurns = initialTurns;
+        debugLog("[ChatView] Applying initialTurns from CodexPanel", {
+            threadId,
+            turns: initialTurns.length,
+        });
+        setTurnsFromHistory(initialTurns);
+        return true;
+    }
+
+    // Resume can finish after ChatView has already been mounted (for example
+    // when re-selecting the current thread from the history overlay). In that
+    // case onMount has already run, so consume the new prop reactively.
+    $: if (hasMounted && initialTurns && initialTurnsThreadId === threadId && !isNewThread) {
+        applyInitialTurnsIfAvailable();
+    }
 
     onDestroy(() => {
         if (resizeObserver) {
@@ -550,6 +598,15 @@
             cancelAnimationFrame(scrollToBottomRaf);
             scrollToBottomRaf = null;
         }
+        if (deltaFlushRaf !== null) {
+            cancelAnimationFrame(deltaFlushRaf);
+            deltaFlushRaf = null;
+        }
+        pendingAgentMessageDeltas.clear();
+        pendingPlanDeltas.clear();
+        pendingCommandOutputDeltas.clear();
+        pendingReasoningSummaryDeltas.clear();
+        pendingReasoningTextDeltas.clear();
         if (uiClockTimer !== null) {
             clearInterval(uiClockTimer);
             uiClockTimer = null;
@@ -575,50 +632,162 @@
     }
 
     function bufferAgentMessageDelta(itemId: string, delta: string) {
-        const current = pendingAgentMessageDeltas.get(itemId) ?? "";
-        pendingAgentMessageDeltas.set(itemId, current + delta);
+        const pending = pendingAgentMessageDeltas.get(itemId) ?? [];
+        pending.push(delta);
+        pendingAgentMessageDeltas.set(itemId, pending);
     }
 
-    function applyBufferedAgentMessageDelta(itemId: string) {
+    function applyBufferedAgentMessageDelta(itemId: string): boolean {
         const pending = pendingAgentMessageDeltas.get(itemId);
-        if (!pending) return;
+        if (!pending) return false;
         const location = findItemLocation(itemId);
-        if (!location) return;
+        if (!location) return false;
 
         const targetTurn = turns[location.turnIndex];
         const target = targetTurn.items?.[location.itemIndex];
-        if (!target || target.type !== "agentMessage") return;
+        if (!target || target.type !== "agentMessage") return false;
 
-        target.text = (target.text || "") + pending;
+        target.text = (target.text || "") + pending.join("");
         pendingAgentMessageDeltas.delete(itemId);
-        turns = [...turns];
-        // Only auto-scroll while the active turn is processing
-        if (isProcessing && currentTurnId === targetTurn.id) {
-            scrollToBottom();
-        }
+        return true;
     }
 
     function bufferPlanDelta(itemId: string, delta: string) {
-        const current = pendingPlanDeltas.get(itemId) ?? "";
-        pendingPlanDeltas.set(itemId, current + delta);
+        const pending = pendingPlanDeltas.get(itemId) ?? [];
+        pending.push(delta);
+        pendingPlanDeltas.set(itemId, pending);
     }
 
-    function applyBufferedPlanDelta(itemId: string) {
+    function applyBufferedPlanDelta(itemId: string): boolean {
         const pending = pendingPlanDeltas.get(itemId);
-        if (!pending) return;
+        if (!pending) return false;
         const location = findItemLocation(itemId);
-        if (!location) return;
+        if (!location) return false;
 
         const targetTurn = turns[location.turnIndex];
         const target = targetTurn.items?.[location.itemIndex];
-        if (!target || target.type !== "plan") return;
+        if (!target || target.type !== "plan") return false;
 
-        target.text = (target.text || "") + pending;
+        target.text = (target.text || "") + pending.join("");
         pendingPlanDeltas.delete(itemId);
-        turns = [...turns];
-        if (isProcessing && currentTurnId === targetTurn.id) {
-            scrollToBottom();
+        return true;
+    }
+
+    function bufferCommandOutputDelta(itemId: string, delta: string) {
+        const pending = pendingCommandOutputDeltas.get(itemId) ?? [];
+        pending.push(delta);
+        pendingCommandOutputDeltas.set(itemId, pending);
+    }
+
+    function bufferIndexedDelta(
+        pending: Map<string, Map<number, string[]>>,
+        itemId: string,
+        index: number,
+        delta: string
+    ) {
+        const byIndex = pending.get(itemId) ?? new Map<number, string[]>();
+        const chunks = byIndex.get(index) ?? [];
+        chunks.push(delta);
+        byIndex.set(index, chunks);
+        pending.set(itemId, byIndex);
+    }
+
+    function applyBufferedCommandOutputDelta(itemId: string): boolean {
+        const pending = pendingCommandOutputDeltas.get(itemId);
+        if (!pending) return false;
+        const location = findItemLocation(itemId);
+        if (!location) return false;
+        const target = turns[location.turnIndex].items?.[location.itemIndex];
+        if (!target || target.type !== "commandExecution") return false;
+
+        target.aggregatedOutput = `${target.aggregatedOutput ?? ""}${pending.join("")}`;
+        pendingCommandOutputDeltas.delete(itemId);
+        return true;
+    }
+
+    function applyBufferedReasoningSummaryDelta(itemId: string): boolean {
+        const pending = pendingReasoningSummaryDeltas.get(itemId);
+        if (!pending) return false;
+        const location = findItemLocation(itemId);
+        if (!location) return false;
+        const target = turns[location.turnIndex].items?.[location.itemIndex];
+        if (!target || target.type !== "reasoning") return false;
+
+        for (const [summaryIndex, chunks] of pending) {
+            applyReasoningSummaryDelta(itemId, summaryIndex, chunks.join(""));
         }
+        target.summary = [...(reasoningSummaryState.get(itemId) ?? [])];
+        activeReasoningItemId = itemId;
+        updateReasoningBodyFromSummary(target);
+        pendingReasoningSummaryDeltas.delete(itemId);
+        return true;
+    }
+
+    function applyBufferedReasoningTextDelta(itemId: string): boolean {
+        const pending = pendingReasoningTextDeltas.get(itemId);
+        if (!pending) return false;
+        const location = findItemLocation(itemId);
+        if (!location) return false;
+        const target = turns[location.turnIndex].items?.[location.itemIndex];
+        if (!target || target.type !== "reasoning") return false;
+
+        if (!Array.isArray(target.content)) target.content = [];
+        for (const [contentIndex, chunks] of pending) {
+            while (target.content.length <= contentIndex) target.content.push("");
+            target.content[contentIndex] = `${target.content[contentIndex] || ""}${chunks.join("")}`;
+        }
+        pendingReasoningTextDeltas.delete(itemId);
+        return true;
+    }
+
+    function flushPendingDeltas() {
+        deltaFlushRaf = null;
+        let changed = false;
+        let shouldScroll = false;
+
+        for (const itemId of pendingAgentMessageDeltas.keys()) {
+            if (applyBufferedAgentMessageDelta(itemId)) {
+                changed = true;
+                shouldScroll = true;
+            }
+        }
+        for (const itemId of pendingPlanDeltas.keys()) {
+            if (applyBufferedPlanDelta(itemId)) {
+                changed = true;
+                shouldScroll = true;
+            }
+        }
+        for (const itemId of pendingCommandOutputDeltas.keys()) {
+            if (applyBufferedCommandOutputDelta(itemId)) {
+                changed = true;
+                shouldScroll = true;
+            }
+        }
+        for (const itemId of pendingReasoningSummaryDeltas.keys()) {
+            changed = applyBufferedReasoningSummaryDelta(itemId) || changed;
+        }
+        for (const itemId of pendingReasoningTextDeltas.keys()) {
+            changed = applyBufferedReasoningTextDelta(itemId) || changed;
+        }
+
+        if (!changed) return;
+        // One top-level assignment per frame keeps the existing virtual list
+        // projection stable while allowing the active card to update promptly.
+        turns = [...turns];
+        if (shouldScroll && isProcessing && currentTurnId) scrollToBottom();
+    }
+
+    function scheduleDeltaFlush() {
+        if (deltaFlushRaf !== null || typeof requestAnimationFrame === "undefined") return;
+        deltaFlushRaf = requestAnimationFrame(flushPendingDeltas);
+    }
+
+    function flushPendingDeltasNow() {
+        if (deltaFlushRaf !== null) {
+            cancelAnimationFrame(deltaFlushRaf);
+            deltaFlushRaf = null;
+        }
+        flushPendingDeltas();
     }
 
     function updateContextUsage(notif: ThreadTokenUsageUpdatedNotification) {
@@ -1087,6 +1256,14 @@
 
     function setTurnsFromHistory(nextTurns: Turn[]) {
         pendingAgentMessageDeltas.clear();
+        pendingPlanDeltas.clear();
+        pendingCommandOutputDeltas.clear();
+        pendingReasoningSummaryDeltas.clear();
+        pendingReasoningTextDeltas.clear();
+        if (deltaFlushRaf !== null) {
+            cancelAnimationFrame(deltaFlushRaf);
+            deltaFlushRaf = null;
+        }
         turns = nextTurns;
         hydrateReasoningSummaryFromTurns(turns);
         resumeAutoScrollImmediately();
@@ -2585,6 +2762,8 @@ let userInteracting = false;
                     break;
                 }
 
+                flushPendingDeltasNow();
+
                 clearErrorBannerOnRecovery(notifThreadId ?? null);
                 freezeGoalElapsedSnapshot();
                 clearProcessingState();
@@ -2626,6 +2805,8 @@ let userInteracting = false;
                     });
                     break;
                 }
+
+                flushPendingDeltasNow();
 
                 clearErrorBannerOnRecovery(notifThreadId ?? null);
                 freezeGoalElapsedSnapshot();
@@ -2740,6 +2921,11 @@ let userInteracting = false;
                         threadId: notifThreadId,
                     });
                 }
+
+                // The completed turn payload can be the first place where a
+                // delayed item becomes visible. Flush once more after merging
+                // it so pre-start deltas are not stranded in memory.
+                flushPendingDeltasNow();
                 
                 cleanupReasoningSummaryForTurn(turn ?? null);
                 break;
@@ -2767,14 +2953,19 @@ let userInteracting = false;
                         turns[turnIndex].items = [];
                     }
                     turns[turnIndex].items.push(item);
-                    turns = [...turns];
-                    scrollToBottom();
                     if (item.type === "agentMessage") {
                         applyBufferedAgentMessageDelta(item.id);
                     } else if (item.type === "plan") {
                         applyBufferedPlanDelta(item.id);
                         sawPlanItemByTurnId = { ...sawPlanItemByTurnId, [targetTurnId]: true };
+                    } else if (item.type === "commandExecution") {
+                        applyBufferedCommandOutputDelta(item.id);
+                    } else if (item.type === "reasoning") {
+                        applyBufferedReasoningSummaryDelta(item.id);
+                        applyBufferedReasoningTextDelta(item.id);
                     }
+                    turns = [...turns];
+                    scrollToBottom();
                 }
 
                 maybeUpdatePendingFileChange(item);
@@ -2893,6 +3084,9 @@ let userInteracting = false;
                     break;
                 }
 
+                // Flush deltas for items already present. Any buffer that still
+                // has no matching item is retained for insertion below.
+                flushPendingDeltasNow();
 
                 // Prefer the explicit turnId from the notification to locate the
                 // owning turn. This avoids accidentally merging items that happen
@@ -2933,13 +3127,36 @@ let userInteracting = false;
                     } else {
                         itemsForTurn.push(completedItem);
                     }
-                    turns = [...turns];
+                    // Deltas can arrive before item/started on a busy app-server.
+                    // Preserve the existing compatibility behavior by applying
+                    // those buffers after the authoritative item is inserted.
                     if (completedItem.type === "agentMessage") {
                         applyBufferedAgentMessageDelta(completedItem.id);
-                    } else if (completedItem.type === "plan" && owningTurnId) {
-                        sawPlanItemByTurnId = { ...sawPlanItemByTurnId, [owningTurnId]: true };
+                    } else if (completedItem.type === "plan") {
+                        applyBufferedPlanDelta(completedItem.id);
+                    } else if (
+                        completedItem.type === "commandExecution" &&
+                        !completedItem.aggregatedOutput
+                    ) {
+                        applyBufferedCommandOutputDelta(completedItem.id);
                     }
+                    turns = [...turns];
+                    if (completedItem.type === "agentMessage") {
+                        pendingAgentMessageDeltas.delete(completedItem.id);
+                    } else if (completedItem.type === "plan" && owningTurnId) {
+                        pendingPlanDeltas.delete(completedItem.id);
+                        sawPlanItemByTurnId = { ...sawPlanItemByTurnId, [owningTurnId]: true };
+                    } else if (completedItem.type === "commandExecution") {
+                        pendingCommandOutputDeltas.delete(completedItem.id);
+                    }
+                } else {
+                    pendingAgentMessageDeltas.delete(completedItem.id);
+                    pendingPlanDeltas.delete(completedItem.id);
+                    pendingCommandOutputDeltas.delete(completedItem.id);
                 }
+
+                pendingReasoningSummaryDeltas.delete(completedItem.id);
+                pendingReasoningTextDeltas.delete(completedItem.id);
 
                 maybeUpdatePendingFileChange(completedItem);
 
@@ -2987,6 +3204,8 @@ let userInteracting = false;
                     console.warn("[ChatView] item/updated with no item");
                     break;
                 }
+
+                flushPendingDeltasNow();
 
                 debugLog("[ChatView] Item updated:", updatedItem.type, updatedItem.id);
 
@@ -3056,19 +3275,11 @@ let userInteracting = false;
 
                 const location = findItemLocation(itemId);
                 if (location) {
-                    const targetTurn = turns[location.turnIndex];
-                    const target = targetTurn.items?.[location.itemIndex];
-                    if (target && target.type === "agentMessage") {
-                        target.text = (target.text || "") + delta;
-                        turns = [...turns];
-                        // Only auto-scroll while the active turn is processing
-                        if (isProcessing && currentTurnId === targetTurn.id) {
-                            scrollToBottom();
-                        }
-                    }
-                } else {
-                    bufferAgentMessageDelta(itemId, delta);
+                    const target = turns[location.turnIndex].items?.[location.itemIndex];
+                    if (!target || target.type !== "agentMessage") break;
                 }
+                bufferAgentMessageDelta(itemId, delta);
+                scheduleDeltaFlush();
                 break;
             }
 
@@ -3081,19 +3292,17 @@ let userInteracting = false;
 
                 const location = findItemLocation(itemId);
                 if (location) {
-                    const targetTurn = turns[location.turnIndex];
-                    const target = targetTurn.items?.[location.itemIndex];
+                    const target = turns[location.turnIndex].items?.[location.itemIndex];
                     if (target && target.type === "plan") {
-                        target.text = (target.text || "") + delta;
-                        turns = [...turns];
-                        if (isProcessing && currentTurnId === targetTurn.id) {
-                            scrollToBottom();
-                        }
+                        bufferPlanDelta(itemId, delta);
+                        scheduleDeltaFlush();
                     } else {
                         bufferPlanDelta(itemId, delta);
+                        scheduleDeltaFlush();
                     }
                 } else {
                     bufferPlanDelta(itemId, delta);
+                    scheduleDeltaFlush();
                 }
                 break;
             }
@@ -3107,19 +3316,17 @@ let userInteracting = false;
 
                 const location = findItemLocation(itemId);
                 if (location) {
-                    const targetTurn = turns[location.turnIndex];
-                    const target = targetTurn.items?.[location.itemIndex];
+                    const target = turns[location.turnIndex].items?.[location.itemIndex];
                     if (target && target.type === "plan") {
-                        target.text = (target.text || "") + delta;
-                        turns = [...turns];
-                        if (isProcessing && currentTurnId === targetTurn.id) {
-                            scrollToBottom();
-                        }
+                        bufferPlanDelta(itemId, delta);
+                        scheduleDeltaFlush();
                     } else {
                         bufferPlanDelta(itemId, delta);
+                        scheduleDeltaFlush();
                     }
                 } else {
                     bufferPlanDelta(itemId, delta);
+                    scheduleDeltaFlush();
                 }
                 break;
             }
@@ -3127,20 +3334,9 @@ let userInteracting = false;
             case "item/commandExecution/outputDelta": {
                 const { itemId, delta } = notification.params;
                 clearErrorBannerOnRecovery(threadId);
-                if (itemId && delta && currentTurnId) {
-                    const turnIndex = turns.findIndex(t => t.id === currentTurnId);
-                    if (turnIndex >= 0 && turns[turnIndex].items) {
-                        const itemIndex = turns[turnIndex].items.findIndex(i => i.id === itemId);
-                        if (itemIndex >= 0) {
-                            const target = turns[turnIndex].items[itemIndex];
-                            if (target.type === "commandExecution") {
-                                const current = target.aggregatedOutput ?? "";
-                                target.aggregatedOutput = `${current}${delta}`;
-                                turns = [...turns];
-                                scrollToBottom();
-                            }
-                        }
-                    }
+                if (itemId && delta) {
+                    bufferCommandOutputDelta(itemId, delta);
+                    scheduleDeltaFlush();
                 }
                 break;
             }
@@ -3148,23 +3344,14 @@ let userInteracting = false;
             case "item/reasoning/summaryTextDelta": {
                 const { itemId, delta, summaryIndex } = notification.params;
                 clearErrorBannerOnRecovery(threadId);
-                if (itemId && delta != null && currentTurnId) {
-                    const turnIndex = turns.findIndex(t => t.id === currentTurnId);
-                    if (turnIndex >= 0 && turns[turnIndex].items) {
-                        const turn = turns[turnIndex];
-                        const itemIndex = turn.items.findIndex(i => i.id === itemId);
-                        if (itemIndex >= 0) {
-                            const target = turn.items[itemIndex];
-                            if (target.type === "reasoning") {
-                                const idx = Number(summaryIndex);
-                                applyReasoningSummaryDelta(target.id, idx, delta);
-                                target.summary = [...(reasoningSummaryState.get(target.id) ?? [])];
-                                activeReasoningItemId = target.id;
-                                updateReasoningBodyFromSummary(target);
-                                turns = [...turns];
-                            }
-                        }
-                    }
+                if (itemId && delta != null) {
+                    bufferIndexedDelta(
+                        pendingReasoningSummaryDeltas,
+                        itemId,
+                        Number(summaryIndex),
+                        delta
+                    );
+                    scheduleDeltaFlush();
                 }
                 break;
             }
@@ -3180,26 +3367,14 @@ let userInteracting = false;
             case "item/reasoning/textDelta": {
                 const { itemId, delta, contentIndex } = notification.params;
                 clearErrorBannerOnRecovery(threadId);
-                if (itemId && delta != null && currentTurnId) {
-                    const turnIndex = turns.findIndex(t => t.id === currentTurnId);
-                    if (turnIndex >= 0 && turns[turnIndex].items) {
-                        const turn = turns[turnIndex];
-                        const itemIndex = turn.items.findIndex(i => i.id === itemId);
-                        if (itemIndex >= 0) {
-                            const target = turn.items[itemIndex];
-                            if (target.type === "reasoning") {
-                                if (!Array.isArray(target.content)) {
-                                    target.content = [];
-                                }
-                                const idx = Number(contentIndex);
-                                while (target.content.length <= idx) {
-                                    target.content.push("");
-                                }
-                                target.content[idx] = `${target.content[idx] || ""}${delta}`;
-                                turns = [...turns];
-                            }
-                        }
-                    }
+                if (itemId && delta != null) {
+                    bufferIndexedDelta(
+                        pendingReasoningTextDeltas,
+                        itemId,
+                        Number(contentIndex),
+                        delta
+                    );
+                    scheduleDeltaFlush();
                 }
                 break;
             }

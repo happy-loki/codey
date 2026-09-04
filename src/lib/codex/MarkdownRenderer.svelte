@@ -8,6 +8,8 @@
     import { copyPlainTextToClipboard } from "../utility/textClipboard";
     import { typesetMathInElement } from "../markdown/mathjax";
     import { resolveMediaSrcset, resolveMediaUrl } from "../markdown/mediaUtils";
+    import MarkdownBlock from "./MarkdownBlock.svelte";
+    import { splitMarkdownStream, type MarkdownStreamBlock } from "./markdownStreaming";
 
     export let content: string;
     export let plain = false;
@@ -17,14 +19,30 @@
     // and MathJax. Also coalesces frequent updates to at most once per animation frame (streaming).
     export let enhance = true;
 
-    let renderedHtml = "";
+    type RenderedBlock = MarkdownStreamBlock & { html: string };
+
+    let renderedBlocks: RenderedBlock[] = [];
     let container: HTMLDivElement;
     let hljsStyleElement: HTMLStyleElement | null = null;
     let themeObserver: MutationObserver | null = null;
     let renderRaf: number | null = null;
     let scheduledContent: string | null = null;
     let scheduledMediaBaseDir: string | null = null;
+    let enhancementTask: number | null = null;
     let lastEnhanced = enhance;
+    let lastStreamingContent = "";
+    let lastStreamingMediaBaseDir: string | null | undefined;
+    let streamingStableBlocks: RenderedBlock[] = [];
+    let streamingStableOffset = 0;
+    const streamingBlockCache = new Map<
+        string,
+        {
+            source: string;
+            mediaBaseDir: string | null;
+            html: string;
+            mediaEnhanced: boolean;
+        }
+    >();
 
     const COPY_ICON_SVG = `
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -262,7 +280,11 @@
         return doc.body.innerHTML;
     }
 
-    function renderContent(text: string, baseDir: string | null): string {
+    function renderContent(
+        text: string,
+        baseDir: string | null,
+        allowMediaEnhancement = enhance
+    ): string {
         try {
             const normalized = normalizeMathDelimiters(text ?? "");
             const cacheKey = `${normalized}\u0000${baseDir ?? ""}`;
@@ -358,7 +380,9 @@
                 ],
                 ALLOWED_URI_REGEXP: SAFE_MARKDOWN_URI_PATTERN,
             });
-            const mediaHtml = enhanceMediaHtml(sanitized, baseDir);
+            const mediaHtml = allowMediaEnhancement
+                ? enhanceMediaHtml(sanitized, baseDir)
+                : sanitized;
             if (enhance) {
                 cachePut(cacheKey, mediaHtml);
             }
@@ -367,6 +391,71 @@
             console.error("Markdown rendering error:", error);
             return renderFastPlain(text ?? "");
         }
+    }
+
+    function renderStreamingBlocks(text: string, baseDir: string | null): RenderedBlock[] {
+        // A history replacement is not an append. Drop offsets from the old
+        // stream so a reused component cannot retain stale HTML.
+        if (
+            (lastStreamingContent && !text.startsWith(lastStreamingContent)) ||
+            streamingStableOffset > text.length ||
+            (lastStreamingMediaBaseDir !== undefined &&
+                lastStreamingMediaBaseDir !== baseDir)
+        ) {
+            streamingBlockCache.clear();
+            streamingStableBlocks = [];
+            streamingStableOffset = 0;
+        }
+
+        const tailSource = text.slice(streamingStableOffset);
+        const tailBlocks = splitMarkdownStream(tailSource, streamingStableOffset);
+        let completeCount = 0;
+        while (completeCount < tailBlocks.length && tailBlocks[completeCount].complete) {
+            completeCount += 1;
+        }
+
+        const renderBlock = (block: MarkdownStreamBlock): RenderedBlock => {
+            const cached = streamingBlockCache.get(block.id);
+            if (
+                cached &&
+                cached.source === block.source &&
+                cached.mediaBaseDir === baseDir &&
+                (!block.complete || cached.mediaEnhanced)
+            ) {
+                return { ...block, html: cached.html };
+            }
+
+            const html = renderContent(block.source, baseDir, block.complete);
+            streamingBlockCache.set(block.id, {
+                source: block.source,
+                mediaBaseDir: baseDir,
+                html,
+                mediaEnhanced: block.complete,
+            });
+            return { ...block, html };
+        };
+
+        if (completeCount > 0) {
+            streamingStableBlocks = [
+                ...streamingStableBlocks,
+                ...tailBlocks.slice(0, completeCount).map(renderBlock),
+            ];
+            const lastStable = streamingStableBlocks.at(-1);
+            streamingStableOffset = lastStable
+                ? Number(lastStable.id) + lastStable.source.length
+                : streamingStableOffset;
+        }
+
+        const activeBlocks = tailBlocks.slice(completeCount).map(renderBlock);
+        const rendered = [...streamingStableBlocks, ...activeBlocks];
+
+        const liveIds = new Set(rendered.map((block) => block.id));
+        for (const id of streamingBlockCache.keys()) {
+            if (!liveIds.has(id)) streamingBlockCache.delete(id);
+        }
+        lastStreamingContent = text;
+        lastStreamingMediaBaseDir = baseDir;
+        return rendered;
     }
 
     function preserveGfmTaskListCheckboxes(html: string): string {
@@ -499,6 +588,38 @@
         });
     }
 
+    function cancelEnhancementTask() {
+        if (enhancementTask === null || typeof window === "undefined") return;
+        const cancelIdleCallback = (window as Window & {
+            cancelIdleCallback?: (handle: number) => void;
+        }).cancelIdleCallback;
+        if (cancelIdleCallback) {
+            cancelIdleCallback(enhancementTask);
+        } else {
+            window.clearTimeout(enhancementTask);
+        }
+        enhancementTask = null;
+    }
+
+    function scheduleEnhancements() {
+        if (!enhance || enhancementTask !== null || typeof window === "undefined") {
+            return;
+        }
+
+        const run = () => {
+            enhancementTask = null;
+            if (!enhance || !container?.isConnected) return;
+            highlightCodeBlocks();
+            void renderMath();
+        };
+        const requestIdleCallback = (window as Window & {
+            requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+        }).requestIdleCallback;
+        enhancementTask = requestIdleCallback
+            ? requestIdleCallback(run, { timeout: 500 })
+            : window.setTimeout(run, 0);
+    }
+
     function scheduleRender() {
         scheduledContent = content ?? "";
         scheduledMediaBaseDir = mediaBaseDir;
@@ -509,7 +630,7 @@
             const nextMediaBaseDir = scheduledMediaBaseDir;
             scheduledContent = null;
             scheduledMediaBaseDir = null;
-            renderedHtml = renderContent(next, nextMediaBaseDir);
+            renderedBlocks = renderStreamingBlocks(next, nextMediaBaseDir);
         });
     }
 
@@ -521,7 +642,15 @@
                 scheduledContent = null;
                 scheduledMediaBaseDir = null;
             }
-            renderedHtml = renderContent(content, mediaBaseDir);
+            const html = renderContent(content, mediaBaseDir);
+            renderedBlocks = content
+                ? [{ id: "full", source: content, complete: true, html }]
+                : [];
+            lastStreamingContent = "";
+            lastStreamingMediaBaseDir = undefined;
+            streamingStableBlocks = [];
+            streamingStableOffset = 0;
+            streamingBlockCache.clear();
         } else {
             scheduleRender();
         }
@@ -558,13 +687,11 @@
             });
         }
 
-        highlightCodeBlocks();
-        void renderMath();
+        scheduleEnhancements();
     });
 
     afterUpdate(() => {
-        highlightCodeBlocks();
-        void renderMath();
+        scheduleEnhancements();
     });
 
     onDestroy(() => {
@@ -572,15 +699,23 @@
             cancelAnimationFrame(renderRaf);
             renderRaf = null;
         }
+        cancelEnhancementTask();
         scheduledContent = null;
         scheduledMediaBaseDir = null;
+        streamingBlockCache.clear();
+        streamingStableBlocks = [];
+        streamingStableOffset = 0;
+        lastStreamingMediaBaseDir = undefined;
+        renderedBlocks = [];
         themeObserver?.disconnect();
         themeObserver = null;
     });
 </script>
 
 <div bind:this={container} class="markdown-content" class:plain>
-    {@html renderedHtml}
+    {#each renderedBlocks as block (block.id)}
+        <MarkdownBlock html={block.html} plain={plain} />
+    {/each}
 </div>
 
 <style>

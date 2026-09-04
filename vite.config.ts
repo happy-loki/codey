@@ -11,6 +11,14 @@ export default defineConfig({
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
   },
   plugins: [svelte({
+    // The application still instantiates a few components with Svelte 4's
+    // `new Component({ target })` API (including the root entrypoint). Keep
+    // that API compatible while the rest of the codebase adopts Svelte 5.
+    compilerOptions: {
+      compatibility: {
+        componentApi: 4,
+      },
+    },
     preprocess: [
       sveltePreprocess({
         typescript: true,

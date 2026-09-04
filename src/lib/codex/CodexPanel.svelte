@@ -74,6 +74,9 @@
     let currentView: PanelView = "chat";
     let hasAppliedInitialView = false;
     let currentThreadId: string | null = null;
+    // Incremented for every successful resume so selecting the already-open
+    // thread still gives ChatView a clean history hydration lifecycle.
+    let chatViewMountKey = 0;
     let threads: ThreadListItem[] = [];
     let models: UIModel[] = [];
     let selectedModel: string | null = null;
@@ -231,11 +234,29 @@
     function flushPendingCodexNotifications() {
         if (!chatViewRef || pendingCodexNotifications.length === 0) return;
         const notifications = pendingCodexNotifications;
-        pendingCodexNotifications = [];
+        const boundThreadId = (chatViewRef as any)?.threadId ?? null;
+        const remaining: any[] = [];
+        let delivered = false;
         for (const notification of notifications) {
-            if (shouldQueueNotification(notification)) {
+            const targetThreadId = notificationThreadId(notification);
+            if (
+                shouldQueueNotification(notification) &&
+                (!targetThreadId || !boundThreadId || targetThreadId === boundThreadId)
+            ) {
                 chatViewRef.handleNotification(notification);
+                delivered = true;
+            } else if (shouldQueueNotification(notification)) {
+                // The old ChatView can remain bound for one Svelte flush while a
+                // new thread is being mounted. Keep the notification until the
+                // replacement instance owns the target thread.
+                remaining.push(notification);
             }
+        }
+        // Also drop notifications that are already stale for the current thread.
+        // Keep the array untouched when every entry is merely waiting for the
+        // replacement ChatView; that avoids a reactive self-trigger loop.
+        if (delivered || remaining.length !== notifications.length) {
+            pendingCodexNotifications = remaining;
         }
     }
 
@@ -244,7 +265,12 @@
     }
 
     function forwardNotificationToChat(notification: any) {
-        if (chatViewRef) {
+        const targetThreadId = notificationThreadId(notification);
+        const boundThreadId = (chatViewRef as any)?.threadId ?? null;
+        if (
+            chatViewRef &&
+            (!targetThreadId || !boundThreadId || targetThreadId === boundThreadId)
+        ) {
             chatViewRef.handleNotification(notification);
             return;
         }
@@ -1181,6 +1207,7 @@
             selectedEffort = (result.reasoningEffort as ReasoningEffort | null) ?? "";
             initialResumeTurns = result.thread?.turns ?? [];
             initialResumeThreadId = result.thread?.id ?? threadId;
+            chatViewMountKey += 1;
             isNewThread = false; // This is an existing thread
             console.log("[workspace-sync] resumeThread.after_assign", {
                 currentThreadId,
@@ -1492,7 +1519,7 @@
             <div class="loading">正在启动 Agent…</div>
         {:else}
             {#if currentThreadId}
-                {#key currentThreadId}
+                {#key `${currentThreadId}:${chatViewMountKey}`}
                     <ChatView
                         bind:this={chatViewRef}
                         threadId={currentThreadId}
