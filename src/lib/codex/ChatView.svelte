@@ -136,6 +136,7 @@
     let unlistenRequest: any = null;
     let itemsContainer: HTMLDivElement;
     let itemsContent: HTMLDivElement | null = null;
+    let threadItemFlatListRef: { scrollToBottom: () => number } | null = null;
     let resizeObserver: ResizeObserver | null = null;
     let observedResizeTarget: HTMLElement | null = null;
     let resizeObserverRaf: number | null = null;
@@ -387,7 +388,14 @@
     function scrollToBottom(force: boolean = false) {
         if (!itemsContainer) return;
         if (!force && userInteracting) return;
-        if (scrollToBottomRaf !== null) return;
+        if (scrollToBottomRaf !== null) {
+            // A history restore must win over a coalesced update scheduled by
+            // the normal streaming path. Otherwise the restore can finish
+            // before that pending frame applies the final position.
+            if (!force) return;
+            cancelAnimationFrame(scrollToBottomRaf);
+            scrollToBottomRaf = null;
+        }
 
         // Coalesce rapid updates (streaming tokens / diff cards) into one scroll per frame.
         scrollToBottomRaf = requestAnimationFrame(() => {
@@ -485,12 +493,54 @@
     }
 
     async function forceScrollToBottomAfterHistoryLoad() {
-        // History rendering goes through a virtualized list, so wait until the DOM has
-        // been committed and at least one paint has happened before forcing the scroll.
+        // History rendering goes through a virtualized list. Its total height can grow
+        // for several frames while visible rows replace estimateSize with their real
+        // Markdown heights, so one tick + one RAF is too early for long conversations.
         await tick();
-        requestAnimationFrame(() => {
+
+        let previousHeight = -1;
+        let stableFrames = 0;
+        // Keep retrying while the virtual canvas is measuring. Two RAFs per
+        // pass gives ResizeObserver and Svelte a chance to publish each new
+        // height; the bound keeps a pathological document from looping forever.
+        for (let attempt = 0; attempt < 60; attempt += 1) {
+            await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+            // Retry the virtual target on every pass. During the first pass
+            // the child may still have count=0 or no scroll element; waiting
+            // for the next pass lets it recalculate its final row range.
+            const requestedHeight = threadItemFlatListRef?.scrollToBottom() ?? -1;
             scrollToBottom(true);
-        });
+
+            // scrollToBottom intentionally schedules its write for the next frame;
+            // wait for that write and any ResizeObserver measurement before checking
+            // whether the virtual canvas has settled.
+            await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+            const currentHeight = itemsContainer?.scrollHeight ?? 0;
+            const clientHeight = itemsContainer?.clientHeight ?? 0;
+            const currentTop = itemsContainer?.scrollTop ?? 0;
+            const maxScrollTop = Math.max(0, currentHeight - clientHeight);
+            const atBottom = maxScrollTop - currentTop <= 2;
+            // `items-container` has min-height even while the child is still
+            // rendering zero rows. Do not treat that viewport-only height as a
+            // completed restore; the child returns -1 until it has real rows.
+            const rowsReady = requestedHeight >= 0;
+            const heightReady = rowsReady && requestedHeight <= currentHeight + 2;
+
+            if (
+                atBottom &&
+                rowsReady &&
+                heightReady &&
+                currentHeight > 0 &&
+                currentHeight === previousHeight
+            ) {
+                stableFrames += 1;
+                if (stableFrames >= 2) break;
+            } else {
+                stableFrames = 0;
+                previousHeight = currentHeight;
+            }
+        }
     }
 
     $: drawerActive =
@@ -3413,6 +3463,7 @@ let userInteracting = false;
                 {:else}
                     <!-- 以 ThreadItem 为粒度的虚拟列表渲染，支持组折叠 + 底部 ProcessingPlaceholder footer。 -->
                     <ThreadItemFlatList
+                        bind:this={threadItemFlatListRef}
                         {turns}
                         scrollElement={itemsContainer}
                         groupExpanded={itemGroupExpanded}

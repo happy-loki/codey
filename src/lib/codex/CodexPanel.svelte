@@ -74,9 +74,6 @@
     let currentView: PanelView = "chat";
     let hasAppliedInitialView = false;
     let currentThreadId: string | null = null;
-    // Incremented for every successful resume so selecting the already-open
-    // thread still gives ChatView a clean history hydration lifecycle.
-    let chatViewMountKey = 0;
     let threads: ThreadListItem[] = [];
     let models: UIModel[] = [];
     let selectedModel: string | null = null;
@@ -1207,7 +1204,6 @@
             selectedEffort = (result.reasoningEffort as ReasoningEffort | null) ?? "";
             initialResumeTurns = result.thread?.turns ?? [];
             initialResumeThreadId = result.thread?.id ?? threadId;
-            chatViewMountKey += 1;
             isNewThread = false; // This is an existing thread
             console.log("[workspace-sync] resumeThread.after_assign", {
                 currentThreadId,
@@ -1519,7 +1515,8 @@
             <div class="loading">正在启动 Agent…</div>
         {:else}
             {#if currentThreadId}
-                {#key `${currentThreadId}:${chatViewMountKey}`}
+                <!-- Same-thread resume is applied through initialTurns; remounting here resets the virtual scroll container. -->
+                {#key currentThreadId}
                     <ChatView
                         bind:this={chatViewRef}
                         threadId={currentThreadId}

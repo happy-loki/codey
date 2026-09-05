@@ -1948,6 +1948,41 @@
         indexAttribute: "data-index",
     });
 
+    let virtualCanvas: HTMLDivElement | null = null;
+
+    // History restore targets the virtual canvas directly. `scrollToIndex` can
+    // be a no-op while the virtualizer is still attaching its scroll element or
+    // before the last measurement exists, so also write the concrete offset.
+    export function scrollToBottom(): number {
+        const instance = get(rowVirtualizer);
+        const footerCount = hasProcessingFooter ? 1 : 0;
+        if (!scrollElement || !virtualCanvas || flatRows.length + footerCount === 0) return -1;
+
+        const virtualTotalSize = instance.getTotalSize();
+        // During the first history frame virtual-core already knows the estimated
+        // total size, but Svelte may not have committed that value to the canvas
+        // style yet. Writing a larger scrollTop before the canvas grows is clamped
+        // by the browser and leaves the virtualizer at offset 0 until a resize.
+        const nextCanvasHeight = Math.max(0, Math.ceil(virtualTotalSize));
+        if (Math.abs(virtualCanvas.offsetHeight - nextCanvasHeight) > 1) {
+            virtualCanvas.style.height = `${nextCanvasHeight}px`;
+        }
+
+        const contentHeight = Math.max(scrollElement.scrollHeight, nextCanvasHeight);
+        const target = Math.max(0, contentHeight - scrollElement.clientHeight);
+
+        // Direct assignment works even when virtual-core has not completed its
+        // first range calculation. It also lets the native scroll event update
+        // the virtualizer without allowing its stale total-size estimate to
+        // clamp the real container position back toward the top.
+        scrollElement.scrollTop = target;
+        // Assignment to the same value does not dispatch a native scroll event.
+        // The explicit event makes the virtualizer recalculate its range even
+        // when the browser had already clamped the previous attempt.
+        scrollElement.dispatchEvent(new Event("scroll"));
+        return contentHeight;
+    }
+
     // `setOptions` updates the virtualizer's count, but the Svelte adapter only
     // invalidates its store when the virtualizer notifies. A count/key change
     // can otherwise leave the previous virtual-item snapshot rendered until a
@@ -2046,6 +2081,7 @@
     {:else}
         <div
             class="virtual-canvas"
+            bind:this={virtualCanvas}
             data-virtualizer-revision={virtualizerRevision}
             style={`height: ${Math.round(getVirtualTotalSize(virtualizerRevision, $rowVirtualizer))}px;`}
         >
