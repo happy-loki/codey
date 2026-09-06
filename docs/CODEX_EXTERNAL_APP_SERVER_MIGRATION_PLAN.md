@@ -193,7 +193,7 @@
 
 公开发布改为 GitHub Actions 驱动：
 
-- `ci.yml` 在 `push` 和 `pull_request` 上验证 Windows 与 macOS
+- `ci.yml` 在 `push` 和 `pull_request` 上验证 Windows 与 macOS；类型检查使用历史错误基线阻止新增错误，并要求修复后同步缩减基线
 - `release.yml` 在 `v*` 标签和手动触发时发布 Release
 - Windows 产物保持直接 `.exe`
 - macOS 产物输出 `.dmg`

@@ -153,7 +153,7 @@ delta/chunk
 - 升级 `svelte`、`@sveltejs/vite-plugin-svelte`、`svelte-check` 和相关类型包。
 - 保留 legacy component syntax，先确保现有页面和 Tauri 构建不变。
 - 检查 `svelte-splitpanes`、`@tanstack/svelte-virtual`、Monaco 和所有自定义 action 的兼容性。
-- 先通过 `yarn check`、`yarn build`，再进行组件迁移。
+- 先通过 `yarn run check`、`yarn build`，再进行组件迁移。
 
 ### 阶段 B：新组件使用 runes
 

@@ -60,7 +60,10 @@ jobs:
         run: yarn build
 
       - name: Typecheck
-        run: yarn check
+        run: yarn check:ci
+
+      - name: Test typecheck gate
+        run: node --test scripts/check-type-baseline.test.mjs
 
       - name: Rust tests
         run: cargo test --manifest-path src-tauri/Cargo.toml

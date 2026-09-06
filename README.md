@@ -93,11 +93,25 @@ yarn start-window
 `warn,codex_otel.log_only=off`。需要临时排查 app-server 时，分别设置 Codey 的
 `RUST_LOG=debug` 和子进程专用的 `CODEY_CODEX_RUST_LOG=debug`。
 
-执行前端类型和 Svelte 检查：
+执行完整的前端类型和 Svelte 检查：
 
 ```bash
-yarn check
+yarn run check
 ```
+
+项目仍有一批历史类型错误。CI 使用已提交的错误基线，只允许错误数量和位置减少，不允许新增错误：
+
+```bash
+yarn check:ci
+```
+
+修复历史错误后，使用以下命令缩减基线并提交更新；该命令不会接受新增错误：
+
+```bash
+yarn check:baseline:update
+```
+
+这里必须写成 `yarn run check`；Yarn Classic 的内置 `check` 命令优先级高于同名脚本，直接执行 `yarn check` 只会检查依赖完整性。
 
 运行 Rust 测试：
 
@@ -146,7 +160,7 @@ Release 构建保留 WebView DevTools，运行后可按 `F12` 或 `Ctrl+Shift+I`
 
 公开构建分成两条流水线：
 
-- `ci.yml`：在 `push` 和 `pull_request` 上跑 Windows 和 macOS 的 `yarn build`、`yarn check`、`cargo test`，并上传未发布的桌面构建 artifact
+- `ci.yml`：在 `push` 和 `pull_request` 上跑 Windows 和 macOS 的 `yarn build`、`yarn check:ci`、类型门禁测试和 `cargo test`，并上传未发布的桌面构建 artifact
 - `release.yml`：在 `v*` 标签和手动触发时发布 GitHub Release
 
 发布产物命名为：

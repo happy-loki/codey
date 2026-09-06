@@ -111,7 +111,8 @@ src-tauri/target/            Rust 构建输出，不提交
 yarn                         # 安装前端依赖
 yarn dev                     # 启动 Vite 前端开发服务
 yarn build                   # 构建前端
-yarn check                   # Svelte/TypeScript 检查
+yarn run check               # 完整 Svelte/TypeScript 检查（允许查看现有错误）
+yarn check:ci                # CI 类型门禁：阻止新增错误
 yarn start-window            # 启动 Tauri 开发模式
 yarn tauri-build-debug       # 构建 Debug 桌面二进制
 yarn tauri-build             # 构建 Release 桌面二进制
@@ -141,7 +142,7 @@ cargo test
 前端或 Svelte 代码变更后运行：
 
 ```bash
-yarn check
+yarn check:ci
 ```
 
 Rust 后端变更后运行：
