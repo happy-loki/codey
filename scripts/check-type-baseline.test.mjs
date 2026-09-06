@@ -18,6 +18,7 @@ test("rejects a crashed, truncated, empty, or inconsistent scan", () => {
 
 test("normalizes checkout paths and Windows separators", () => {
     assert.equal(normalize("C:\\work\\codey\\node_modules\\pkg", "C:\\work\\codey\\"), "<workspace>/node_modules/pkg");
+    assert.equal(normalize("d:/a/codey/codey/node_modules/pkg", "D:\\a\\codey\\codey\\"), "<workspace>/node_modules/pkg");
     assert.equal(normalize("/repo/node_modules/pkg", "/repo/"), "<workspace>/node_modules/pkg");
     assert.deepEqual(baselineFor([{ ...diagnostic, filename: "src\\example.ts" }]), baselineFor([diagnostic]));
 });

@@ -7,7 +7,11 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const baselinePath = path.join(root, "scripts/typecheck-baseline.json");
 
 export function normalize(value, workspace) {
-    return value.replaceAll("\\", "/").replaceAll(workspace.replaceAll("\\", "/").replace(/\/$/, ""), "<workspace>");
+    const normalizedValue = value.replaceAll("\\", "/");
+    const normalizedWorkspace = workspace.replaceAll("\\", "/").replace(/\/$/, "");
+    const escapedWorkspace = normalizedWorkspace.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Windows drive-letter casing is not stable across Node and TypeScript output.
+    return normalizedValue.replace(new RegExp(escapedWorkspace, "gi"), "<workspace>");
 }
 
 export function parseDiagnostics(stdout, status) {
