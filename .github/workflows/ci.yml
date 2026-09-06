@@ -23,9 +23,9 @@ jobs:
         include:
           - name: Windows
             os: windows-latest
-            build_args: --no-bundle
+            build_args: --bundles msi
             artifact_name: codey-windows-x64
-            artifact_path: src-tauri/target/release/codey.exe
+            artifact_path: src-tauri/target/release/bundle/msi/*.msi
             apple_signing_identity: ""
           - name: macOS
             os: macos-15
@@ -63,7 +63,7 @@ jobs:
         run: yarn check:ci
 
       - name: Test typecheck gate
-        run: node --test scripts/check-type-baseline.test.mjs
+        run: node --test scripts/check-type-baseline.test.mjs scripts/verify-release.test.mjs
 
       - name: Rust tests
         run: cargo test --manifest-path src-tauri/Cargo.toml
@@ -73,6 +73,11 @@ jobs:
           CI: true
           APPLE_SIGNING_IDENTITY: ${{ matrix.apple_signing_identity }}
         run: yarn tauri build ${{ matrix.build_args }}
+
+      - name: Test Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/test-windows-installer.ps1
 
       - name: Upload desktop artifact
         uses: actions/upload-artifact@v7

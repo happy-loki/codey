@@ -706,7 +706,7 @@ dependencies = [
 
 [[package]]
 name = "codey"
-version = "0.0.49"
+version = "0.0.50"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

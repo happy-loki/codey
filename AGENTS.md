@@ -125,7 +125,7 @@ cd src-tauri
 cargo test
 ```
 
-当前构建命令生成可运行二进制，不生成 MSI。自动更新功能保留，但公开版本的构建、签名和发布应由 GitHub Actions 及 GitHub Release 产物负责，不要恢复旧的私有发布脚本、私有更新服务或私有发布地址。
+`yarn tauri-build` 生成开发者使用的可运行二进制。公开版本由 GitHub Actions 构建 Windows MSI 安装包、macOS DMG 和签名更新包，并从 GitHub Release 的 `latest.json` 检查更新；不要恢复旧的私有发布脚本、私有更新服务或私有发布地址。
 
 ## 编码规范
 

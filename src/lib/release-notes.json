@@ -1,4 +1,14 @@
 {
+  "0.0.50": {
+    "en": [
+      "Windows now ships a Chinese-language MSI installer with install, upgrade, and uninstall support.",
+      "Enable signed in-app updates from GitHub Releases on Windows and macOS."
+    ],
+    "zh-CN": [
+      "Windows 改为简体中文 MSI 安装包，支持安装、升级和卸载。",
+      "启用 Windows 和 macOS 的 GitHub Release 签名自动更新。"
+    ]
+  },
   "0.0.12": {
     "en": [
       "flow draw "
