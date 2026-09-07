@@ -84,6 +84,9 @@ jobs:
           yarn check:ci
           node --test scripts/check-type-baseline.test.mjs scripts/verify-release.test.mjs
 
+      - name: Build frontend
+        run: yarn build
+
       - name: Rust tests
         run: cargo test --manifest-path src-tauri/Cargo.toml
 
