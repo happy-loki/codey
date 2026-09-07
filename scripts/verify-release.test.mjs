@@ -38,14 +38,15 @@ test("blocks publishing incomplete platform builds or missing signatures", () =>
     assert.throws(() => validate(unsigned), /Missing signature asset/);
 });
 
-test("rejects wrong versions, architecture mappings, and previous release assets", () => {
+test("rejects wrong versions, architecture mappings, and assets outside the release", () => {
     const wrongVersion = fixture();
     wrongVersion.manifest.version = "0.0.49";
     assert.throws(() => validate(wrongVersion), /version mismatch/);
     const wrongArch = fixture();
     wrongArch.manifest.platforms["darwin-aarch64"] = wrongArch.manifest.platforms["darwin-x86_64"];
     assert.throws(() => validate(wrongArch), /Wrong installer or architecture/);
-    const oldAsset = fixture();
-    oldAsset.assets[0].url = oldAsset.assets[0].url.replace("/v0.0.50/", "/v0.0.49/");
-    assert.throws(() => validate(oldAsset), /another release/);
+    const externalAsset = fixture();
+    externalAsset.manifest.platforms["windows-x86_64"].url =
+        "https://api.github.com/repos/happy-loki/codey/releases/assets/999999";
+    assert.throws(() => validate(externalAsset), /Missing update asset/);
 });
