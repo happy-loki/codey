@@ -1,4 +1,5 @@
 import { writable, get } from 'svelte/store';
+import { canonicalPathKey } from '../utils/pathNormalize';
 
 export type NodeStatus = 'normal' | 'deleting';
 
@@ -292,9 +293,18 @@ export function applyRename(oldPath: string, newPath: string, newName: string) {
 }
 
 export function getNodeByPath(path: string): NodeMeta | undefined {
-  const id = get(_pathToId).get(path);
-  if (!id) return undefined;
-  return get(_nodesById).get(id);
+  const nodes = get(_nodesById);
+  const exactId = get(_pathToId).get(path);
+  if (exactId) return nodes.get(exactId);
+
+  // The editor and the file tree can use different Windows separators/casing.
+  // Keep the tree's original path as the canonical value for subsequent updates.
+  const key = canonicalPathKey(path);
+  if (!key) return undefined;
+  for (const node of nodes.values()) {
+    if (canonicalPathKey(node.path) === key) return node;
+  }
+  return undefined;
 }
 
 export function setNodeStatus(path: string, status: NodeStatus | null) {

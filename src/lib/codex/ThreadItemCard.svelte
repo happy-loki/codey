@@ -1088,8 +1088,23 @@
         return enhanceFileReferences(normalized);
     }
 
+    let cachedMarkdownInput: string | null = null;
+    let cachedMarkdownStreaming: boolean | null = null;
+    let cachedMarkdownOutput = "";
+
     function renderMarkdownContent(text: string | undefined | null): string {
-        return isStreaming ? normalizeMarkdown(text) : enhanceMarkdown(text);
+        const source = text ?? "";
+        if (
+            cachedMarkdownInput === source &&
+            cachedMarkdownStreaming === isStreaming
+        ) {
+            return cachedMarkdownOutput;
+        }
+        const rendered = isStreaming ? normalizeMarkdown(source) : enhanceMarkdown(source);
+        cachedMarkdownInput = source;
+        cachedMarkdownStreaming = isStreaming;
+        cachedMarkdownOutput = rendered;
+        return rendered;
     }
 
     function openInternalFilePath(path: string, line = 1, column = 1) {
@@ -1440,6 +1455,14 @@
     let reasoningIconWrapper: HTMLSpanElement | null = null;
     let reasoningContentEl: HTMLDivElement | null = null;
     let reasoningIconLineHeight = 0;
+    let lastLayoutItem: ThreadItem | null = null;
+    let lastLayoutExpanded = false;
+    let lastLayoutRenderAsReasoning = false;
+    let lastDecoratedItem: ThreadItem | null = null;
+    let lastDecoratedText = "";
+    let lastDecoratedSummary = "";
+    let lastDecoratedExpanded = false;
+    let lastDecoratedStreaming = true;
 
     // --- User attachment helpers ---
     function isImageInput(input: any): input is { type: "image" | "localImage"; url?: string; path?: string } {
@@ -1543,18 +1566,52 @@
         reasoningIconLineHeight = Number.isFinite(lineHeightPx) && lineHeightPx > 0 ? lineHeightPx : 0;
     }
 
-    onMount(() => {
-        updateReasoningIconLayout();
-        if (!isStreaming) {
-            decorateMarkdownAnchors(cardElement);
+    function updateReasoningIconLayoutIfNeeded() {
+        if (
+            lastLayoutItem === item &&
+            lastLayoutExpanded === isExpanded &&
+            lastLayoutRenderAsReasoning === renderAsReasoning
+        ) {
+            return;
         }
+        updateReasoningIconLayout();
+        lastLayoutItem = item;
+        lastLayoutExpanded = isExpanded;
+        lastLayoutRenderAsReasoning = renderAsReasoning;
+    }
+
+    function decorateMarkdownAnchorsIfNeeded() {
+        const text = typeof (item as any).text === "string" ? (item as any).text : "";
+        const summary = summaryText || "";
+        if (isStreaming) {
+            lastDecoratedStreaming = true;
+            return;
+        }
+        if (
+            lastDecoratedItem === item &&
+            lastDecoratedText === text &&
+            lastDecoratedSummary === summary &&
+            lastDecoratedExpanded === isExpanded &&
+            !lastDecoratedStreaming
+        ) {
+            return;
+        }
+        decorateMarkdownAnchors(cardElement);
+        lastDecoratedItem = item;
+        lastDecoratedText = text;
+        lastDecoratedSummary = summary;
+        lastDecoratedExpanded = isExpanded;
+        lastDecoratedStreaming = false;
+    }
+
+    onMount(() => {
+        updateReasoningIconLayoutIfNeeded();
+        decorateMarkdownAnchorsIfNeeded();
     });
 
     afterUpdate(() => {
-        updateReasoningIconLayout();
-        if (!isStreaming) {
-            decorateMarkdownAnchors(cardElement);
-        }
+        updateReasoningIconLayoutIfNeeded();
+        decorateMarkdownAnchorsIfNeeded();
     });
 
     function coerceLineNumber(value: unknown): number | null {

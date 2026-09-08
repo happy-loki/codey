@@ -116,6 +116,14 @@
     }
 
     let turns: Turn[] = [];
+    type ItemLocation = { turnIndex: number; itemIndex: number };
+    type IndexedItemLocation = ItemLocation & { item: ThreadItem };
+    // Delta notifications often touch the same item several times in one frame.
+    // Keep a lightweight index so each flush does not rescan the complete history.
+    let itemLocationIndex = new Map<string, IndexedItemLocation>();
+    let indexedTurns: Turn[] | null = null;
+    let indexedTurnRefs: Turn[] = [];
+    let itemLocationIndexDirty = true;
     let hasMounted = false;
     // CodexPanel can reuse this component when the user resumes the thread that
     // is already attached. Keep track of the exact history array we consumed so
@@ -331,6 +339,7 @@
         pendingCommandOutputDeltas.clear();
         pendingReasoningSummaryDeltas.clear();
         pendingReasoningTextDeltas.clear();
+        invalidateItemLocationIndex();
         if (deltaFlushRaf !== null) {
             cancelAnimationFrame(deltaFlushRaf);
             deltaFlushRaf = null;
@@ -669,16 +678,66 @@
         try { codexHasInProgressTurn.set(false); } catch {}
     });
 
-    function findItemLocation(itemId: string): { turnIndex: number; itemIndex: number } | null {
+    function rebuildItemLocationIndex() {
+        itemLocationIndex.clear();
+        // Scan in the same order as the old reverse find: newest turn wins,
+        // while the first occurrence within that turn wins for duplicate ids.
         for (let ti = turns.length - 1; ti >= 0; ti--) {
             const items = turns[ti].items;
-            if (!items || items.length === 0) continue;
-            const idx = items.findIndex((item) => item.id === itemId);
-            if (idx >= 0) {
-                return { turnIndex: ti, itemIndex: idx };
+            if (!items?.length) continue;
+            for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+                const item = items[itemIndex];
+                if (item?.id && !itemLocationIndex.has(item.id)) {
+                    itemLocationIndex.set(item.id, { turnIndex: ti, itemIndex, item });
+                }
             }
         }
-        return null;
+        indexedTurns = turns;
+        indexedTurnRefs = turns.slice();
+        itemLocationIndexDirty = false;
+    }
+
+    function invalidateItemLocationIndex() {
+        indexedTurns = null;
+        itemLocationIndexDirty = true;
+        itemLocationIndex.clear();
+    }
+
+    function ensureItemLocationIndex() {
+        if (!itemLocationIndexDirty && indexedTurns === turns) return;
+        // Most delta frames only clone the top-level turns array. Reuse the
+        // coordinates when the turn objects are unchanged; this comparison is
+        // O(turns) and avoids an O(all items) rebuild on every frame.
+        if (
+            !itemLocationIndexDirty &&
+            indexedTurnRefs.length === turns.length &&
+            indexedTurnRefs.every((turn, index) => turn === turns[index])
+        ) {
+            indexedTurns = turns;
+            return;
+        }
+        rebuildItemLocationIndex();
+    }
+
+    function findItemLocation(itemId: string): ItemLocation | null {
+        if (!itemId) return null;
+        ensureItemLocationIndex();
+
+        let indexed = itemLocationIndex.get(itemId);
+        if (!indexed) {
+            // Keep unknown ids cheap until the next turns-array update. This is
+            // common when a delta arrives just before item/started.
+            return null;
+        }
+        const indexedItem =
+            indexed && turns[indexed.turnIndex]?.items?.[indexed.itemIndex];
+        // A few protocol handlers append to an items array before assigning a new
+        // turns array. Validate the cached coordinate and rebuild once if needed.
+        if (!indexed || indexedItem !== indexed.item) {
+            rebuildItemLocationIndex();
+            indexed = itemLocationIndex.get(itemId);
+        }
+        return indexed ? { turnIndex: indexed.turnIndex, itemIndex: indexed.itemIndex } : null;
     }
 
     function bufferAgentMessageDelta(itemId: string, delta: string) {
@@ -1314,6 +1373,7 @@
             cancelAnimationFrame(deltaFlushRaf);
             deltaFlushRaf = null;
         }
+        invalidateItemLocationIndex();
         turns = nextTurns;
         hydrateReasoningSummaryFromTurns(turns);
         resumeAutoScrollImmediately();
@@ -2649,6 +2709,7 @@ let userInteracting = false;
                     nextItems = [...existingItems, todoListItem];
                 }
 
+                invalidateItemLocationIndex();
                 turns[turnIndex] = {
                     ...targetTurn,
                     items: nextItems,
@@ -2785,6 +2846,7 @@ let userInteracting = false;
                     }
                     const existingTurnIndex = turns.findIndex((t) => t.id === turn.id);
                     if (existingTurnIndex >= 0) {
+                        invalidateItemLocationIndex();
                         turns[existingTurnIndex] = {
                             ...turns[existingTurnIndex],
                             ...turn,
@@ -2833,6 +2895,7 @@ let userInteracting = false;
                 if (turn) {
                     const turnIndex = turns.findIndex((t) => t.id === turn.id);
                     if (turnIndex >= 0) {
+                        invalidateItemLocationIndex();
                         turns[turnIndex] = {
                             ...turns[turnIndex],
                             ...turn,
@@ -2932,6 +2995,7 @@ let userInteracting = false;
                             mergedItems.push(item);
                         });
 
+                        invalidateItemLocationIndex();
                         turns[turnIndex] = {
                             // Preserve local fields (like expanded state) but
                             // prefer the latest turn status / metadata.
@@ -3002,6 +3066,9 @@ let userInteracting = false;
                     if (!turns[turnIndex].items) {
                         turns[turnIndex].items = [];
                     }
+                    // The item is appended before buffered deltas are applied;
+                    // invalidate the coordinate index so that new id is visible.
+                    invalidateItemLocationIndex();
                     turns[turnIndex].items.push(item);
                     if (item.type === "agentMessage") {
                         applyBufferedAgentMessageDelta(item.id);
@@ -3152,6 +3219,7 @@ let userInteracting = false;
                     }
 
                     const itemsForTurn = turns[turnIndex].items;
+                    invalidateItemLocationIndex();
                     // Prefer the first matching occurrence so repeated items are completed in
                     // the same order as their item/started notifications.
                     let itemIndex = itemsForTurn.findIndex(

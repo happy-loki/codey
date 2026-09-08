@@ -46,6 +46,7 @@ import { closeTerminal } from "./Terminal.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { getMarkdownCssPath, refreshCustomCss } from "./markdown/styleStore";
+import { canonicalPathKey, normalizeFsPath } from "./utils/pathNormalize";
 
 const watchedScopes = new Set<string>();
 let currentRootKey: string | null = null;
@@ -171,6 +172,22 @@ function parentPathOf(p: string): string | null {
     return p.slice(0, idx);
 }
 
+function pathInTreeStyle(targetPath: string, rootPath: string): string {
+    if (!rootPath) return targetPath;
+    const target = normalizeFsPath(targetPath);
+    const root = normalizeFsPath(rootPath).replace(/\/+$/, "");
+    const targetKey = canonicalPathKey(target);
+    const rootKey = canonicalPathKey(root);
+    if (!target || !root || !rootKey || targetKey === rootKey) {
+        return targetKey === rootKey ? rootPath : targetPath;
+    }
+    if (!targetKey.startsWith(`${rootKey}/`)) return targetPath;
+
+    const relative = target.slice(root.length).replace(/^\/+/, "");
+    const separator = rootPath.includes("\\") ? "\\" : "/";
+    return `${rootPath.replace(/[\\/]+$/, "")}${separator}${relative.replace(/\//g, separator)}`;
+}
+
 async function loadDirectorySnapshot(path: string) {
     const snapshotEpoch = getChildrenEpoch(path);
     const applyIfFresh = (entries: FsEntry[]) => {
@@ -201,18 +218,22 @@ export async function revealInTreeView(targetPath: string) {
         return;
     }
     const workspaceRoot = getRootPath();
+    const treeTargetPath =
+        getNodeByPath(normalizedPath)?.path ??
+        pathInTreeStyle(normalizedPath, workspaceRoot);
     try {
         openFileTree();
     } catch {}
     const directories: string[] = [];
-    let current: string | null = getNodeByPath(normalizedPath)?.isDirectory
-        ? normalizedPath
-        : parentPathOf(normalizedPath);
+    let targetNode = getNodeByPath(treeTargetPath);
+    let current: string | null = targetNode?.isDirectory
+        ? targetNode.path
+        : parentPathOf(treeTargetPath);
     const guard = new Set<string>();
     while (current && !guard.has(current)) {
         guard.add(current);
         directories.push(current);
-        if (workspaceRoot && current === workspaceRoot) {
+        if (workspaceRoot && canonicalPathKey(current) === canonicalPathKey(workspaceRoot)) {
             break;
         }
         const next = parentPathOf(current);
@@ -229,9 +250,13 @@ export async function revealInTreeView(targetPath: string) {
         } catch {}
         requestWatchScope(dir, true);
     }
-    const parent = getNodeByPath(normalizedPath)?.isDirectory
-        ? normalizedPath
-        : parentPathOf(normalizedPath);
+    // Directory snapshots may have introduced the target with the filesystem's
+    // actual casing. Use that spelling for strict row selection/reveal matching.
+    targetNode = getNodeByPath(treeTargetPath);
+    const resolvedTreeTargetPath = targetNode?.path ?? treeTargetPath;
+    const parent = targetNode?.isDirectory
+        ? targetNode.path
+        : parentPathOf(resolvedTreeTargetPath);
     if (parent && !directories.includes(parent)) {
         await loadDirectorySnapshot(parent);
         try {
@@ -240,9 +265,9 @@ export async function revealInTreeView(targetPath: string) {
         requestWatchScope(parent, true);
     }
     try {
-        setSelectedPath(normalizedPath);
+        setSelectedPath(resolvedTreeTargetPath);
     } catch {}
-    requestReveal(normalizedPath);
+    requestReveal(resolvedTreeTargetPath);
 }
 
 export const workspaceName = writable("Untitled Workspace");

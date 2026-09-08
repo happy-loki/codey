@@ -127,6 +127,17 @@
     let flatRows: FlatRow[] = [];
     const fileSummaryRowCache = new Map<string, { unifiedDiff: string; row: FileSummaryRow | null }>();
     const turnRowCache = new Map<string, { signature: string; rows: FlatRow[] }>();
+    const finishedTurnSignatureCache = new WeakMap<
+        object,
+        {
+            items: ThreadItem[];
+            turnIndex: number;
+            status: Turn["status"] | null | undefined;
+            unifiedDiff: string;
+            tokenStats: object | null;
+            signature: string;
+        }
+    >();
     const commandActionCache = new Map<
         string,
         { fingerprint: string; actions: ParsedCommandAction[] }
@@ -143,18 +154,49 @@
         return identity;
     }
 
-    function getTurnStructureSignature(turn: Turn, turnIndex: number): string {
+    function getTurnStructureSignature(
+        turn: Turn,
+        turnIndex: number,
+        canCache = false
+    ): string {
         const items = turn.items ?? [];
         const tokenStats = turnTokenStats[turn.id];
         const diff = turnDiffs[turn.id];
-        return [
+        if (canCache) {
+            const cached = finishedTurnSignatureCache.get(turn as object);
+            if (
+                cached &&
+                cached.items === items &&
+                cached.turnIndex === turnIndex &&
+                cached.status === turn.status &&
+                cached.unifiedDiff === (diff?.unifiedDiff ?? "") &&
+                cached.tokenStats === (tokenStats ?? null)
+            ) {
+                return cached.signature;
+            }
+        }
+
+        const tokenSignature = tokenStats
+            ? [
+                  tokenStats.usage.totalTokens,
+                  tokenStats.usage.inputTokens,
+                  tokenStats.usage.cachedInputTokens,
+                  tokenStats.usage.cacheWriteInputTokens,
+                  tokenStats.usage.outputTokens,
+                  tokenStats.usage.reasoningOutputTokens,
+                  tokenStats.cost?.input ?? "",
+                  tokenStats.cost?.cached ?? "",
+                  tokenStats.cost?.output ?? "",
+                  tokenStats.cost?.total ?? "",
+                  tokenStats.model ?? "",
+              ].join("|")
+            : "";
+        const signature = [
             turn.id,
             turnIndex,
             turn.status ?? "",
             diff?.unifiedDiff ?? "",
-            tokenStats
-                ? JSON.stringify({ usage: tokenStats.usage, cost: tokenStats.cost, model: tokenStats.model })
-                : "",
+            tokenSignature,
             items
                 .map((item) => {
                     const textPresence =
@@ -190,6 +232,18 @@
                 })
                 .join("\u0002"),
         ].join("\u0003");
+
+        if (canCache) {
+            finishedTurnSignatureCache.set(turn as object, {
+                items,
+                turnIndex,
+                status: turn.status,
+                unifiedDiff: diff?.unifiedDiff ?? "",
+                tokenStats: tokenStats ?? null,
+                signature,
+            });
+        }
+        return signature;
     }
 
     function hasReasoningContent(item: Extract<ThreadItem, { type: "reasoning" }>) {
@@ -1682,7 +1736,6 @@
             const status: Turn["status"] | null | undefined = turn.status || "inProgress";
             const isFinished =
                 status === "completed" || status === "failed" || status === "interrupted";
-            const structureSignature = getTurnStructureSignature(turn, tIndex);
             const hasCommandExecution = items.some(
                 (item) => item.type === "commandExecution"
             );
@@ -1690,6 +1743,7 @@
             // Active turns may mutate item objects in place while deltas stream.
             // Cache only terminal turns, whose projection is stable by contract.
             const canCacheTurn = isFinished && !hasCommandExecution;
+            const structureSignature = getTurnStructureSignature(turn, tIndex, canCacheTurn);
             if (canCacheTurn && cachedTurn?.signature === structureSignature) {
                 rows.push(...cachedTurn.rows);
                 return;

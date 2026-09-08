@@ -29,9 +29,15 @@
     let scheduledContent: string | null = null;
     let scheduledMediaBaseDir: string | null = null;
     let enhancementTask: number | null = null;
+    let enhancementDirty = true;
     let lastEnhanced = enhance;
     let lastStreamingContent = "";
+    let lastStreamingContentLength = 0;
+    let lastStreamingContentPrefix = "";
     let lastStreamingMediaBaseDir: string | null | undefined;
+    let lastRenderedContent: string | null = null;
+    let lastRenderedMediaBaseDir: string | null | undefined;
+    let lastRenderedMode: boolean | null = null;
     let streamingStableBlocks: RenderedBlock[] = [];
     let streamingStableOffset = 0;
     const streamingBlockCache = new Map<
@@ -394,10 +400,17 @@
     }
 
     function renderStreamingBlocks(text: string, baseDir: string | null): RenderedBlock[] {
+        if (text === lastStreamingContent && baseDir === lastStreamingMediaBaseDir) {
+            return renderedBlocks;
+        }
+
         // A history replacement is not an append. Drop offsets from the old
         // stream so a reused component cannot retain stale HTML.
         if (
-            (lastStreamingContent && !text.startsWith(lastStreamingContent)) ||
+            (lastStreamingContentLength > 0 &&
+                (text.length < lastStreamingContentLength ||
+                    (text.length === lastStreamingContentLength && text !== lastStreamingContent) ||
+                    !text.startsWith(lastStreamingContentPrefix))) ||
             streamingStableOffset > text.length ||
             (lastStreamingMediaBaseDir !== undefined &&
                 lastStreamingMediaBaseDir !== baseDir)
@@ -449,11 +462,12 @@
         const activeBlocks = tailBlocks.slice(completeCount).map(renderBlock);
         const rendered = [...streamingStableBlocks, ...activeBlocks];
 
-        const liveIds = new Set(rendered.map((block) => block.id));
-        for (const id of streamingBlockCache.keys()) {
-            if (!liveIds.has(id)) streamingBlockCache.delete(id);
-        }
+        // Block ids are source offsets and only move from the active tail into
+        // stableBlocks while a stream appends. The cache is cleared on a history
+        // replacement, so no per-frame Set allocation or full cache sweep is needed.
         lastStreamingContent = text;
+        lastStreamingContentLength = text.length;
+        lastStreamingContentPrefix = text.slice(0, 128);
         lastStreamingMediaBaseDir = baseDir;
         return rendered;
     }
@@ -602,13 +616,19 @@
     }
 
     function scheduleEnhancements() {
-        if (!enhance || enhancementTask !== null || typeof window === "undefined") {
+        if (
+            !enhance ||
+            !enhancementDirty ||
+            enhancementTask !== null ||
+            typeof window === "undefined"
+        ) {
             return;
         }
 
         const run = () => {
             enhancementTask = null;
             if (!enhance || !container?.isConnected) return;
+            enhancementDirty = false;
             highlightCodeBlocks();
             void renderMath();
         };
@@ -631,26 +651,40 @@
             scheduledContent = null;
             scheduledMediaBaseDir = null;
             renderedBlocks = renderStreamingBlocks(next, nextMediaBaseDir);
+            lastRenderedMode = false;
         });
     }
 
     $: {
         if (enhance) {
-            if (renderRaf !== null) {
-                cancelAnimationFrame(renderRaf);
-                renderRaf = null;
-                scheduledContent = null;
-                scheduledMediaBaseDir = null;
+            const nextContent = content ?? "";
+            const needsRender =
+                lastRenderedMode !== true ||
+                lastRenderedContent !== nextContent ||
+                lastRenderedMediaBaseDir !== mediaBaseDir;
+            if (needsRender) {
+                if (renderRaf !== null) {
+                    cancelAnimationFrame(renderRaf);
+                    renderRaf = null;
+                    scheduledContent = null;
+                    scheduledMediaBaseDir = null;
+                }
+                const html = renderContent(nextContent, mediaBaseDir);
+                renderedBlocks = nextContent
+                    ? [{ id: "full", source: nextContent, complete: true, html }]
+                    : [];
+                lastStreamingContent = "";
+                lastStreamingContentLength = 0;
+                lastStreamingContentPrefix = "";
+                lastStreamingMediaBaseDir = undefined;
+                streamingStableBlocks = [];
+                streamingStableOffset = 0;
+                streamingBlockCache.clear();
+                lastRenderedContent = nextContent;
+                lastRenderedMediaBaseDir = mediaBaseDir;
+                lastRenderedMode = true;
+                enhancementDirty = true;
             }
-            const html = renderContent(content, mediaBaseDir);
-            renderedBlocks = content
-                ? [{ id: "full", source: content, complete: true, html }]
-                : [];
-            lastStreamingContent = "";
-            lastStreamingMediaBaseDir = undefined;
-            streamingStableBlocks = [];
-            streamingStableOffset = 0;
-            streamingBlockCache.clear();
         } else {
             scheduleRender();
         }
@@ -705,7 +739,13 @@
         streamingBlockCache.clear();
         streamingStableBlocks = [];
         streamingStableOffset = 0;
+        lastStreamingContentLength = 0;
+        lastStreamingContentPrefix = "";
         lastStreamingMediaBaseDir = undefined;
+        lastRenderedContent = null;
+        lastRenderedMediaBaseDir = undefined;
+        lastRenderedMode = null;
+        enhancementDirty = false;
         renderedBlocks = [];
         themeObserver?.disconnect();
         themeObserver = null;
