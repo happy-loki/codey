@@ -96,7 +96,13 @@
 
     const dispatch = createEventDispatcher<{
         modelPickerOpen: void;
+        openThread: { threadId: string };
     }>();
+
+    function handleOpenThread(event: CustomEvent<{ threadId: string }>) {
+        const threadId = event.detail?.threadId;
+        if (threadId) dispatch("openThread", { threadId });
+    }
 
     const DEBUG_CHAT_VIEW = (() => {
         try {
@@ -3547,6 +3553,7 @@ let userInteracting = false;
                         undoTurnId={undoTurnId}
                         on:toggleGroup={handleItemGroupToggle}
                         on:undoTurn={(e) => void handleUndoTurn(e.detail.turnId)}
+                        on:openThread={handleOpenThread}
                     />
                 {/if}
             </div>
