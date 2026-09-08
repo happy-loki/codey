@@ -33,7 +33,7 @@ clone 只是为了对照文档和在仓库目录执行命令。凭证不会写�
 
 ## 需要配置的 Secrets
 
-最少配置这 5 个：
+macOS 签名和公证需要这 5 个（完整发布还需要下文所述的 Tauri 更新签名私钥）：
 
 | Secret | 来源 | 填什么 |
 | --- | --- | --- |
@@ -52,8 +52,9 @@ clone 只是为了对照文档和在仓库目录执行命令。凭证不会写�
 不要配置：
 
 - `Apple Development` / `Apple Distribution` / `Developer ID Installer` 证书
-- Tauri updater 私钥
 - 其他仓库的 secret
+
+Tauri updater 使用独立的 `TAURI_SIGNING_PRIVATE_KEY`，所有平台的自动更新都需要它。它不是 Apple 证书，也不能用 `.p12` 或 `.p8` 代替。完整配置见 [发布与自动更新](RELEASE_AND_UPDATES.md)。
 
 ## Mac：生成 CSR
 

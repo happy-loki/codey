@@ -111,7 +111,8 @@ src-tauri/target/            Rust 构建输出，不提交
 yarn                         # 安装前端依赖
 yarn dev                     # 启动 Vite 前端开发服务
 yarn build                   # 构建前端
-yarn check                   # Svelte/TypeScript 检查
+yarn run check               # 完整 Svelte/TypeScript 检查（允许查看现有错误）
+yarn check:ci                # CI 类型门禁：阻止新增错误
 yarn start-window            # 启动 Tauri 开发模式
 yarn tauri-build-debug       # 构建 Debug 桌面二进制
 yarn tauri-build             # 构建 Release 桌面二进制
@@ -124,7 +125,7 @@ cd src-tauri
 cargo test
 ```
 
-当前构建命令生成可运行二进制，不生成 MSI。自动更新功能保留，但公开版本的构建、签名和发布应由 GitHub Actions 及 GitHub Release 产物负责，不要恢复旧的私有发布脚本、私有更新服务或私有发布地址。
+`yarn tauri-build` 生成开发者使用的可运行二进制。公开版本由 GitHub Actions 构建 Windows MSI 安装包、macOS DMG 和签名更新包，并从 GitHub Release 的 `latest.json` 检查更新；不要恢复旧的私有发布脚本、私有更新服务或私有发布地址。
 
 ## 编码规范
 
@@ -141,7 +142,7 @@ cargo test
 前端或 Svelte 代码变更后运行：
 
 ```bash
-yarn check
+yarn check:ci
 ```
 
 Rust 后端变更后运行：

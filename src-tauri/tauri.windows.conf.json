@@ -1,0 +1,11 @@
+{
+  "bundle": {
+    "targets": ["msi"],
+    "windows": {
+      "wix": {
+        "language": "zh-CN",
+        "upgradeCode": "a12e5aec-3706-5f7c-8410-d2b0ae02791d"
+      }
+    }
+  }
+}

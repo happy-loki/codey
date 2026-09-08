@@ -93,11 +93,25 @@ yarn start-window
 `warn,codex_otel.log_only=off`。需要临时排查 app-server 时，分别设置 Codey 的
 `RUST_LOG=debug` 和子进程专用的 `CODEY_CODEX_RUST_LOG=debug`。
 
-执行前端类型和 Svelte 检查：
+执行完整的前端类型和 Svelte 检查：
 
 ```bash
-yarn check
+yarn run check
 ```
+
+项目仍有一批历史类型错误。CI 使用已提交的错误基线，只允许错误数量和位置减少，不允许新增错误：
+
+```bash
+yarn check:ci
+```
+
+修复历史错误后，使用以下命令缩减基线并提交更新；该命令不会接受新增错误：
+
+```bash
+yarn check:baseline:update
+```
+
+这里必须写成 `yarn run check`；Yarn Classic 的内置 `check` 命令优先级高于同名脚本，直接执行 `yarn check` 只会检查依赖完整性。
 
 运行 Rust 测试：
 
@@ -140,20 +154,30 @@ src-tauri/target/release/codey.exe
 
 Release 构建保留 WebView DevTools，运行后可按 `F12` 或 `Ctrl+Shift+I` 查看主窗口控制台。
 
-当前构建命令直接生成可运行二进制，不生成 MSI 安装包。后续公开版本的构建和发布应由 GitHub Actions 负责；自动更新能力保留，更新产物应来自公开仓库的 Release。
+上述本地开发命令生成可运行二进制。面向用户的 Windows 版本通过 GitHub Actions 生成简体中文 MSI 安装包，支持安装、覆盖升级和卸载；在 Windows 本地可用 `yarn tauri build --bundles msi` 构建安装包。
 
 ## GitHub Actions
 
 公开构建分成两条流水线：
 
-- `ci.yml`：在 `push` 和 `pull_request` 上跑 Windows 和 macOS 的 `yarn build`、`yarn check`、`cargo test`，并上传未发布的桌面构建 artifact
-- `release.yml`：在 `v*` 标签和手动触发时发布 GitHub Release
+- `ci.yml`：在 `push` 和 `pull_request` 上跑 Windows 和 macOS 的 `yarn build`、`yarn check:ci`、发布门禁测试和 `cargo test`，验证 Windows MSI 安装/卸载，并上传未发布的构建 artifact
+- `release.yml`：在 `v*` 标签和手动触发时创建 Release 草稿，构建并验证三个平台的安装包与签名更新文件，全部通过后才公开发布
 
 发布产物命名为：
 
-- Windows：`codey-v<version>-windows-x64-bin.exe`
+- Windows：`codey-v<version>-windows-x64-msi.msi`（简体中文安装向导）
 - macOS arm64：`codey-v<version>-macos-arm64-dmg.dmg`
 - macOS x64：`codey-v<version>-macos-x64-dmg.dmg`
+
+Release 还包含 macOS `.app.tar.gz` 更新包、更新包的 `.sig` 签名和 `latest.json`。Windows 自动更新直接使用 MSI。Apple 签名只适用于 macOS；当前 Windows MSI 未配置 Authenticode 发布者证书。
+
+### 应用内自动更新
+
+从 `0.0.50` 起，应用使用公开仓库的 `releases/latest/download/latest.json`。默认启动时检查并在后台下载更新，用户点击“立即重启”后安装；也可以在设置中检查更新或关闭自动更新。
+
+`0.0.49` 及更早版本没有配置更新地址，需要先手动安装一次新版。后续发布递增版本后，已安装的新版才能发现可用更新。应用不会把同版本重新安装一遍。
+
+正式发布必须配置 `TAURI_SIGNING_PRIVATE_KEY`；私钥如有密码，还需配置 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`。应用内只保存公钥，私钥仅由发布环境读取。`tauri.release.conf.json` 开启签名更新包生成，普通本地/CI 构建无需私钥。详见 [发布与自动更新](docs/RELEASE_AND_UPDATES.md)。
 
 ### macOS 发布凭证
 

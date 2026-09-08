@@ -45,7 +45,7 @@
   },
   "productName": "codey",
   "mainBinaryName": "codey",
-  "version": "0.0.49",
+  "version": "0.0.50",
   "identifier": "com.lokizhou.codey",
   "plugins": {
     "fs": {
@@ -53,9 +53,13 @@
     },
     "os": {},
     "updater": {
-      "active": false,
-      "pubkey": "",
-      "endpoints": []
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI5NTQ1NDQ4NDg2RTJDNzYKUldSMkxHNUlTRlJVS1N3eC9XTDRlcGVob1hQMEZHNmk4R2hqUnd3azM0TTJGVjhyUlRaN1F4ZHoK",
+      "endpoints": [
+        "https://github.com/happy-loki/codey/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   },
   "app": {

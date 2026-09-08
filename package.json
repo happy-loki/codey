@@ -1,6 +1,6 @@
 {
     "name": "codey",
-    "version": "0.0.49",
+    "version": "0.0.50",
     "type": "module",
     "private": true,
     "scripts": {
@@ -9,6 +9,8 @@
         "dev": "cross-env SASS_SILENCE_DEPRECATIONS=legacy-js-api vite",
         "start": "vite preview",
         "check": "svelte-check --workspace . --tsconfig ./tsconfig.json --config ./vite.config.ts",
+        "check:ci": "node scripts/check-type-baseline.mjs",
+        "check:baseline:update": "node scripts/check-type-baseline.mjs --update-baseline",
         "tauri": "tauri",
         "start-window": "yarn tauri dev --features devtools",
         "tauri-build-debug": "yarn build && cargo build --manifest-path src-tauri/Cargo.toml",

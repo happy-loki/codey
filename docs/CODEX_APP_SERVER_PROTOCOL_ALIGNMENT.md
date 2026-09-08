@@ -16,7 +16,7 @@ yarn codex:protocol:generate
 ```
 
 该脚本实际执行 `codex app-server generate-ts --out src/lib/codex/protocol/generated`。
-生成绑定会提交到仓库，`yarn build`、`yarn check` 和发布构建不会自动重新生成，避免构建结果
+生成绑定会提交到仓库，`yarn build`、`yarn run check` 和发布构建不会自动重新生成，避免构建结果
 受执行机器上安装的 Codex CLI 版本影响。同步前先确认 `codex --version`，同步后检查生成目录
 和手写适配层的差异。
 

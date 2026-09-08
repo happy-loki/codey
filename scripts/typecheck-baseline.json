@@ -1,0 +1,3316 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "file": "src/App.svelte",
+      "code": 2322,
+      "message": "Type 'HTMLElement | null' is not assignable to type 'Document | Element | ShadowRoot'.\n  Type 'null' is not assignable to type 'Document | Element | ShadowRoot'.",
+      "source": "addTab(\"Welcome\", welcomeLabel, new Welcome({target: document.getElementById(\"tabview\")}), { labelKey: \"welcome.tabTitle\" });",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2339,
+      "message": "Property 'close' does not exist on type 'Promise<WebviewWindow | null>'.",
+      "source": "await splash.close();",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "$showrightsidebarview && !!$righttool?.content && $righttool?.tabname === \"Agent\";",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "<SidebarView content={$righttool?.content} showTreeLoading={false} />",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "<SidebarView content={$tool.content} showTreeLoading={true} />",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "{#if $tool?.content}",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2339,
+      "message": "Property 'hide' does not exist on type 'Promise<WebviewWindow | null>'.",
+      "source": "await splash.hide();",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2339,
+      "message": "Property 'tabname' does not exist on type 'never'.",
+      "source": "$showrightsidebarview && !!$righttool?.content && $righttool?.tabname === \"Agent\";",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2339,
+      "message": "Property 'tabname' does not exist on type 'never'.",
+      "source": "{#if $righttool?.tabname === \"Agent\"}",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ hidden?: boolean | undefined; }, { [evt: string]: CustomEvent<any>; }, {}> & { $$bindings?: string | undefined; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "addTab(\"Welcome\", welcomeLabel, new Welcome({target: document.getElementById(\"tabview\")}), { labelKey: \"welcome.tabTitle\" });",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2345,
+      "message": "Argument of type '__sveltets_2_IsomorphicComponent<{ title: any; buttons: any; description?: string | undefined; options?: { label: null; placeholder: string; } | undefined; path?: string | undefined; }, { [evt: string]: CustomEvent<any>; }, {}, {}, string>' is not assignable to parameter of type 'null'.",
+      "source": "popup.set(InputModal);",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2345,
+      "message": "Argument of type '__sveltets_2_IsomorphicComponent<{ title: any; buttons: any; description?: string | undefined; options?: { label: string; placeholder: string; } | undefined; path?: string | undefined; }, { [evt: string]: CustomEvent<any>; }, {}, {}, string>' is not assignable to parameter of type 'null'.",
+      "source": "popup.set(RenameModal);",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 2351,
+      "message": "This expression is not constructable.\n  Type 'never' has no construct signatures.",
+      "source": "<svelte:component this={$popup} {...$popupProps}></svelte:component>",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "function updatePanelSize(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/App.svelte",
+      "code": 7008,
+      "message": "Member 'action' implicitly has an 'any' type.",
+      "source": "action,",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 2353,
+      "message": "Object literal may only specify known properties, and 'label' does not exist in type '{ modal?: boolean | undefined; }'.",
+      "source": "{ label: translate(\"dialogs.createFile.label\"), placeholder: translate(\"dialogs.createFile.placeholder\") },",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 2353,
+      "message": "Object literal may only specify known properties, and 'label' does not exist in type '{ modal?: boolean | undefined; }'.",
+      "source": "{ label: translate(\"dialogs.createFolder.label\"), placeholder: translate(\"dialogs.createFolder.placeholder\") },",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7005,
+      "message": "Variable 'keybinds' implicitly has an 'any[]' type.",
+      "source": "if (!keybinds.includes(value)) {",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7005,
+      "message": "Variable 'keybinds' implicitly has an 'any[]' type.",
+      "source": "keybinds = [...keybinds, value];",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7005,
+      "message": "Variable 'keybinds' implicitly has an 'any[]' type.",
+      "source": "return keybinds;",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7006,
+      "message": "Parameter 'filename' implicitly has an 'any' type.",
+      "source": "\"command\": async (filename, oldpath) => {",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7006,
+      "message": "Parameter 'name' implicitly has an 'any' type.",
+      "source": "{ name: translate(\"dialogs.createFile.confirm\"), action: (name) => { createFile(`${basePath}${sep}${name}`); } },",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7006,
+      "message": "Parameter 'name' implicitly has an 'any' type.",
+      "source": "{ name: translate(\"dialogs.createFolder.confirm\"), action: async (name) => { await createFolder(`${basePath}${sep}${name}`); } },",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7006,
+      "message": "Parameter 'name' implicitly has an 'any' type.",
+      "source": "{name: \"Rename\", action: async (name) => {await renameFile(name, oldpath)}},",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7006,
+      "message": "Parameter 'oldpath' implicitly has an 'any' type.",
+      "source": "\"command\": async (filename, oldpath) => {",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7006,
+      "message": "Parameter 'path' implicitly has an 'any' type.",
+      "source": "\"command\": (path) => {",
+      "count": 2
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7006,
+      "message": "Parameter 'path' implicitly has an 'any' type.",
+      "source": "\"command\": async (path) => {",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7034,
+      "message": "Variable 'keybinds' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "source": "let keybinds = []",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ addEditorTab: { keybind: string; command: () => Promise<void>; }; openFile: { keybind: string; command: () => Promise<void>; }; openFolder: { keybind: string; command: () => Promise<void>; }; ... 35 more ...; addToAIChat: { ...; }; }'.\n  No index signature with a parameter of type 'string' was found on type '{ addEditorTab: { keybind: string; command: () => Promise<void>; }; openFile: { keybind: string; command: () => Promise<void>; }; openFolder: { keybind: string; command: () => Promise<void>; }; ... 35 more ...; addToAIChat: { ...; }; }'.",
+      "source": "commands[name] = { \"keybind\": keybind, \"command\": command }",
+      "count": 1
+    },
+    {
+      "file": "src/config/commands.ts",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ addEditorTab: { keybind: string; command: () => Promise<void>; }; openFile: { keybind: string; command: () => Promise<void>; }; openFolder: { keybind: string; command: () => Promise<void>; }; ... 35 more ...; addToAIChat: { ...; }; }'.\n  No index signature with a parameter of type 'string' was found on type '{ addEditorTab: { keybind: string; command: () => Promise<void>; }; openFile: { keybind: string; command: () => Promise<void>; }; openFolder: { keybind: string; command: () => Promise<void>; }; ... 35 more ...; addToAIChat: { ...; }; }'.",
+      "source": "if (commands[name]) {",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7006,
+      "message": "Parameter 'combo' implicitly has an 'any' type.",
+      "source": "Mousetrap.prototype.stopCallback = function (e, element, combo, sequence) {",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "Mousetrap.bind(combos, async (e, triggeredCombo) => {",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "Mousetrap.prototype.stopCallback = function (e, element, combo, sequence) {",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7006,
+      "message": "Parameter 'element' implicitly has an 'any' type.",
+      "source": "Mousetrap.prototype.stopCallback = function (e, element, combo, sequence) {",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7006,
+      "message": "Parameter 'sequence' implicitly has an 'any' type.",
+      "source": "Mousetrap.prototype.stopCallback = function (e, element, combo, sequence) {",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7006,
+      "message": "Parameter 'triggeredCombo' implicitly has an 'any' type.",
+      "source": "Mousetrap.bind(combos, async (e, triggeredCombo) => {",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ Shift: string; Control: string; Ctrl: string; Alt: string; Option: string; Meta: string; Command: string; Cmd: string; Backspace: string; Tab: string; Enter: string; Capslock: string; Escape: string; ... 9 more ...; \"-\": string; }'.\n  No index signature with a parameter of type 'string' was found on type '{ Shift: string; Control: string; Ctrl: string; Alt: string; Option: string; Meta: string; Command: string; Cmd: string; Backspace: string; Tab: string; Enter: string; Capslock: string; Escape: string; ... 9 more ...; \"-\": string; }'.",
+      "source": "else if (keymap[trimmed.toLowerCase()]) {",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ Shift: string; Control: string; Ctrl: string; Alt: string; Option: string; Meta: string; Command: string; Cmd: string; Backspace: string; Tab: string; Enter: string; Capslock: string; Escape: string; ... 9 more ...; \"-\": string; }'.\n  No index signature with a parameter of type 'string' was found on type '{ Shift: string; Control: string; Ctrl: string; Alt: string; Option: string; Meta: string; Command: string; Cmd: string; Backspace: string; Tab: string; Enter: string; Capslock: string; Escape: string; ... 9 more ...; \"-\": string; }'.",
+      "source": "if (keymap[trimmed]) {",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ Shift: string; Control: string; Ctrl: string; Alt: string; Option: string; Meta: string; Command: string; Cmd: string; Backspace: string; Tab: string; Enter: string; Capslock: string; Escape: string; ... 9 more ...; \"-\": string; }'.\n  No index signature with a parameter of type 'string' was found on type '{ Shift: string; Control: string; Ctrl: string; Alt: string; Option: string; Meta: string; Command: string; Cmd: string; Backspace: string; Tab: string; Enter: string; Capslock: string; Escape: string; ... 9 more ...; \"-\": string; }'.",
+      "source": "keybind = keybind.replace(key, keymap[trimmed.toLowerCase()]);",
+      "count": 1
+    },
+    {
+      "file": "src/config/config.ts",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ Shift: string; Control: string; Ctrl: string; Alt: string; Option: string; Meta: string; Command: string; Cmd: string; Backspace: string; Tab: string; Enter: string; Capslock: string; Escape: string; ... 9 more ...; \"-\": string; }'.\n  No index signature with a parameter of type 'string' was found on type '{ Shift: string; Control: string; Ctrl: string; Alt: string; Option: string; Meta: string; Command: string; Cmd: string; Backspace: string; Tab: string; Enter: string; Capslock: string; Escape: string; ... 9 more ...; \"-\": string; }'.",
+      "source": "keybind = keybind.replace(key, keymap[trimmed]);",
+      "count": 1
+    },
+    {
+      "file": "src/config/extensionhandler.ts",
+      "code": 2345,
+      "message": "Argument of type 'any[]' is not assignable to parameter of type 'never[]'.\n  Type 'any' is not assignable to type 'never'.",
+      "source": "themes.set(default_themes);",
+      "count": 1
+    },
+    {
+      "file": "src/config/extensionhandler.ts",
+      "code": 7005,
+      "message": "Variable 'default_themes' implicitly has an 'any[]' type.",
+      "source": "default_themes = [...default_themes, theme_data];",
+      "count": 1
+    },
+    {
+      "file": "src/config/extensionhandler.ts",
+      "code": 7005,
+      "message": "Variable 'default_themes' implicitly has an 'any[]' type.",
+      "source": "themes.set(default_themes);",
+      "count": 1
+    },
+    {
+      "file": "src/config/extensionhandler.ts",
+      "code": 7034,
+      "message": "Variable 'default_themes' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "source": "let default_themes = [];",
+      "count": 1
+    },
+    {
+      "file": "src/config/extensions/default_themes/script.ts",
+      "code": 2307,
+      "message": "Cannot find module '@lezer/highlight' or its corresponding type declarations.",
+      "source": "import { tags as t } from \"@lezer/highlight\"",
+      "count": 1
+    },
+    {
+      "file": "src/config/themehandler.ts",
+      "code": 2339,
+      "message": "Property 'name' does not exist on type 'never'.",
+      "source": "let theme = get(themes).find(n => n.name === name);",
+      "count": 1
+    },
+    {
+      "file": "src/config/themehandler.ts",
+      "code": 2339,
+      "message": "Property 'name' does not exist on type 'never'.",
+      "source": "window.localStorage.setItem(THEME_NAME_KEY, theme.name);",
+      "count": 1
+    },
+    {
+      "file": "src/config/themehandler.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": ": theme.path;",
+      "count": 1
+    },
+    {
+      "file": "src/config/themehandler.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "? theme.path.replace(/^\\.\\//, \"\")",
+      "count": 1
+    },
+    {
+      "file": "src/config/themehandler.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "const normalizedPath = typeof theme.path === \"string\"",
+      "count": 1
+    },
+    {
+      "file": "src/config/themehandler.ts",
+      "code": 2339,
+      "message": "Property 'scheme' does not exist on type 'never'.",
+      "source": "const dark = theme.scheme === \"dark\";",
+      "count": 1
+    },
+    {
+      "file": "src/config/themehandler.ts",
+      "code": 7006,
+      "message": "Parameter 'json' implicitly has an 'any' type.",
+      "source": "function processStyles(json) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "if (tab.isfile && !(tab as any)?.isUnsupported && typeof tab.content?.setLineWrapping === \"function\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "if (tab.isfile && typeof tab.content?.setLetterSpacing === \"function\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "if (tab.isfile && typeof tab.content?.setLineHeightValue === \"function\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "if (typeof tab.content?.setScheme === \"function\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "if (typeof tab.content?.setTheme === \"function\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.setFontFamily(family);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.setFontSize(value);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.setLetterSpacing(value);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.setLineHeightValue(height);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.setLineWrapping(enabled);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.setScheme(get(is_dark_theme));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.setTabSize(size);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.setTheme();",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "if (tab.isfile && !(tab as any)?.isUnsupported && typeof tab.content?.setLineWrapping === \"function\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "if (tab.isfile && !(tab as any)?.isUnsupported) {",
+      "count": 3
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "if (tab.isfile && typeof tab.content?.setLetterSpacing === \"function\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "if (tab.isfile && typeof tab.content?.setLineHeightValue === \"function\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "if (tab.isfile) {",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 2345,
+      "message": "Argument of type 'string | null' is not assignable to parameter of type 'string'.\n  Type 'null' is not assignable to type 'string'.",
+      "source": "editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, () => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleKeyDown(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 7006,
+      "message": "Parameter 'ext' implicitly has an 'any' type.",
+      "source": "export async function getLang(ext) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 7006,
+      "message": "Parameter 'file' implicitly has an 'any' type.",
+      "source": "export function updateFileInfo(file) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 7006,
+      "message": "Parameter 'input' implicitly has an 'any' type.",
+      "source": "function normalizeTabSize(input) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 7006,
+      "message": "Parameter 'scheme' implicitly has an 'any' type.",
+      "source": "export function setScheme(scheme) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 7006,
+      "message": "Parameter 'size' implicitly has an 'any' type.",
+      "source": "export function setEditorTabSize(size) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Editor.svelte",
+      "code": 7006,
+      "message": "Parameter 'size' implicitly has an 'any' type.",
+      "source": "export function setTabSize(size) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "const activeTab = entries.find((t) => t?.active);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "if (target && target.isfile && target.content && typeof target.content.scrollToLine === 'function') {",
+      "count": 2
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "return editorTab.activeTab?.content ?? null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "try { target.content.scrollToLine(line, column); } catch {}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "await editorTab.closeTab(tab.id, options);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "await editorTab.closeTab(target.id, options);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "const activeId = typeof activeTab?.id === \"number\" ? activeTab.id : null;",
+      "count": 2
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "const target = editorTab.tablist.find((t) => t && t.id === targetId);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "editorTab.setActive(existing.id);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "editorTab.setActive(target.id);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "if (typeof candidate === \"number\" && editorTab.tablist.some((t) => t && t.id === candidate)) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "if (typeof tab?.id === \"number\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "let lastHistoryActiveId: number | null = editorTab.activeTab?.id ?? null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "validIds.add(tab.id);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "if (!tab.isfile && tab.path === prevLabel) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "if (target && target.isfile && target.content && typeof target.content.scrollToLine === 'function') {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'label' does not exist on type 'never'.",
+      "source": "const prevLabel = tab.label;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'label' does not exist on type 'never'.",
+      "source": "if (typeof nextLabel === \"string\" && tab.label !== nextLabel) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'label' does not exist on type 'never'.",
+      "source": "tab.label = nextLabel;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'labelKey' does not exist on type 'never'.",
+      "source": "const nextLabel = translate(tab.labelKey);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'labelKey' does not exist on type 'never'.",
+      "source": "if (tab?.labelKey) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "(t) => t && typeof t.path === \"string\" && t.path.startsWith(prefix)",
+      "count": 2
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": ": editorTab.tablist.find((t) => t && t.path === path);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": ": editorTab.tablist.find(t => t && t.path === path);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "if (!tab.isfile && tab.path === prevLabel) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "return editorTab.tablist.find((t) => t && canonicalPathKey(t.path) === key) || null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "tab.path = nextLabel;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2345,
+      "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'.\n  Type 'undefined' is not assignable to type 'string'.",
+      "source": "await editorTab.addEditorTab(path, label);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2564,
+      "message": "Property 'active' has no initializer and is not definitely assigned in the constructor.",
+      "source": "active: boolean;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 2564,
+      "message": "Property 'isfile' has no initializer and is not definitely assigned in the constructor.",
+      "source": "isfile: boolean;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7005,
+      "message": "Variable 'activetabid' implicitly has an 'any' type.",
+      "source": "await editorTab.closeTab(activetabid);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7006,
+      "message": "Parameter 'id' implicitly has an 'any' type.",
+      "source": "setActive(id) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7006,
+      "message": "Parameter 'id' implicitly has an 'any' type.",
+      "source": "updateView(id) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7006,
+      "message": "Parameter 'label' implicitly has an 'any' type.",
+      "source": "export function renameTab(tab, label, path, options: { labelKey?: string | null } = {}) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7006,
+      "message": "Parameter 'path' implicitly has an 'any' type.",
+      "source": "export function renameTab(tab, label, path, options: { labelKey?: string | null } = {}) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7006,
+      "message": "Parameter 'tab' implicitly has an 'any' type.",
+      "source": "export function renameTab(tab, label, path, options: { labelKey?: string | null } = {}) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7006,
+      "message": "Parameter 'tab' implicitly has an 'any' type.",
+      "source": "function computeIsMarkdown(tab): boolean {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7006,
+      "message": "Parameter 'tab' implicitly has an 'any' type.",
+      "source": "function computeIsMarkdownLocal(tab): boolean {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7006,
+      "message": "Parameter 'tab' implicitly has an 'any' type.",
+      "source": "refreshView(tab) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7008,
+      "message": "Member 'content' implicitly has an 'any' type.",
+      "source": "content;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/EditorTabList.svelte",
+      "code": 7034,
+      "message": "Variable 'activetabid' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let activetabid = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ExcalidrawCanvas.svelte",
+      "code": 2339,
+      "message": "Property 'default' does not exist on type 'typeof import(\"<workspace>/node_modules/@excalidraw/excalidraw/dist/types/excalidraw/index\")'.",
+      "source": "excalidrawModule?.Excalidraw ?? excalidrawModule?.default;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ExcalidrawTab.svelte",
+      "code": 7006,
+      "message": "Parameter 'pt' implicitly has an 'any' type.",
+      "source": "(pt) => Array.isArray(pt) && pt.length === 2 && pt.every(Number.isFinite),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "(t) => t.active && t.isfile && t.path === oldpath",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "(t) => t?.active && t?.path === DRAWIO_TAB_PATH",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "const tab = allTabs.find((t) => t.active && t.isfile);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "const tab = get(tabs).find((t) => t.active && t.isfile);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "? tab.content.getEncoding()",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "? tab.content.getFileInfo()",
+      "count": 3
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "? tab.content.getSpaces()",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "? tab.content.hasBom()",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "await activeDrawioTab.content.triggerSave();",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "const contentSnapshot = tab.content.getFileContent();",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "const language = await tab.content.getLang(fileType);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "enc: tab.content.getEncoding(),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "encoding: tab.content.getEncoding(),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "hasBom: tab.content.hasBom(),",
+      "count": 2
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "if (typeof tab.content.registerLocalSaveSnapshot === \"function\") {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "language: await tab.content.getLang(fileType),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content &&",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.registerLocalSaveSnapshot(contentSnapshot);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.updateFileInfo(nextInfo);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.updateFileInfo({",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof activeDrawioTab.content?.triggerSave === \"function\"",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof tab.content.getEncoding === \"function\"",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof tab.content.getFileInfo === \"function\"",
+      "count": 2
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof tab.content.getSpaces === \"function\"",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof tab.content.hasBom === \"function\"",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof tab.content.updateFileInfo === \"function\"",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof tab.content?.getEncoding !== \"function\" ||",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof tab.content?.getFileContent !== \"function\" ||",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof tab.content?.getFileInfo === \"function\"",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "typeof tab.content?.hasBom !== \"function\"",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "if (tab) closeTab(tab.id);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "tab.setActive(tab.id);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "(t) => t.active && t.isfile && t.path === oldpath",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "const tab = allTabs.find((t) => t.active && t.isfile);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "const tab = get(tabs).find((t) => t.active && t.isfile);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'label' does not exist on type 'never'.",
+      "source": "filename: tab.label,",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'label' does not exist on type 'never'.",
+      "source": "let newPath = await save({ defaultPath: `${tab.label}.txt` });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'label' does not exist on type 'never'.",
+      "source": "tab.label = fileBasename(newPath);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'label' does not exist on type 'never'.",
+      "source": "tab.path = `${newpath}${detectSeparator(newpath)}${tab.label}`;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "(t) => t.active && t.isfile && t.path === oldpath",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "(t) => t.path === `${source}${sep}${filename}`",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "(t) => t?.active && t?.path === DRAWIO_TAB_PATH",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "(t) => typeof t?.path === \"string\" && t.path.startsWith(oldPrefix)",
+      "count": 2
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "const currentPath = typeof tab.path === \"string\" ? tab.path : \"\";",
+      "count": 2
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "const fileType = await path.extname(tab.path);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "const tab = get(tabs).find((t) => t.path === p);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "if (markdownCssPath && tab.path === markdownCssPath) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "path: tab.path,",
+      "count": 2
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "tab.path = `${dest}${sep}${filename}`;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "tab.path = `${newpath}${detectSeparator(newpath)}${tab.label}`;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "tab.path = newPath;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "tab.path = resolvedPath;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'saved' does not exist on type 'never'.",
+      "source": "tab.saved = false;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'saved' does not exist on type 'never'.",
+      "source": "tab.saved = true;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2339,
+      "message": "Property 'setActive' does not exist on type 'never'.",
+      "source": "tab.setActive(tab.id);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2345,
+      "message": "Argument of type 'TreeNode[]' is not assignable to parameter of type 'never[]'.\n  Type 'TreeNode' is not assignable to type 'never'.",
+      "source": "filetree.set(rootPlaceholder);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 2349,
+      "message": "This expression is not callable.\n  Type 'never' has no call signatures.",
+      "source": "await unlistenFsDiff();",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7005,
+      "message": "Variable 'loadInterval' implicitly has an 'any' type.",
+      "source": "clearInterval(loadInterval);",
+      "count": 3
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7005,
+      "message": "Variable 'progressTimeout' implicitly has an 'any' type.",
+      "source": "clearTimeout(progressTimeout);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7006,
+      "message": "Parameter 'dest' implicitly has an 'any' type.",
+      "source": "export async function pasteFile(dest) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7006,
+      "message": "Parameter 'directory' implicitly has an 'any' type.",
+      "source": "directory,",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7006,
+      "message": "Parameter 'directory' implicitly has an 'any' type.",
+      "source": "export async function loadDir(directory) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7006,
+      "message": "Parameter 'directory' implicitly has an 'any' type.",
+      "source": "export async function openFolder(directory) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7006,
+      "message": "Parameter 'f' implicitly has an 'any' type.",
+      "source": "...recentFolders.filter((f) => f !== path),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7006,
+      "message": "Parameter 'p' implicitly has an 'any' type.",
+      "source": "export async function createFile(p) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7006,
+      "message": "Parameter 'p' implicitly has an 'any' type.",
+      "source": "export async function createFolder(p) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7006,
+      "message": "Parameter 'path' implicitly has an 'any' type.",
+      "source": "export async function readFile(path) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7034,
+      "message": "Variable 'loadInterval' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let loadInterval = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/File.ts",
+      "code": 7034,
+      "message": "Variable 'progressTimeout' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let progressTimeout = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/FileTree.svelte",
+      "code": 2322,
+      "message": "Type 'string | null | undefined' is not assignable to type 'string | null'.\n  Type 'undefined' is not assignable to type 'string | null'.",
+      "source": "name = $rootPath ? $rootPath.split($rootPath.includes('\\\\') ? '\\\\' : '/').pop() : null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/FileTree.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "commands.revealInExplorerView?.command?.(activeTab.path);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/FileTree.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "if (activeTab && activeTab.path) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/FileTree.svelte",
+      "code": 7005,
+      "message": "Variable 'contextmenuitems' implicitly has an 'any[]' type.",
+      "source": "openContextMenu(contextmenuitems, x, y);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/FileTree.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "function handleClick(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/FileTree.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "function handleSelect(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/FileTree.svelte",
+      "code": 7034,
+      "message": "Variable 'contextmenuitems' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "source": "let contextmenuitems = [];",
+      "count": 1
+    },
+    {
+      "file": "src/lib/FileTree/FileTreeView.svelte",
+      "code": 7005,
+      "message": "Variable 'ref' implicitly has an 'any' type.",
+      "source": "dispatch(\"rightclick\", { target: ref, contextmenu: true, clientX: e.clientX, clientY: e.clientY });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/FileTree/FileTreeView.svelte",
+      "code": 7034,
+      "message": "Variable 'ref' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let ref;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Header.svelte",
+      "code": 2322,
+      "message": "Type 'HTMLElement | null' is not assignable to type 'Document | Element | ShadowRoot'.\n  Type 'null' is not assignable to type 'Document | Element | ShadowRoot'.",
+      "source": "new Settings({ target: document.getElementById(\"tabview\") }),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Header.svelte",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ hidden?: boolean | undefined; }, { [evt: string]: CustomEvent<any>; }, {}> & { $$bindings?: string | undefined; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "new Settings({ target: document.getElementById(\"tabview\") }),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Header.svelte",
+      "code": 2769,
+      "message": "No overload matches this call.\n  Overload 1 of 2, '(...items: ConcatArray<{ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; }>[]): ({ ...; } | { ...; })[]', gave the following error.\n    Argument of type '{ name: string; action: () => void; }[] | { name: string; disabled: true; action: () => void; }[]' is not assignable to parameter of type 'ConcatArray<{ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; }>'.\n      Type '{ name: string; action: () => void; }[]' is not assignable to type 'ConcatArray<{ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; }>'.\n        The types returned by 'slice(...)' are incompatible between these types.\n          Type '{ name: string; action: () => void; }[]' is not assignable to type '({ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; })[]'.\n            Type '{ name: string; action: () => void; }' is not assignable to type '{ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; }'.\n              Property 'disabled' is missing in type '{ name: string; action: () => void; }' but required in type '{ name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; }'.\n  Overload 2 of 2, '(...items: ({ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; } | ConcatArray<...>)[]): ({ ...; } | { ...; })[]', gave the following error.\n    Argument of type '{ name: string; action: () => void; }[] | { name: string; disabled: true; action: () => void; }[]' is not assignable to parameter of type '{ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; } | ConcatArray<...>'.\n      Type '{ name: string; action: () => void; }[]' is not assignable to type '{ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; } | ConcatArray<...>'.\n        Type '{ name: string; action: () => void; }[]' is not assignable to type 'ConcatArray<{ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; }>'.\n          The types returned by 'slice(...)' are incompatible between these types.\n            Type '{ name: string; action: () => void; }[]' is not assignable to type '({ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; })[]'.\n              Type '{ name: string; action: () => void; }' is not assignable to type '{ name: string; shortcut: string; title: string; subtitle: string; action: () => void; disabled?: undefined; } | { name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; }'.\n                Property 'disabled' is missing in type '{ name: string; action: () => void; }' but required in type '{ name: string; disabled: boolean; action: () => void; shortcut?: undefined; title?: undefined; subtitle?: undefined; }'.",
+      "source": "recentWorkspaces.length > 0",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Icons/DirectoryIcon.svelte",
+      "code": 2345,
+      "message": "Argument of type 'string' is not assignable to parameter of type 'IconTheme'.",
+      "source": "$: opened = getThemedIconUrl(\"_folder_open\", theme, FOLDER_OPEN_CANDIDATES.slice(1)) || closed;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Icons/DirectoryIcon.svelte",
+      "code": 2345,
+      "message": "Argument of type 'string' is not assignable to parameter of type 'IconTheme'.",
+      "source": "theme,",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Icons/fileIconMap.ts",
+      "code": 2739,
+      "message": "Type '{ astro: string[]; audio: string[]; bicep: string[]; bun: string[]; c: string[]; cairo: string[]; code: string[]; coffeescript: string[]; cpp: string[]; crystal: string[]; csharp: string[]; csproj: string[]; css: string[]; cue: string[]; ... 69 more ...; gitlab: string[]; }' is missing the following properties from type 'Record<IconKey, string[]>': docker, heroku",
+      "source": "const FILE_SUFFIXES_BY_ICON_KEY: Record<IconKey, string[]> = {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ImagePreview.svelte",
+      "code": 2322,
+      "message": "Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BlobPart'.\n  Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.\n    Types of property 'buffer' are incompatible.\n      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.\n        Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength",
+      "source": "const blob = new Blob([bytes], { type: mimeFromPath(targetPath) });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/MarkdownPreviewActions.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'null | undefined'.",
+      "source": "label=\"作者\"",
+      "count": 1
+    },
+    {
+      "file": "src/lib/MarkdownPreviewActions.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'null | undefined'.",
+      "source": "label=\"标题\"",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/InputModal.svelte",
+      "code": 7005,
+      "message": "Variable 'buttons' implicitly has an 'any' type.",
+      "source": "if (!Array.isArray(buttons)) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/InputModal.svelte",
+      "code": 7006,
+      "message": "Parameter 'button' implicitly has an 'any' type.",
+      "source": "async function validateInput(button) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/InputModal.svelte",
+      "code": 7006,
+      "message": "Parameter 'buttonAction' implicitly has an 'any' type.",
+      "source": "async function handleButtonClick(buttonAction, cancel) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/InputModal.svelte",
+      "code": 7006,
+      "message": "Parameter 'cancel' implicitly has an 'any' type.",
+      "source": "async function handleButtonClick(buttonAction, cancel) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/InputModal.svelte",
+      "code": 7034,
+      "message": "Variable 'buttons' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "export let buttons;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/RenameModal.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'null | undefined'.",
+      "source": "<Input bind:value bind:invalid label={\"File Name\"} placeholder={\"Enter name...\"} hintText={helpText} invalidText={invalidText} on:enter={handleEnter} />",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/RenameModal.svelte",
+      "code": 7005,
+      "message": "Variable 'buttons' implicitly has an 'any' type.",
+      "source": "if (!Array.isArray(buttons)) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/RenameModal.svelte",
+      "code": 7006,
+      "message": "Parameter 'button' implicitly has an 'any' type.",
+      "source": "async function validateInput(button) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/RenameModal.svelte",
+      "code": 7006,
+      "message": "Parameter 'buttonAction' implicitly has an 'any' type.",
+      "source": "async function handleButtonClick(buttonAction, cancel) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/RenameModal.svelte",
+      "code": 7006,
+      "message": "Parameter 'cancel' implicitly has an 'any' type.",
+      "source": "async function handleButtonClick(buttonAction, cancel) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Modals/RenameModal.svelte",
+      "code": 7034,
+      "message": "Variable 'buttons' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "export let buttons;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/Notification.svelte",
+      "code": 7005,
+      "message": "Variable 'actions' implicitly has an 'any[]' type.",
+      "source": "{#each actions as action}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/Notification.svelte",
+      "code": 7034,
+      "message": "Variable 'actions' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "source": "export let actions = [];",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationList.svelte",
+      "code": 2339,
+      "message": "Property 'actions' does not exist on type 'never'.",
+      "source": "<Notification id={notification.id} type={notification.type} title={notification.title} message={notification.message} read={notification.read} actions={notification.actions}></Notification>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationList.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "<Notification id={notification.id} type={notification.type} title={notification.title} message={notification.message} read={notification.read} actions={notification.actions}></Notification>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationList.svelte",
+      "code": 2339,
+      "message": "Property 'message' does not exist on type 'never'.",
+      "source": "<Notification id={notification.id} type={notification.type} title={notification.title} message={notification.message} read={notification.read} actions={notification.actions}></Notification>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationList.svelte",
+      "code": 2339,
+      "message": "Property 'read' does not exist on type 'never'.",
+      "source": "<Notification id={notification.id} type={notification.type} title={notification.title} message={notification.message} read={notification.read} actions={notification.actions}></Notification>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationList.svelte",
+      "code": 2339,
+      "message": "Property 'title' does not exist on type 'never'.",
+      "source": "<Notification id={notification.id} type={notification.type} title={notification.title} message={notification.message} read={notification.read} actions={notification.actions}></Notification>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationList.svelte",
+      "code": 2339,
+      "message": "Property 'type' does not exist on type 'never'.",
+      "source": "<Notification id={notification.id} type={notification.type} title={notification.title} message={notification.message} read={notification.read} actions={notification.actions}></Notification>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationToast.svelte",
+      "code": 18047,
+      "message": "'notification' is possibly 'null'.",
+      "source": "notification.remove();",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationToast.svelte",
+      "code": 7005,
+      "message": "Variable 'actions' implicitly has an 'any[]' type.",
+      "source": "{#each actions as action}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationToast.svelte",
+      "code": 7034,
+      "message": "Variable 'actions' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "source": "export let actions = [];",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationToasts.svelte",
+      "code": 2339,
+      "message": "Property 'actions' does not exist on type 'never'.",
+      "source": "<NotificationToast id={toast.id} type={toast.type} title={toast.title} message={toast.message} actions={toast.actions} />",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationToasts.svelte",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "<NotificationToast id={toast.id} type={toast.type} title={toast.title} message={toast.message} actions={toast.actions} />",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationToasts.svelte",
+      "code": 2339,
+      "message": "Property 'message' does not exist on type 'never'.",
+      "source": "<NotificationToast id={toast.id} type={toast.type} title={toast.title} message={toast.message} actions={toast.actions} />",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationToasts.svelte",
+      "code": 2339,
+      "message": "Property 'title' does not exist on type 'never'.",
+      "source": "<NotificationToast id={toast.id} type={toast.type} title={toast.title} message={toast.message} actions={toast.actions} />",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/NotificationToasts.svelte",
+      "code": 2339,
+      "message": "Property 'type' does not exist on type 'never'.",
+      "source": "<NotificationToast id={toast.id} type={toast.type} title={toast.title} message={toast.message} actions={toast.actions} />",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 2322,
+      "message": "Type 'Action[]' is not assignable to type 'never[]'.\n  Type 'Action' is not assignable to type 'never'.",
+      "source": "entry.actions = actions;",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type '() => void | null'.",
+      "source": "constructor(label, action: () => void | null = null) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 2345,
+      "message": "Argument of type 'Action[]' is not assignable to parameter of type 'never[]'.\n  Type 'Action' is not assignable to type 'never'.",
+      "source": "const notification = new Notification(title, type, false, message, actions, persistKey);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 2345,
+      "message": "Argument of type 'Action[]' is not assignable to parameter of type 'never[]'.\n  Type 'Action' is not assignable to type 'never'.",
+      "source": "const toast = new ToastNotification(title, type, message, actions, persistKey);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 2345,
+      "message": "Argument of type 'Notification[]' is not assignable to parameter of type 'never[]'.\n  Type 'Notification' is not assignable to type 'never'.",
+      "source": "notifications.set([...notificationlist]);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 2345,
+      "message": "Argument of type 'Notification[]' is not assignable to parameter of type 'never[]'.\n  Type 'Notification' is not assignable to type 'never'.",
+      "source": "notifications.set(notificationlist);",
+      "count": 3
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 2345,
+      "message": "Argument of type 'ToastNotification[]' is not assignable to parameter of type 'never[]'.\n  Type 'ToastNotification' is not assignable to type 'never'.",
+      "source": "toasts.set([...toastlist]);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 2345,
+      "message": "Argument of type 'ToastNotification[]' is not assignable to parameter of type 'never[]'.\n  Type 'ToastNotification' is not assignable to type 'never'.",
+      "source": "toasts.set(toastlist);",
+      "count": 3
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7006,
+      "message": "Parameter 'id' implicitly has an 'any' type.",
+      "source": "export function closeNotification(id) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7006,
+      "message": "Parameter 'id' implicitly has an 'any' type.",
+      "source": "export function closeToast(id) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7006,
+      "message": "Parameter 'id' implicitly has an 'any' type.",
+      "source": "export function updateReadStatus(id, read) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7006,
+      "message": "Parameter 'label' implicitly has an 'any' type.",
+      "source": "constructor(label, action: () => void | null = null) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7006,
+      "message": "Parameter 'read' implicitly has an 'any' type.",
+      "source": "export function updateReadStatus(id, read) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7006,
+      "message": "Parameter 'title' implicitly has an 'any' type.",
+      "source": "constructor(title, type, message = \"\", actions = [], persistKey?: string) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7006,
+      "message": "Parameter 'title' implicitly has an 'any' type.",
+      "source": "constructor(title, type, read = false, message = \"\", actions = [], persistKey?: string) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7006,
+      "message": "Parameter 'type' implicitly has an 'any' type.",
+      "source": "constructor(title, type, message = \"\", actions = [], persistKey?: string) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7006,
+      "message": "Parameter 'type' implicitly has an 'any' type.",
+      "source": "constructor(title, type, read = false, message = \"\", actions = [], persistKey?: string) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Notifications/notifications.ts",
+      "code": 7008,
+      "message": "Member 'id' implicitly has an 'any' type.",
+      "source": "id;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/RightSidebar.svelte",
+      "code": 2345,
+      "message": "Argument of type 'Tool' is not assignable to parameter of type 'null'.",
+      "source": "righttool.set(new Tool(tab.tabname, tab.content));",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 2614,
+      "message": "Module '\"./SettingsNav.svelte\"' has no exported member 'SettingsItem'. Did you mean to use 'import SettingsItem from \"./SettingsNav.svelte\"' instead?",
+      "source": "import SettingsNav, { type SettingsItem } from \"./SettingsNav.svelte\";",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleAiFontFamily(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleAiFontSize(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleEditorFontFamily(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleEditorFontSize(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleEditorLetterSpacing(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleEditorLineHeight(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleEditorLineWrapping(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleEditorTabSize(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleTerminalCursorStyle(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleTerminalFontFamily(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleTerminalFontSize(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleTerminalLineHeight(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleThemeSelect(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleUiFontFamily(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleUiFontSize(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleUpdateAutoCheck(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleWechatAppId(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleWechatAppSecret(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "function handleLanguageSelect(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Settings.svelte",
+      "code": 7006,
+      "message": "Parameter 'store' implicitly has an 'any' type.",
+      "source": "async function resolveSettingsFilePath(store) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/SettingsNav.svelte",
+      "code": 1184,
+      "message": "Modifiers cannot appear here.\nIf this is a declare statement, move it into <script context=\"module\">..</script>",
+      "source": "export type SettingsItem = { id: number | string; name: string; children?: SettingsItem[] };",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "$: drawioActive = Boolean($editorTabs?.find?.((tab) => tab?.path === DRAWIO_TAB_PATH && tab?.active));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "$: whiteboardActive = Boolean($editorTabs?.find?.((tab) => tab?.path === WHITEBOARD_TAB_PATH && tab?.active));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "return Boolean($editorTabs?.find?.((tab) => tab?.path === path && tab?.active));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "$: drawioActive = Boolean($editorTabs?.find?.((tab) => tab?.path === DRAWIO_TAB_PATH && tab?.active));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "$: drawioOpen = Boolean($editorTabs?.find?.((tab) => tab?.path === DRAWIO_TAB_PATH));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "$: whiteboardActive = Boolean($editorTabs?.find?.((tab) => tab?.path === WHITEBOARD_TAB_PATH && tab?.active));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "$: whiteboardOpen = Boolean($editorTabs?.find?.((tab) => tab?.path === WHITEBOARD_TAB_PATH));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "return Boolean($editorTabs?.find?.((tab) => tab?.path === path && tab?.active));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "return Boolean($editorTabs?.find?.((tab) => tab?.path === path));",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ hidden?: boolean | undefined; }, { [evt: string]: CustomEvent<any>; }, {}> & { $$bindings?: string | undefined; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "new settings({ target: tabview }),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 2345,
+      "message": "Argument of type 'Tool' is not assignable to parameter of type 'null'.",
+      "source": "tool.set(new Tool(tab.tabname, tab.content));",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Sidebar.svelte",
+      "code": 7006,
+      "message": "Parameter 'content' implicitly has an 'any' type.",
+      "source": "constructor(tabname: string, content) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/SidebarView.svelte",
+      "code": 2351,
+      "message": "This expression is not constructable.\n  Type 'never' has no construct signatures.",
+      "source": "<svelte:component this={content}></svelte:component>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 1184,
+      "message": "Modifiers cannot appear here.\nIf this is a declare statement, move it into <script context=\"module\">..</script>",
+      "source": "declare const editortool: Writable<{ name: string; options: any[]; buttons: any[]; header: any }>;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2322,
+      "message": "Type 'ToolDescriptor' is not assignable to type 'null'.",
+      "source": "lastTool.set({ tool: ref, element: instance.element });",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2322,
+      "message": "Type 'any[] | undefined' is not assignable to type 'never[]'.\n  Type 'undefined' is not assignable to type 'never[]'.",
+      "source": "editortool.set({ name: ref.name, options: ref.options, buttons: ref.buttons, header: ref.header || null });",
+      "count": 4
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property '$set' does not exist on type 'never'.",
+      "source": "try { current.element?.$set?.({ hidden: false }); } catch {}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property '$set' does not exist on type 'never'.",
+      "source": "try { current.element?.$set?.({ hidden: true }); } catch {}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property 'buttons' does not exist on type 'never'.",
+      "source": "editortool.set({ name: tool.name, options: tool.options, buttons: tool.buttons, header: tool.header || null });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property 'header' does not exist on type 'never'.",
+      "source": "editortool.set({ name: tool.name, options: tool.options, buttons: tool.buttons, header: tool.header || null });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property 'name' does not exist on type 'never'.",
+      "source": "activeTool.set(tool.name);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property 'name' does not exist on type 'never'.",
+      "source": "const isSameTool = tool && current.tool && tool.name === current.tool.name;",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property 'name' does not exist on type 'never'.",
+      "source": "editortool.set({ name: tool.name, options: tool.options, buttons: tool.buttons, header: tool.header || null });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property 'name' does not exist on type 'never'.",
+      "source": "if (current.tool?.name) {",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property 'name' does not exist on type 'never'.",
+      "source": "setInstanceVisibility(current.tool.name, false);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property 'name' does not exist on type 'never'.",
+      "source": "setInstanceVisibility(tool.name, true);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2339,
+      "message": "Property 'options' does not exist on type 'never'.",
+      "source": "editortool.set({ name: tool.name, options: tool.options, buttons: tool.buttons, header: tool.header || null });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2345,
+      "message": "Argument of type '\"Search\"' is not assignable to parameter of type 'null'.",
+      "source": "activeTool.set(\"Search\");",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 2345,
+      "message": "Argument of type '\"Terminal\"' is not assignable to parameter of type 'null'.",
+      "source": "activeTool.set(\"Terminal\");",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7005,
+      "message": "Variable 'searchButtons' implicitly has an 'any[]' type.",
+      "source": "if (!buttonsEqual(searchButtons, nextButtons)) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7005,
+      "message": "Variable 'searchButtons' implicitly has an 'any[]' type.",
+      "source": "{name: \"Search\", content: SearchView, icon: SearchIcon, action: (t) => { toggleBottomPanel(t); }, options: [], buttons: searchButtons},",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7006,
+      "message": "Parameter 'a' implicitly has an 'any' type.",
+      "source": "function buttonsEqual(a, b) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7006,
+      "message": "Parameter 'b' implicitly has an 'any' type.",
+      "source": "function buttonsEqual(a, b) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7006,
+      "message": "Parameter 't' implicitly has an 'any' type.",
+      "source": "async function spawnTerminal(t) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7006,
+      "message": "Parameter 't' implicitly has an 'any' type.",
+      "source": "{name: \"Notifications\", content: NotificationList, icon: NotificationIcon, action: (t) => {toggleBottomPanel(t)}, options: [",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7006,
+      "message": "Parameter 't' implicitly has an 'any' type.",
+      "source": "{name: \"Search\", content: SearchView, icon: SearchIcon, action: (t) => { toggleBottomPanel(t); }, options: [], buttons: searchButtons},",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7006,
+      "message": "Parameter 't' implicitly has an 'any' type.",
+      "source": "{name: \"Terminal\", content: TerminalManager, icon: TerminalIcon, action: (t) => {spawnTerminal(t)}, options: [],",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7006,
+      "message": "Parameter 'value' implicitly has an 'any' type.",
+      "source": "export function setTerminalState(value) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Statusbar.svelte",
+      "code": 7034,
+      "message": "Variable 'searchButtons' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "source": "let searchButtons = [];",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.svelte",
+      "code": 7006,
+      "message": "Parameter 'tabid' implicitly has an 'any' type.",
+      "source": "function handleClose(tabid) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.svelte",
+      "code": 7006,
+      "message": "Parameter 'tabid' implicitly has an 'any' type.",
+      "source": "function handleSelect(tabid) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2322,
+      "message": "Type 'HTMLElement | null' is not assignable to type 'Document | Element | ShadowRoot'.\n  Type 'null' is not assignable to type 'Document | Element | ShadowRoot'.",
+      "source": "const content = new Editor({target: document.getElementById(\"tabview\"), props: { content: fileData.text, initialTabSize: fileData.spaces }});",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2322,
+      "message": "Type 'HTMLElement | null' is not assignable to type 'Document | Element | ShadowRoot'.\n  Type 'null' is not assignable to type 'Document | Element | ShadowRoot'.",
+      "source": "const content = new ImagePreview({ target: document.getElementById(\"tabview\"), props: { path } });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2322,
+      "message": "Type 'HTMLElement | null' is not assignable to type 'Document | Element | ShadowRoot'.\n  Type 'null' is not assignable to type 'Document | Element | ShadowRoot'.",
+      "source": "const content = new UnsupportedFileTab({ target: document.getElementById(\"tabview\"), props: { path } });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2322,
+      "message": "Type 'any' is not assignable to type 'never'.",
+      "source": "this.tablist = [...this.tablist, tab];",
+      "count": 6
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "tab.active = false;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'active' does not exist on type 'never'.",
+      "source": "tab.active = true;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "tab.content.focus();",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": ".filter((tab) => tab.id !== tabid)",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": ".map((tab) => tab.id);",
+      "count": 3
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "Promise.resolve(this.closeTab(d.id)).catch(() => {});",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "await instance.closeTab(target.id, { force: true });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "await this.closeTab(tab.id);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "const selected = this.tablist.find(t => t.id === id);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "const target = this.tablist.find(t => t.id === tabid);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "const target: any = this.tablist.find(t => t.id === tabid);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "const targetIndex = this.tablist.findIndex((tab) => tab.id === tabid);",
+      "count": 3
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "else if (this.tablist[i].id === tabid && this.tablist[i - 1]) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "if (!force && this.tablist[i].id === tabid && !this.tablist[i].saved) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "if (tab.id === id) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "if (this.tablist[i].id === tabid && this.tablist[i + 1]) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "logExclusiveRelease(\"close\", path, `tabId=${target.id}`);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "this.setActive(tab.id);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "this.setActive(this.tablist[i + 1].id);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "this.setActive(this.tablist[i - 1].id);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'id' does not exist on type 'never'.",
+      "source": "this.tablist = this.tablist.filter(t => t.id !== tabid);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'isfile' does not exist on type 'never'.",
+      "source": "if (tab.isfile) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'label' does not exist on type 'never'.",
+      "source": "if (await ask(`Do you want to save ${this.tablist[i].label} before closing?`)) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "const tabPath = typeof tab?.path === \"string\" ? tab.path : \"\";",
+      "count": 2
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "const target = instance.tablist.find((t) => t && t.path === path);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "} else if (target?.path === ANIMATION_TAB_PATH) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'saved' does not exist on type 'never'.",
+      "source": "if (!force && this.tablist[i].id === tabid && !this.tablist[i].saved) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 2339,
+      "message": "Property 'updateView' does not exist on type 'never'.",
+      "source": "tab.updateView(this.activeid);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 7006,
+      "message": "Parameter 'Tab' implicitly has an 'any' type.",
+      "source": "constructor (Tab) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/Tab.ts",
+      "code": 7006,
+      "message": "Parameter 'tt' implicitly has an 'any' type.",
+      "source": "const isDiff = (tt) => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/TabList.svelte",
+      "code": 7005,
+      "message": "Variable 'tabcontainer' implicitly has an 'any' type.",
+      "source": "Sortable.create(tabcontainer, {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/TabList.svelte",
+      "code": 7005,
+      "message": "Variable 'tabcontainer' implicitly has an 'any' type.",
+      "source": "const container: HTMLElement | null = tabcontainer;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/TabList.svelte",
+      "code": 7005,
+      "message": "Variable 'tabcontainer' implicitly has an 'any' type.",
+      "source": "const el: HTMLElement | null = tabcontainer;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/TabList.svelte",
+      "code": 7016,
+      "message": "Could not find a declaration file for module 'sortablejs'. '<workspace>/node_modules/sortablejs/Sortable.min.js' implicitly has an 'any' type.\n  Try `npm i --save-dev @types/sortablejs` if it exists or add a new declaration (.d.ts) file containing `declare module 'sortablejs';`",
+      "source": "import Sortable from 'sortablejs';",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Tab/TabList.svelte",
+      "code": 7034,
+      "message": "Variable 'tabcontainer' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let tabcontainer = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2304,
+      "message": "Cannot find name 'termOptions'.",
+      "source": "export function updateTermOptions() { try { applyOptionsAll(get(termOptions)); } catch {} }",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'FitAddon'.",
+      "source": "let termFit: FitAddon = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'IPty'.",
+      "source": "let pty: IPty = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'IPty'.",
+      "source": "pty = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'ResizeObserver'.",
+      "source": "currentResizeObserver = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'ResizeObserver'.",
+      "source": "let currentResizeObserver: ResizeObserver = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'Terminal'.",
+      "source": "let terminalController: Terminal = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'Terminal'.",
+      "source": "terminalController = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2339,
+      "message": "Property 'rendererType' does not exist on type 'ITerminalOptions'.",
+      "source": "try { terminalController.options.rendererType = \"canvas\"; } catch {}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Terminal.svelte",
+      "code": 2345,
+      "message": "Argument of type '() => Promise<() => void>' is not assignable to parameter of type '() => Promise<never> | (() => any)'.\n  Type 'Promise<() => void>' is not assignable to type 'Promise<never> | (() => any)'.\n    Type 'Promise<() => void>' is not assignable to type 'Promise<never>'.\n      Type '() => void' is not assignable to type 'never'.",
+      "source": "onMount(async () => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ToolView.svelte",
+      "code": 7005,
+      "message": "Variable 'buttons' implicitly has an 'any[]' type.",
+      "source": "{#each buttons as button}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ToolView.svelte",
+      "code": 7005,
+      "message": "Variable 'buttons' implicitly has an 'any[]' type.",
+      "source": "{#if buttons && buttons.length > 0}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ToolView.svelte",
+      "code": 7005,
+      "message": "Variable 'options' implicitly has an 'any[]' type.",
+      "source": "<Menu right menu={{icon: Ellipsis, children: options}}></Menu>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ToolView.svelte",
+      "code": 7005,
+      "message": "Variable 'options' implicitly has an 'any[]' type.",
+      "source": "{#if options && options.length > 0}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ToolView.svelte",
+      "code": 7034,
+      "message": "Variable 'buttons' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "source": "export let buttons = [];",
+      "count": 1
+    },
+    {
+      "file": "src/lib/ToolView.svelte",
+      "code": 7034,
+      "message": "Variable 'options' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "source": "export let options = [];",
+      "count": 1
+    },
+    {
+      "file": "src/lib/VirtualList.svelte",
+      "code": 2345,
+      "message": "Argument of type '() => Promise<() => void>' is not assignable to parameter of type '() => Promise<never> | (() => any)'.\n  Type 'Promise<() => void>' is not assignable to type 'Promise<never> | (() => any)'.\n    Type 'Promise<() => void>' is not assignable to type 'Promise<never>'.\n      Type '() => void' is not assignable to type 'never'.",
+      "source": "onMount(async () => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Welcome.svelte",
+      "code": 2322,
+      "message": "Type 'HTMLElement | null' is not assignable to type 'Document | Element | ShadowRoot'.\n  Type 'null' is not assignable to type 'Document | Element | ShadowRoot'.",
+      "source": "addTab(\"Settings\", translate(\"sidebar.settings\"), new settings({target: document.getElementById(\"tabview\")}), { labelKey: \"sidebar.settings\" });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/Welcome.svelte",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ hidden?: boolean | undefined; }, { [evt: string]: CustomEvent<any>; }, {}> & { $$bindings?: string | undefined; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "addTab(\"Settings\", translate(\"sidebar.settings\"), new settings({target: document.getElementById(\"tabview\")}), { labelKey: \"sidebar.settings\" });",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ApprovalPolicySelector.svelte",
+      "code": 2339,
+      "message": "Property 'labelKey' does not exist on type 'PolicyOption | { value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.\n  Property 'labelKey' does not exist on type '{ value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.",
+      "source": "<span class=\"option-label\">{policy.label ?? $t(policy.labelKey || \"\")}</span>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ApprovalPolicySelector.svelte",
+      "code": 2339,
+      "message": "Property 'labelKey' does not exist on type 'PolicyOption | { value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.\n  Property 'labelKey' does not exist on type '{ value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.",
+      "source": "<span>{currentPolicy.buttonLabel ?? $t(currentPolicy.buttonLabelKey || currentPolicy.labelKey || \"\")}</span>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ApprovalPolicySelector.svelte",
+      "code": 2339,
+      "message": "Property 'tipKey' does not exist on type 'PolicyOption | { value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.\n  Property 'tipKey' does not exist on type '{ value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.",
+      "source": "title={policy.tip ?? $t(policy.tipKey || \"\")}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ApprovalPolicySelector.svelte",
+      "code": 2551,
+      "message": "Property 'buttonLabelKey' does not exist on type 'PolicyOption | { value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'. Did you mean 'buttonLabel'?\n  Property 'buttonLabelKey' does not exist on type '{ value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.",
+      "source": "<span>{currentPolicy.buttonLabel ?? $t(currentPolicy.buttonLabelKey || currentPolicy.labelKey || \"\")}</span>",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ChatView.svelte",
+      "code": 7006,
+      "message": "Parameter 'index' implicitly has an 'any' type.",
+      "source": "newItems.forEach((item, index) => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ChatView.svelte",
+      "code": 7006,
+      "message": "Parameter 'item' implicitly has an 'any' type.",
+      "source": "newItems.forEach((item, index) => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/EffortSelector.svelte",
+      "code": 1184,
+      "message": "Modifiers cannot appear here.\nIf this is a declare statement, move it into <script context=\"module\">..</script>",
+      "source": "export type EffortOption = {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemCard.svelte",
+      "code": 18047,
+      "message": "'cached' is possibly 'null'.",
+      "source": "completedNonEmptyLines = cached.completedNonEmptyLines;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemCard.svelte",
+      "code": 18047,
+      "message": "'cached' is possibly 'null'.",
+      "source": "lineCount = cached.lineCount;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemCard.svelte",
+      "code": 18047,
+      "message": "'cached' is possibly 'null'.",
+      "source": "trailingLineHasContent = cached.trailingLineHasContent;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemCard.svelte",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ grep_files: typeof Search; read_file: typeof FileText; list_dir: typeof FolderTree; request_user_input: typeof MessageSquare; }'.\n  No index signature with a parameter of type 'string' was found on type '{ grep_files: typeof Search; read_file: typeof FileText; list_dir: typeof FolderTree; request_user_input: typeof MessageSquare; }'.",
+      "source": "return toolIcons[toolName] || Wrench;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemCard.svelte",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ grep_files: typeof Search; read_file: typeof FileText; list_dir: typeof FolderTree; }'.\n  No index signature with a parameter of type 'string' was found on type '{ grep_files: typeof Search; read_file: typeof FileText; list_dir: typeof FolderTree; }'.",
+      "source": "return icons[type] || FileSearch;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemCard.svelte",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ read_file: string; list_dir: string; grep_files: string; }'.\n  No index signature with a parameter of type 'string' was found on type '{ read_file: string; list_dir: string; grep_files: string; }'.",
+      "source": "return toolColors[toolName] || \"#8b5cf6\"; // 默认紫色，与functionToolCall相同",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemCard.svelte",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ userMessage: string; agentMessage: string; reasoning: string; plan: string; contextCompaction: string; commandExecution: string; fileChange: string; mcpToolCall: string; collabAgentToolCall: string; ... 11 more ...; functionToolCall: string; }'.\n  No index signature with a parameter of type 'string' was found on type '{ userMessage: string; agentMessage: string; reasoning: string; plan: string; contextCompaction: string; commandExecution: string; fileChange: string; mcpToolCall: string; collabAgentToolCall: string; ... 11 more ...; functionToolCall: string; }'.",
+      "source": "return colors[type] || \"#8b5cf6\";",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemCard.svelte",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ userMessage: typeof User; agentMessage: typeof Bot; reasoning: typeof Brain; plan: typeof ClipboardList; contextCompaction: typeof FoldVertical; commandExecution: typeof SquareTerminal; ... 14 more ...; functionToolCall: typeof Wrench; }'.\n  No index signature with a parameter of type 'string' was found on type '{ userMessage: typeof User; agentMessage: typeof Bot; reasoning: typeof Brain; plan: typeof ClipboardList; contextCompaction: typeof FoldVertical; commandExecution: typeof SquareTerminal; ... 14 more ...; functionToolCall: typeof Wrench; }'.",
+      "source": "return icons[type] || Bot;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemFlatList.svelte",
+      "code": 2339,
+      "message": "Property 'groupId' does not exist on type 'FlatRow'.\n  Property 'groupId' does not exist on type 'StatusRow'.",
+      "source": "!(groupExpanded[flatRows[virtualRow.index].groupId] ?? true)}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/ThreadItemFlatList.svelte",
+      "code": 2339,
+      "message": "Property 'groupId' does not exist on type 'FlatRow'.\n  Property 'groupId' does not exist on type 'StatusRow'.",
+      "source": "flatRows[virtualRow.index].groupId &&",
+      "count": 1
+    },
+    {
+      "file": "src/lib/codex/viewAllChangesHost.ts",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ sessionId: string; title?: string | undefined; changes?: FileUpdateChange[] | undefined; hidden?: boolean | undefined; }, { [evt: string]: CustomEvent<any>; }, {}> & { ...; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "addTab(tabPath, tabLabel, view);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/drawio/DrawioTab.svelte",
+      "code": 2367,
+      "message": "This comparison appears to be unintentional because the types 'Lang' and '\"zh\"' have no overlap.",
+      "source": "const fallbackReason = langPreference === \"zh\" ? \"导出数据不可用\" : \"Export data unavailable\";",
+      "count": 1
+    },
+    {
+      "file": "src/lib/drawio/tabManager.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "const existing = get(editorTabs).find((tab) => tab?.path === DRAWIO_TAB_PATH);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/drawio/tabManager.ts",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ hidden?: boolean | undefined; triggerSave?: (() => Promise<void>) | undefined; hasUnsavedChanges?: (() => boolean) | undefined; getDiagramLabel?: (() => string) | undefined; }, { ...; }, {}> & { ...; } & { ...; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "new DrawioTab({ target: tabview }),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/AnimationTab.svelte",
+      "code": 2339,
+      "message": "Property 'text' does not exist on type 'ExcalidrawElement'.\n  Property 'text' does not exist on type 'ExcalidrawSelectionElement'.",
+      "source": "const text = typeof element.text === \"string\" ? element.text.trim() : \"\";",
+      "count": 2
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/AnimationTab.svelte",
+      "code": 2339,
+      "message": "Property 'text' does not exist on type 'ExcalidrawElement'.\n  Property 'text' does not exist on type 'ExcalidrawSelectionElement'.",
+      "source": "const text = typeof target.text === \"string\" ? target.text.trim() : \"\";",
+      "count": 2
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/ElementThumbnail.svelte",
+      "code": 2339,
+      "message": "Property 'points' does not exist on type 'ExcalidrawElement'.\n  Property 'points' does not exist on type 'ExcalidrawSelectionElement'.",
+      "source": "const normalized = normalizePoints(ele.points as [number, number][]);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/ElementThumbnail.svelte",
+      "code": 2339,
+      "message": "Property 'points' does not exist on type 'ExcalidrawElement'.\n  Property 'points' does not exist on type 'ExcalidrawSelectionElement'.",
+      "source": "if (!ele.points?.length) return null;",
+      "count": 2
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/GroupThumbnail.svelte",
+      "code": 2339,
+      "message": "Property 'points' does not exist on type 'ExcalidrawElement'.\n  Property 'points' does not exist on type 'ExcalidrawSelectionElement'.",
+      "source": "if (!el.points?.length) return \"\";",
+      "count": 1
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/GroupThumbnail.svelte",
+      "code": 2339,
+      "message": "Property 'points' does not exist on type 'ExcalidrawElement'.\n  Property 'points' does not exist on type 'ExcalidrawSelectionElement'.",
+      "source": "return el.points",
+      "count": 1
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/GroupThumbnail.svelte",
+      "code": 7006,
+      "message": "Parameter 'index' implicitly has an 'any' type.",
+      "source": ".map(([px, py], index) => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/GroupThumbnail.svelte",
+      "code": 7031,
+      "message": "Binding element 'px' implicitly has an 'any' type.",
+      "source": ".map(([px, py], index) => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/GroupThumbnail.svelte",
+      "code": 7031,
+      "message": "Binding element 'py' implicitly has an 'any' type.",
+      "source": ".map(([px, py], index) => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/state.ts",
+      "code": 2345,
+      "message": "Argument of type '\"excalidraw-animation\"' is not assignable to parameter of type 'WorkspaceModule'.",
+      "source": "recordWorkspaceRecent(\"excalidraw-animation\", normalized, getRootPath());",
+      "count": 1
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/tabManager.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "const existing = get(editorTabs).find((tab) => tab?.path === ANIMATION_TAB_PATH);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/excalidrawAnimate/tabManager.ts",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ hidden?: boolean | undefined; }, { [evt: string]: CustomEvent<any>; }, {}> & { $$bindings?: string | undefined; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "new AnimationTab({ target: tabview }),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/highlightThemes.ts",
+      "code": 7053,
+      "message": "Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.\n  No index signature with a parameter of type 'string' was found on type '{}'.",
+      "source": "acc[match[1]] = css;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/drawioHelpers.ts",
+      "code": 1225,
+      "message": "Cannot find parameter 'isTauri'.",
+      "source": "export function ensureTauri(): asserts isTauri {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/platformExport.ts",
+      "code": 2345,
+      "message": "Argument of type 'string | number | ((property: string, value: string | null, priority?: string | undefined) => void) | ((property: string) => string) | (() => ArrayIterator<string>) | ((index: number) => string) | CSSRule | ((property: string) => string) | ((property: string) => string)' is not assignable to parameter of type 'string'.\n  Type 'number' is not assignable to type 'string'.",
+      "source": "cloneEl.setAttribute(attrName, value);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/platformExport.ts",
+      "code": 2578,
+      "message": "Unused '@ts-expect-error' directive.",
+      "source": "// @ts-expect-error ClipboardItem is not in lib dom typings for older TS targets",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/platformExport.ts",
+      "code": 2578,
+      "message": "Unused '@ts-expect-error' directive.",
+      "source": "// @ts-expect-error ClipboardItem legacy types",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/reference/core/extensions/markup.ts",
+      "code": 2307,
+      "message": "Cannot find module '@md/shared' or its corresponding type declarations.",
+      "source": "import type { MarkupOptions } from '@md/shared'",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/reference/shared/utils/fetch.ts",
+      "code": 2307,
+      "message": "Cannot find module 'axios' or its corresponding type declarations.",
+      "source": "import axios from 'axios'",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/reference/shared/utils/fetch.ts",
+      "code": 7006,
+      "message": "Parameter 'config' implicitly has an 'any' type.",
+      "source": "(config) => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/reference/shared/utils/fetch.ts",
+      "code": 7006,
+      "message": "Parameter 'error' implicitly has an 'any' type.",
+      "source": "(error) => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/reference/shared/utils/fetch.ts",
+      "code": 7006,
+      "message": "Parameter 'error' implicitly has an 'any' type.",
+      "source": "error => Promise.reject(error),",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/reference/shared/utils/fetch.ts",
+      "code": 7006,
+      "message": "Parameter 'res' implicitly has an 'any' type.",
+      "source": "(res) => {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/styleStore.ts",
+      "code": 2322,
+      "message": "Type 'string | boolean | Partial<Record<Block | Inline, PropertiesHyphen<0 | (string & {}), string & {}>>> | undefined' is not assignable to type 'undefined'.\n  Type 'string' is not assignable to type 'undefined'.",
+      "source": "acc[typedKey] = normalizeStyleValue(typedKey, entryValue as StyleConfig[keyof StyleConfig]);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/markdown/wechatFrontmatter.ts",
+      "code": 7016,
+      "message": "Could not find a declaration file for module 'js-yaml'. '<workspace>/node_modules/js-yaml/dist/js-yaml.mjs' implicitly has an 'any' type.\n  Try `npm i --save-dev @types/js-yaml` if it exists or add a new declaration (.d.ts) file containing `declare module 'js-yaml';`",
+      "source": "import { dump } from \"js-yaml\";",
+      "count": 1
+    },
+    {
+      "file": "src/lib/monaco/instance.ts",
+      "code": 7016,
+      "message": "Could not find a declaration file for module 'monaco-editor/esm/vs/basic-languages/markdown/markdown'. '<workspace>/node_modules/monaco-editor/esm/vs/basic-languages/markdown/markdown.js' implicitly has an 'any' type.\n  If the 'monaco-editor' package actually exposes this module, try adding a new declaration (.d.ts) file containing `declare module 'monaco-editor/esm/vs/basic-languages/markdown/markdown';`",
+      "source": "import * as markdown from \"monaco-editor/esm/vs/basic-languages/markdown/markdown\";",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/AboutSection.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'number'.",
+      "source": "{ id: \"off\", name: offLabel }",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/AboutSection.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'number'.",
+      "source": "{ id: \"on\", name: onLabel },",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/AssistantSection.svelte",
+      "code": 2322,
+      "message": "Type 'FontItem[]' is not assignable to type '{ id: number; name: string; }[]'.\n  Type 'FontItem' is not assignable to type '{ id: number; name: string; }'.\n    Types of property 'id' are incompatible.\n      Type 'string' is not assignable to type 'number'.",
+      "source": "items={fontFamilyItems}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/EditorSection.svelte",
+      "code": 2322,
+      "message": "Type 'FontItem[]' is not assignable to type '{ id: number; name: string; }[]'.\n  Type 'FontItem' is not assignable to type '{ id: number; name: string; }'.\n    Types of property 'id' are incompatible.\n      Type 'string' is not assignable to type 'number'.",
+      "source": "items={fontFamilyItems}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/EditorSection.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'null | undefined'.",
+      "source": "label={translate(\"settings.lineHeight\")}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/EditorSection.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'null | undefined'.",
+      "source": "label={translate(\"settings.tabSize\")}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/EditorSection.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'number'.",
+      "source": "{ id: \"off\", name: translate(\"settings.off\") },",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/EditorSection.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'number'.",
+      "source": "{ id: \"on\", name: translate(\"settings.on\") }",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/GeneralSection.svelte",
+      "code": 2322,
+      "message": "Type 'Record<string, unknown>[]' is not assignable to type '{ id: number; name: string; }[]'.\n  Type 'Record<string, unknown>' is missing the following properties from type '{ id: number; name: string; }': id, name",
+      "source": "items={themes}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/NetworkSection.svelte",
+      "code": 2322,
+      "message": "Type '{ id: string; value: string; name: string; }[]' is not assignable to type '{ id: number; name: string; }[]'.\n  Type '{ id: string; value: string; name: string; }' is not assignable to type '{ id: number; name: string; }'.\n    Types of property 'id' are incompatible.\n      Type 'string' is not assignable to type 'number'.",
+      "source": "items={proxyModeItems}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/TerminalSection.svelte",
+      "code": 2322,
+      "message": "Type 'FontItem[]' is not assignable to type '{ id: number; name: string; }[]'.\n  Type 'FontItem' is not assignable to type '{ id: number; name: string; }'.\n    Types of property 'id' are incompatible.\n      Type 'string' is not assignable to type 'number'.",
+      "source": "items={fontFamilyItems}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/TerminalSection.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'null | undefined'.",
+      "source": "label={translate(\"settings.lineHeight\")}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/TerminalSection.svelte",
+      "code": 2322,
+      "message": "Type '{}' is not assignable to type 'string | number | undefined'.",
+      "source": "value={fontSizeValue}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/UiSection.svelte",
+      "code": 2322,
+      "message": "Type 'FontItem[]' is not assignable to type '{ id: number; name: string; }[]'.\n  Type 'FontItem' is not assignable to type '{ id: number; name: string; }'.\n    Types of property 'id' are incompatible.\n      Type 'string' is not assignable to type 'number'.",
+      "source": "items={fontFamilyItems}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/WechatSection.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'null | undefined'.",
+      "source": "label={translate(\"settings.wechatAppId\")}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/settings/sections/WechatSection.svelte",
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'null | undefined'.",
+      "source": "label={translate(\"settings.wechatAppSecret\")}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/tools/DiffTab.svelte",
+      "code": 2741,
+      "message": "Property 'languageHint' is missing in type '{ original: any; content: any; scrollToLine: any; scrollRequestId: any; path: any; }' but required in type '{ original?: string | undefined; content?: string | undefined; scrollToLine: number | undefined; scrollRequestId: number | undefined; path: string | null | undefined; languageHint: string | ... 1 more ... | undefined; renderSideBySide?: boolean | ... 1 more ... | undefined; }'.",
+      "source": "<DiffEditors",
+      "count": 1
+    },
+    {
+      "file": "src/lib/tools/MultiDiffTab.svelte",
+      "code": 2741,
+      "message": "Property 'scrollRequestId' is missing in type '{ original: string; content: string; path: string; scrollToLine: undefined; languageHint: null; renderSideBySide: \"auto\"; }' but required in type '{ original?: string | undefined; content?: string | undefined; scrollToLine: number | undefined; scrollRequestId: number | undefined; path: string | null | undefined; languageHint: string | ... 1 more ... | undefined; renderSideBySide?: boolean | ... 1 more ... | undefined; }'.",
+      "source": "<DiffEditors",
+      "count": 1
+    },
+    {
+      "file": "src/lib/tools/diffStore.ts",
+      "code": 2339,
+      "message": "Property 'content' does not exist on type 'never'.",
+      "source": "if (target) syncToOpenEditor(target.path, target.content);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/tools/diffStore.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "if (target) syncToOpenEditor(target.path, target.content);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/tools/diffStore.ts",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ sessionId: string; hidden?: boolean | undefined; sessionsStore?: Writable<Record<string, any>> | undefined; activeIdStore?: Writable<string | null> | undefined; justOpenedIdStore?: Writable<...> | undefined; initialSession?: any; }, { ...; }, {}> & { ...; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "addTab(diffPath, label, view);",
+      "count": 2
+    },
+    {
+      "file": "src/lib/tools/multiDiffHost.ts",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ sessionId: string; title?: string | undefined; diffs?: MultiDiffEntry[] | undefined; hidden?: boolean | undefined; }, { [evt: string]: CustomEvent<any>; }, {}> & { ...; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "addTab(tabPath, tabLabel, view);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/ContextMenu.svelte",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'HTMLElement'.",
+      "source": "export let target: HTMLElement = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/ContextMenu.svelte",
+      "code": 7005,
+      "message": "Variable 'items' implicitly has an 'any[]' type.",
+      "source": "{#each items as item}",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/ContextMenu.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function openContextMenu(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/ContextMenu.svelte",
+      "code": 7006,
+      "message": "Parameter 'node' implicitly has an 'any' type.",
+      "source": "function getContextMenuDimension(node){",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/ContextMenu.svelte",
+      "code": 7034,
+      "message": "Variable 'items' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "source": "export let items = [];",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Input.svelte",
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'HTMLElement'.",
+      "source": "let ref: HTMLElement = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Input.svelte",
+      "code": 7005,
+      "message": "Variable '_' implicitly has an 'any' type.",
+      "source": "clearTimeout(_);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Input.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "async function handleInput(e) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Input.svelte",
+      "code": 7034,
+      "message": "Variable '_' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let _ = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Menu.svelte",
+      "code": 7005,
+      "message": "Variable 'button' implicitly has an 'any' type.",
+      "source": "const { height , left, width, top } = button.getBoundingClientRect();",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Menu.svelte",
+      "code": 7005,
+      "message": "Variable 'button' implicitly has an 'any' type.",
+      "source": "if (open && !button.contains(e.target)) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Menu.svelte",
+      "code": 7005,
+      "message": "Variable 'dropdownList' implicitly has an 'any' type.",
+      "source": "if (open && dropdownList) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Menu.svelte",
+      "code": 7034,
+      "message": "Variable 'button' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let button = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Menu.svelte",
+      "code": 7034,
+      "message": "Variable 'dropdownList' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let dropdownList = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Popup.svelte",
+      "code": 7005,
+      "message": "Variable 'wrapper' implicitly has an 'any' type.",
+      "source": "if (e.target === wrapper) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Popup.svelte",
+      "code": 7006,
+      "message": "Parameter 'e' implicitly has an 'any' type.",
+      "source": "function handleClick(e)",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Popup.svelte",
+      "code": 7034,
+      "message": "Variable 'wrapper' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let wrapper = null;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 2339,
+      "message": "Property 'value' does not exist on type '{ id: number; name: string; }'.",
+      "source": "export let selected = items[0]?.value ?? items[0]?.name ?? \"\";",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 7005,
+      "message": "Variable 'button' implicitly has an 'any' type.",
+      "source": "if (open && !button.contains(e.target)) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 7005,
+      "message": "Variable 'list' implicitly has an 'any' type.",
+      "source": "if (open && list) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 7006,
+      "message": "Parameter 'item' implicitly has an 'any' type.",
+      "source": "function handleSelect(item) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 7006,
+      "message": "Parameter 'item' implicitly has an 'any' type.",
+      "source": "function itemDisplay(item) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 7006,
+      "message": "Parameter 'item' implicitly has an 'any' type.",
+      "source": "function itemValue(item) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 7006,
+      "message": "Parameter 'value' implicitly has an 'any' type.",
+      "source": "function findItemByValue(value) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 7006,
+      "message": "Parameter 'value' implicitly has an 'any' type.",
+      "source": "function resolveDisplay(value) {",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 7034,
+      "message": "Variable 'button' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let button;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/utility/Select.svelte",
+      "code": 7034,
+      "message": "Variable 'list' implicitly has type 'any' in some locations where its type cannot be determined.",
+      "source": "let list;",
+      "count": 1
+    },
+    {
+      "file": "src/lib/whiteboard/tabManager.ts",
+      "code": 2339,
+      "message": "Property 'path' does not exist on type 'never'.",
+      "source": "const existing = get(editorTabs).find((tab) => tab?.path === WHITEBOARD_TAB_PATH);",
+      "count": 1
+    },
+    {
+      "file": "src/lib/whiteboard/tabManager.ts",
+      "code": 2345,
+      "message": "Argument of type 'SvelteComponent<{ hidden?: boolean | undefined; }, { [evt: string]: CustomEvent<any>; }, {}> & { $$bindings?: string | undefined; }' is not assignable to parameter of type 'null | undefined'.",
+      "source": "new ExcalidrawTab({ target: tabview }),",
+      "count": 1
+    }
+  ]
+}

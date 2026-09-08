@@ -175,7 +175,7 @@
 
 1. 用户机器需要提供可执行的全局 `codex` CLI；WindowsApps 包目录只用于诊断，不绕过 AppX 权限。
 2. 外部 Codex CLI 的 app-server 协议版本变化需要通过兼容性测试发现，Codey 不再通过编译 `external/codex` 来锁定运行时版本。
-3. 应用内自动更新能力保留；后续 updater endpoint 应指向 GitHub Actions/Release 产出的公开更新 manifest 和二进制产物，不再使用私有 release 仓库、自托管更新服务或本地发布脚本。
+3. 应用内自动更新从 `0.0.50` 起使用 GitHub Release 的公开 `latest.json` 和签名更新包，不再使用私有 release 仓库、自托管更新服务或本地发布脚本。
 
 ## ChatView `@` 资源补全
 
@@ -193,10 +193,10 @@
 
 公开发布改为 GitHub Actions 驱动：
 
-- `ci.yml` 在 `push` 和 `pull_request` 上验证 Windows 与 macOS
+- `ci.yml` 在 `push` 和 `pull_request` 上验证 Windows 与 macOS；类型检查使用历史错误基线阻止新增错误，并要求修复后同步缩减基线
 - `release.yml` 在 `v*` 标签和手动触发时发布 Release
-- Windows 产物保持直接 `.exe`
+- Windows 产物为简体中文 `.msi` 安装包，CI 验证安装和卸载
 - macOS 产物输出 `.dmg`
 - CI 检查构建使用 macOS ad-hoc 签名；正式 macOS Release 使用 `Developer ID Application` 证书并完成公证，凭证只配置在 `happy-loki/codey` 仓库
 
-这样可以把构建、验证和发布都收敛到公开仓库，后续自动更新也可以直接指向 GitHub Release 产物。
+三个平台构建成功且更新 manifest 校验完整后才公开 Release。自动更新直接使用这些 Release 产物，更新签名私钥通过 GitHub Secrets 提供。

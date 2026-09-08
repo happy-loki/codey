@@ -21,6 +21,10 @@ refrence
 *.key
 *.p12
 *.pfx
+*.p8
+*.cer
+*.certSigningRequest
+certificate-base64.txt
 *.mobileprovision
 *.provisionprofile
 ssh_key/
