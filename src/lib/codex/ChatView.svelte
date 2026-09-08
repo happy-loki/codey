@@ -2,6 +2,7 @@
     import { invoke } from "@tauri-apps/api/core";
     import { onMount, onDestroy, afterUpdate, tick } from "svelte";
     import { createEventDispatcher } from "svelte";
+    import { X } from "lucide-svelte";
     import { get } from "svelte/store";
     import { listen } from "@tauri-apps/api/event";
     import InputBox from "./InputBox.svelte";
