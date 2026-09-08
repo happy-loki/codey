@@ -219,6 +219,17 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: lts/*
+      - name: Normalize updater download URLs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          release_tag="v$(node -p 'require("./package.json").version')"
+          mkdir -p .release-normalize
+          gh release download "$release_tag" --pattern latest.json --dir .release-normalize --clobber
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$release_tag" > .release-normalize/assets.json
+          node scripts/normalize-updater-urls.mjs .release-normalize/latest.json .release-normalize/assets.json
+          gh release upload "$release_tag" .release-normalize/latest.json --clobber
       - name: Verify all updater platforms and publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
