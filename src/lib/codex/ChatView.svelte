@@ -96,12 +96,17 @@
 
     const dispatch = createEventDispatcher<{
         modelPickerOpen: void;
-        openThread: { threadId: string };
     }>();
+
+    let subagentDrawerThreadId: string | null = null;
 
     function handleOpenThread(event: CustomEvent<{ threadId: string }>) {
         const threadId = event.detail?.threadId;
-        if (threadId) dispatch("openThread", { threadId });
+        if (threadId) subagentDrawerThreadId = threadId;
+    }
+
+    function closeSubagentDrawer() {
+        subagentDrawerThreadId = null;
     }
 
     const DEBUG_CHAT_VIEW = (() => {
@@ -3519,7 +3524,40 @@ let userInteracting = false;
     }
 </script>
 
-<div class="chat-view">
+    <div class="chat-view">
+    {#if subagentDrawerThreadId}
+        <button
+            class="subagent-drawer-scrim"
+            type="button"
+            aria-label="Close subagent details"
+            on:click={closeSubagentDrawer}
+        ></button>
+        <aside class="subagent-drawer" aria-label="Subagent details">
+            <header class="subagent-drawer-header">
+                <div>
+                    <div class="subagent-drawer-kicker">Subagent</div>
+                    <h2>{subagentDrawerThreadId}</h2>
+                </div>
+                <button
+                    class="subagent-drawer-close"
+                    type="button"
+                    aria-label="Close subagent details"
+                    on:click={closeSubagentDrawer}
+                >
+                    <X size="1.1em" aria-hidden="true" />
+                </button>
+            </header>
+            <div class="subagent-drawer-parent">Parent chat</div>
+            <section class="subagent-drawer-section">
+                <div class="subagent-drawer-label">Thread ID</div>
+                <code>{subagentDrawerThreadId}</code>
+            </section>
+            <section class="subagent-drawer-section subagent-drawer-empty">
+                <div class="subagent-drawer-label">Activity</div>
+                <p>Subagent activity will appear here while the task runs.</p>
+            </section>
+        </aside>
+    {/if}
     <div 
         class="items-container" 
         bind:this={itemsContainer}
@@ -3741,6 +3779,109 @@ let userInteracting = false;
 </div>
 
 <style>
+    .chat-view {
+        position: relative;
+        isolation: isolate;
+    }
+
+    .subagent-drawer-scrim {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        border: 0;
+        background: rgba(15, 23, 42, 0.12);
+        cursor: default;
+    }
+
+    .subagent-drawer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 21;
+        width: min(440px, 72%);
+        overflow: auto;
+        padding: 20px;
+        background: var(--background-primary, #fff);
+        border-left: 1px solid var(--border-color, #e5e7eb);
+        box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12);
+    }
+
+    .subagent-drawer-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-color, #e5e7eb);
+    }
+
+    .subagent-drawer-kicker,
+    .subagent-drawer-label {
+        color: var(--text-secondary, #64748b);
+        font-size: 12px;
+    }
+
+    .subagent-drawer h2 {
+        margin: 4px 0 0;
+        overflow-wrap: anywhere;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .subagent-drawer-close {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--text-secondary, #64748b);
+        cursor: pointer;
+    }
+
+    .subagent-drawer-close:hover {
+        background: var(--background-secondary, #f1f5f9);
+        color: var(--text-primary, #0f172a);
+    }
+
+    .subagent-drawer-parent {
+        display: inline-block;
+        margin: 16px 0 4px;
+        padding: 5px 9px;
+        border: 1px solid var(--border-color, #e5e7eb);
+        border-radius: 999px;
+        color: var(--text-secondary, #64748b);
+        font-size: 12px;
+    }
+
+    .subagent-drawer-section {
+        display: grid;
+        gap: 6px;
+        margin-top: 20px;
+    }
+
+    .subagent-drawer-section code {
+        overflow-wrap: anywhere;
+        color: var(--text-primary, #0f172a);
+        font-size: 12px;
+    }
+
+    .subagent-drawer-empty p {
+        margin: 0;
+        color: var(--text-secondary, #64748b);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 700px) {
+        .subagent-drawer {
+            width: 100%;
+        }
+    }
+
     .chat-view {
         display: flex;
         flex-direction: column;
