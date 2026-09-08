@@ -14,7 +14,7 @@
         "tauri": "tauri",
         "start-window": "yarn tauri dev --features devtools",
         "tauri-build-debug": "yarn build && cargo build --manifest-path src-tauri/Cargo.toml",
-        "tauri-build": "yarn build && cargo build --manifest-path src-tauri/Cargo.toml --release",
+        "tauri-build": "yarn build && yarn tauri build",
         "codex:protocol:generate": "node scripts/generate-codex-protocol.mjs",
         "sync:version": "node scripts/sync-version.mjs"
     },
