@@ -1536,6 +1536,6 @@ export function saveToRecent(path: string) {
     const updatedRecentFolders = [
         path,
         ...recentFolders.filter((f) => f !== path),
-    ].slice(0, 10); // save 10 recent folders max
+    ].slice(0, 20); // keep the 20 most recently used workspaces
     localStorage.setItem("recentFolders", JSON.stringify(updatedRecentFolders));
 }

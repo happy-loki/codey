@@ -77,7 +77,7 @@
             const raw = localStorage.getItem(RECENT_WORKSPACES_STORAGE_KEY);
             const parsed = raw ? JSON.parse(raw) : [];
             recentWorkspaces = Array.isArray(parsed)
-                ? parsed.filter((item) => typeof item === "string" && item.trim()).slice(0, 10)
+                ? parsed.filter((item) => typeof item === "string" && item.trim()).slice(0, 20)
                 : [];
         } catch {
             recentWorkspaces = [];
