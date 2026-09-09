@@ -3034,6 +3034,23 @@
         color: var(--text-secondary, #b0b0b0);
     }
 
+    :global(html[data-theme="light"]) .thread-item-card:not(.user-message):not(.agent-message) {
+        background: rgba(241, 245, 249, 0.42);
+        border-color: #d9e1e8;
+    }
+
+    :global(html[data-theme="light"]) .item-summary,
+    :global(html[data-theme="light"]) .item-summary-markdown,
+    :global(html[data-theme="light"]) .thread-item-card:not(.agent-message) .item-summary,
+    :global(html[data-theme="light"]) .thread-item-card:not(.agent-message) .item-summary-markdown {
+        color: #526170;
+    }
+
+    :global(html[data-theme="light"]) .thread-item-card.agent-message .item-summary-markdown,
+    :global(html[data-theme="light"]) .thread-item-card.agent-message .item-summary {
+        color: #263746;
+    }
+
     .thread-item-card:not(.agent-message) .item-summary-markdown :global(strong),
     .thread-item-card:not(.agent-message) .item-summary-markdown :global(b) {
         font-weight: 400 !important;
