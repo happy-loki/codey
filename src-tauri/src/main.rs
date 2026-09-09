@@ -531,6 +531,7 @@ fn main() {
             commands::system::reveal_in_file_manager,
             commands::system::export_animation_gif,
             commands::system::list_system_fonts,
+            commands::system::list_available_shells,
             // Workspace commands
             commands::workspace::set_workspace_dir,
             commands::workspace::get_workspace_dir,

@@ -7,6 +7,8 @@
     import UiSection from "./settings/sections/UiSection.svelte";
     import EditorSection from "./settings/sections/EditorSection.svelte";
     import TerminalSection from "./settings/sections/TerminalSection.svelte";
+    let availableShells: any[] = [];
+    onMount(async () => { availableShells = await invoke<any[]>("list_available_shells").catch(() => []); });
     import AssistantSection from "./settings/sections/AssistantSection.svelte";
     import SystemDictationSection from "./settings/sections/SystemDictationSection.svelte";
     import WechatSection from "./settings/sections/WechatSection.svelte";
@@ -862,6 +864,19 @@
         await updateTerminalSettings({ cursorStyle: e.detail.selection.name });
 
     }
+    async function handleTerminalShellSelect(e) {
+        const name = e?.detail?.selection?.name ?? e?.detail?.value;
+        if (!name) return;
+        const profiles = {
+            powershell: { name, program: "powershell.exe", args: ["-NoExit", "-NoLogo"] },
+            "git bash": { name, program: "C:/Program Files/Git/bin/bash.exe", args: ["--login", "-i"] },
+            cmd: { name, program: "cmd.exe", args: ["/K"] },
+            zsh: { name, program: "/bin/zsh", args: ["--login", "-i"] },
+            bash: { name, program: "/bin/bash", args: ["--login", "-i"] },
+            sh: { name, program: "/bin/sh", args: ["-i"] },
+        };
+        await updateTerminalSettings({ profile: profiles[name] ?? { name } });
+    }
     async function handleAiFontSize(e) {
         const settings = await appSettings;
         aiFontSize = e.detail.value;
@@ -1016,6 +1031,7 @@
                     lineWrappingAnchor={sectionAnchors.editorLineWrapping}
                 />
                 <TerminalSection
+                    shellItems={availableShells.map((s, i) => ({ id: i, name: s.name }))}
                     {translate}
                     {terminalOptions}
                     fontFamilyItems={fontFamilyItems}
@@ -1024,6 +1040,7 @@
                     onFontFamilySelect={handleTerminalFontFamily}
                     onLineHeightInput={handleTerminalLineHeight}
                     onCursorStyleSelect={handleTerminalCursorStyle}
+                    onShellSelect={handleTerminalShellSelect}
                     categoryAnchor={sectionAnchors.terminalCategory}
                     fontSizeAnchor={sectionAnchors.terminalFontSize}
                     fontFamilyAnchor={sectionAnchors.terminalFontFamily}

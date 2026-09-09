@@ -98,7 +98,7 @@ fn backfill_missing_settings(path: &Path, defaults: &Value) -> Result<(), std::i
     let mut changed = false;
     merge_defaults(&mut existing, defaults, &mut changed);
 
-    if fix_windows_busybox_profile(&mut existing) {
+    if migrate_windows_busybox_profile(&mut existing) {
         changed = true;
     }
 
@@ -157,7 +157,12 @@ fn apply_terminal_defaults(map: &mut Map<String, Value>) -> bool {
 }
 
 fn apply_windows_defaults(map: &mut Map<String, Value>) -> bool {
-    set_profile_object(map, "busybox", Some("busybox"), &["sh"])
+    set_profile_object(
+        map,
+        "powershell",
+        Some("powershell.exe"),
+        &["-NoExit", "-NoLogo"],
+    )
 }
 
 fn apply_unix_defaults(
@@ -194,7 +199,7 @@ fn set_profile_object(
 }
 
 #[cfg(target_os = "windows")]
-fn fix_windows_busybox_profile(settings: &mut Value) -> bool {
+fn migrate_windows_busybox_profile(settings: &mut Value) -> bool {
     let settings_map = match settings.as_object_mut() {
         Some(map) => map,
         None => return false,
@@ -236,14 +241,10 @@ fn fix_windows_busybox_profile(settings: &mut Value) -> bool {
         || normalized_program == "busybox.exe"
         || normalized_program.ends_with("busybox64u.exe")
         || normalized_program.ends_with("busybox.exe");
-    let program_exists = Path::new(program).exists();
-    let program_is_virtual = normalized_program == "busybox" || normalized_program == "busybox.exe";
-
-    if (name_is_busybox || program_is_busybox) && !program_exists && !program_is_virtual {
-        profile_map.insert("program".into(), Value::String("busybox".into()));
-        if !profile_map.contains_key("args") {
-            profile_map.insert("args".into(), json!(["sh"]));
-        }
+    if name_is_busybox || program_is_busybox {
+        profile_map.insert("name".into(), Value::String("powershell".into()));
+        profile_map.insert("program".into(), Value::String("powershell.exe".into()));
+        profile_map.insert("args".into(), json!(["-NoExit", "-NoLogo"]));
         return true;
     }
 
@@ -251,6 +252,6 @@ fn fix_windows_busybox_profile(settings: &mut Value) -> bool {
 }
 
 #[cfg(not(target_os = "windows"))]
-fn fix_windows_busybox_profile(_: &mut Value) -> bool {
+fn migrate_windows_busybox_profile(_: &mut Value) -> bool {
     false
 }

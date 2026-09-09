@@ -16,6 +16,8 @@
     export let onFontFamilySelect: (event: CustomEvent) => void = noopHandler;
     export let onLineHeightInput: (event: CustomEvent) => void = noopHandler;
     export let onCursorStyleSelect: (event: CustomEvent) => void = noopHandler;
+    export let onShellSelect: (event: CustomEvent) => void = noopHandler;
+    export let shellItems: { id: number; name: string }[] = [];
     export let categoryAnchor: Action<HTMLElement, unknown> = noopAction;
     export let fontSizeAnchor: Action<HTMLElement, unknown> = noopAction;
     export let fontFamilyAnchor: Action<HTMLElement, unknown> = noopAction;
@@ -24,12 +26,14 @@
     $: fontFamilyValue = terminalOptions?.fontFamily ?? "";
     $: lineHeightValue = terminalOptions?.lineHeight ?? "";
     $: cursorStyleValue = terminalOptions?.cursorStyle ?? "";
+    $: shellValue = (terminalOptions?.profile as any)?.name ?? "";
 </script>
 
 <div class="settings-category" use:categoryAnchor>
     <div class="heading">{translate("settings.terminal")}</div>
     <p class="terminal-hint">{translate("settings.terminalChangeHint")}</p>
     <div class="content">
+        <Select label="Shell" items={shellItems} selected={String(shellValue)} on:select={onShellSelect} />
         <div use:fontSizeAnchor>
             <NumberInput
                 label={translate("settings.fontSize")}

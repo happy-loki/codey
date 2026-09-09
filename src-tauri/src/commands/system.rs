@@ -7,7 +7,73 @@ use serde::Deserialize;
 use std::env;
 use std::fs::File;
 use std::io::Write;
+use std::path::Path;
 use std::process::Command;
+
+#[derive(serde::Serialize)]
+pub struct ShellInfo {
+    pub name: String,
+    pub program: String,
+    pub args: Vec<String>,
+}
+
+#[tauri::command]
+pub fn list_available_shells() -> Vec<ShellInfo> {
+    #[cfg(target_os = "windows")]
+    {
+        let mut shells = vec![
+            ShellInfo {
+                name: "powershell".into(),
+                program: "powershell.exe".into(),
+                args: vec!["-NoExit".into(), "-NoLogo".into()],
+            },
+            ShellInfo {
+                name: "cmd".into(),
+                program: "cmd.exe".into(),
+                args: vec![],
+            },
+        ];
+        let candidates = [
+            r"C:\Program Files\Git\bin\bash.exe",
+            r"C:\Program Files\Git\usr\bin\bash.exe",
+        ];
+        if let Some(path) = candidates.iter().find(|p| Path::new(p).is_file()) {
+            shells.insert(
+                1,
+                ShellInfo {
+                    name: "git bash".into(),
+                    program: (*path).into(),
+                    args: vec!["--login".into(), "-i".into()],
+                },
+            );
+        }
+        shells
+    }
+    #[cfg(target_os = "macos")]
+    {
+        vec!["/bin/zsh", "/bin/bash"]
+            .iter()
+            .filter(|p| Path::new(p).is_file())
+            .map(|p| ShellInfo {
+                name: Path::new(p).file_stem().unwrap().to_string_lossy().into(),
+                program: (*p).into(),
+                args: vec![],
+            })
+            .collect()
+    }
+    #[cfg(target_os = "linux")]
+    {
+        vec!["/bin/bash", "/bin/sh"]
+            .iter()
+            .filter(|p| Path::new(p).is_file())
+            .map(|p| ShellInfo {
+                name: Path::new(p).file_stem().unwrap().to_string_lossy().into(),
+                program: (*p).into(),
+                args: vec![],
+            })
+            .collect()
+    }
+}
 use std::sync::Arc;
 use tokio::task;
 

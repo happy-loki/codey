@@ -7,7 +7,7 @@
   import { Unicode11Addon } from "@xterm/addon-unicode11";
   import { WebLinksAddon } from "@xterm/addon-web-links";
   import { spawn, type IPty } from "tauri-pty";
-  import { resourceDir, join } from "@tauri-apps/api/path";
+  import { join } from "@tauri-apps/api/path";
   import { invoke } from "@tauri-apps/api/core";
   import { is_dark_theme } from "../config/themehandler";
   import { updateTerminalTheme } from "./terminal/updateTheme";
@@ -692,23 +692,6 @@
     return envSources.reduce((acc, chunk) => Object.assign(acc, chunk), {} as Record<string, string>);
   }
 
-  async function locateBusyboxExecutable(): Promise<string | null> {
-    try {
-      const resDir = await resourceDir();
-      const preferred = await join(resDir, "resources", "shell", "busybox64u.exe");
-      const hasPreferred = await invoke("is_file", { path: preferred }).catch(() => false);
-      if (hasPreferred) {
-        return preferred;
-      }
-      const fallback = await join(resDir, "shell", "busybox64u.exe");
-      const hasFallback = await invoke("is_file", { path: fallback }).catch(() => false);
-      if (hasFallback) {
-        return fallback;
-      }
-    } catch {}
-    return null;
-  }
-
   async function resolveShellCommand(platform: string): Promise<{ cmd: string; args: string[] }> {
     const options = snapshotTermOptions();
 
@@ -741,12 +724,6 @@
       }
       if (platform === "windows") {
         const lowered = profileProgramRaw.toLowerCase();
-        if (lowered === "busybox" || lowered === "busybox.exe") {
-          const located = await locateBusyboxExecutable();
-          if (located) {
-            return { cmd: located, args: withArgs(["sh"]) };
-          }
-        }
       }
       return { cmd: profileProgramRaw, args: withArgs([]) };
     };
@@ -754,11 +731,6 @@
     const resolveNameAsProgram = async (): Promise<{ cmd: string; args: string[] } | null> => {
       if (!profileNameRaw) return null;
       if (platform === "windows") {
-        if (["busybox", "busybox.exe"].includes(normalizedName)) {
-          const located = await locateBusyboxExecutable();
-          const cmd = located ?? profileNameRaw;
-          return { cmd, args: withArgs(["sh"]) };
-        }
         if (normalizedName === "cmd" || normalizedName === "cmd.exe") {
           return { cmd: "cmd.exe", args: profileArgs.length > 0 ? profileArgs : ["/K"] };
         }
@@ -806,11 +778,7 @@
     }
 
     if (platform === "windows") {
-      const busybox = await locateBusyboxExecutable();
-      return {
-        cmd: busybox ?? "busybox",
-        args: profileArgs.length > 0 ? profileArgs : ["sh"],
-      };
+      return { cmd: "powershell.exe", args: profileArgs.length > 0 ? profileArgs : ["-NoExit", "-NoLogo"] };
     }
 
     if (platform === "macos") {
