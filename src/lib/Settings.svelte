@@ -864,10 +864,10 @@
         await updateTerminalSettings({ cursorStyle: e.detail.selection.name });
 
     }
-    async function handleTerminalShellSelect(e) {
+    async function handleTerminalShellSelect(e: CustomEvent<any>) {
         const name = e?.detail?.selection?.name ?? e?.detail?.value;
         if (!name) return;
-        const profiles = {
+        const profiles: Record<string, { name: string; program: string; args: string[] }> = {
             powershell: { name, program: "powershell.exe", args: ["-NoExit", "-NoLogo"] },
             "git bash": { name, program: "C:/Program Files/Git/bin/bash.exe", args: ["--login", "-i"] },
             cmd: { name, program: "cmd.exe", args: ["/K"] },
@@ -875,6 +875,8 @@
             bash: { name, program: "/bin/bash", args: ["--login", "-i"] },
             sh: { name, program: "/bin/sh", args: ["-i"] },
         };
+        const detected = availableShells.find((shell) => shell.name === name);
+        if (detected) profiles[name] = { name, program: detected.program, args: detected.args ?? [] };
         await updateTerminalSettings({ profile: profiles[name] ?? { name } });
     }
     async function handleAiFontSize(e) {
