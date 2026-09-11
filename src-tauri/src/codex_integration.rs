@@ -1275,6 +1275,20 @@ pub async fn codex_thread_resume(
 }
 
 #[tauri::command]
+pub async fn codex_thread_read(
+    state: tauri::State<'_, CodexState>,
+    params: serde_json::Value,
+) -> Result<serde_json::Value, String> {
+    // Read is intentionally used for subagent details: unlike resume it does not
+    // acquire the thread writer, so inspecting an active child remains safe.
+    let response = state
+        .send_request("thread/read".to_string(), Some(params))
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(response)
+}
+
+#[tauri::command]
 pub async fn codex_thread_list(
     state: tauri::State<'_, CodexState>,
     params: serde_json::Value,

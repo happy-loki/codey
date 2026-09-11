@@ -264,6 +264,9 @@
     function forwardNotificationToChat(notification: any) {
         const targetThreadId = notificationThreadId(notification);
         const boundThreadId = (chatViewRef as any)?.threadId ?? null;
+        if (chatViewRef && boundThreadId === currentThreadId) {
+            chatViewRef.handleSubagentMetadata(notification);
+        }
         if (
             chatViewRef &&
             (!targetThreadId || !boundThreadId || targetThreadId === boundThreadId)
@@ -1383,6 +1386,9 @@
             case "skills/changed":
             case "project/changed":
             case "thread/project/updated":
+                if (chatViewRef && (chatViewRef as any).threadId === currentThreadId) {
+                    chatViewRef.handleSubagentMetadata(notification);
+                }
                 // A new thread only invalidates the list cache. Loading the list immediately can
                 // block local/IM thread creation paths; the list reloads when the user opens it.
                 resetThreadListState();

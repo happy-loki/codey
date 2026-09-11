@@ -45,7 +45,7 @@
   },
   "productName": "codey",
   "mainBinaryName": "codey",
-  "version": "0.0.52",
+  "version": "0.0.55",
   "identifier": "com.lokizhou.codey",
   "plugins": {
     "fs": {

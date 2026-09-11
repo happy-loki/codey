@@ -560,6 +560,8 @@ fn main() {
             codex_integration::codex_initialize,
             codex_integration::codex_thread_start,
             codex_integration::codex_thread_resume,
+            codex_integration::codex_thread_read,
+            commands::codex_subagent_metadata::codex_subagent_metadata,
             codex_integration::codex_thread_list,
             codex_integration::codex_turn_start,
             codex_integration::codex_review_start,

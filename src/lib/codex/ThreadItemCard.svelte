@@ -32,6 +32,8 @@
     } from "lucide-svelte";
     import type { ThreadItem } from "./types";
     import MarkdownRenderer from "./MarkdownRenderer.svelte";
+    import SubagentMetadata from "./SubagentMetadata.svelte";
+    import { readableSubagentTask } from "./subagentInfo";
     import FileDiffViewer from "./FileDiffViewer.svelte";
     import { openFileAtLine } from "../EditorTabList.svelte";
     import { addNotification, NotifType } from "../Notifications/notifications";
@@ -397,10 +399,10 @@
             case "subAgentActivity": {
                 const activity = item as Extract<ThreadItem, { type: "subAgentActivity" }>;
                 const labels: Record<string, string> = {
-                    started: "Subagent started",
-                    interacted: "Subagent updated",
-                    interrupted: "Subagent interrupted",
-                    completed: "Subagent completed",
+                    started: "创建子 Agent",
+                    interacted: "向子 Agent 发送消息",
+                    interrupted: "中断子 Agent",
+                    completed: "子 Agent 已完成",
                 };
                 return labels[activity.kind] ?? "Subagent activity";
             }
@@ -718,7 +720,7 @@
     function getCollabTaskSummary(
         item: Extract<ThreadItem, { type: "collabAgentToolCall" }>
     ): string | null {
-        const prompt = (item.prompt || "").trim();
+        const prompt = readableSubagentTask(item.prompt);
         if (!prompt) return null;
         const singleLine = prompt.replace(/\s+/g, " ");
         return singleLine.length > 220 ? `${singleLine.slice(0, 217)}...` : singleLine;
@@ -2113,6 +2115,28 @@
             {/if}
         </div>
     </div>
+{:else if item.type === "subAgentActivity"}
+    {@const agentName = item.agentPath?.split("/").filter(Boolean).pop() || "Subagent"}
+    <button
+        type="button"
+        class="subagent-entry"
+        disabled={!item.agentThreadId}
+        aria-label={`View subagent conversation: ${agentName}`}
+        on:click={() => dispatch("openThread", { threadId: item.agentThreadId })}
+    >
+        {#if !hideLeadingIcon}
+            <GitBranch size="1em" class="subagent-entry-icon" aria-hidden="true" />
+        {/if}
+        <span class="subagent-entry-copy">
+            <span class="subagent-entry-title">{agentName}</span>
+            <span class="subagent-entry-status">{summaryText}</span>
+        </span>
+        <span class="subagent-entry-action">查看子会话</span>
+        <ChevronRight size="1em" class="subagent-entry-arrow" aria-hidden="true" />
+    </button>
+    {#if item.kind === "started"}
+        <SubagentMetadata threadId={item.agentThreadId} agentPath={item.agentPath} />
+    {/if}
 {:else if collapsible}
     {#if item.type === "fileChange"}
         {#each item.changes || [] as change, index (change.path + ":" + index)}
@@ -2203,26 +2227,6 @@
                             <Globe2 size="1em" class="web-search-icon" />
                             <span>{item.query}</span>
                         </div>
-                    </div>
-                {:else if item.type === "subAgentActivity"}
-                    <div class="protocol-event-card subagent-activity-card">
-                        <div class="protocol-event-title">
-                            <GitBranch size="1em" aria-hidden="true" />
-                            <span>{summaryText}</span>
-                        </div>
-                        <div class="protocol-event-meta">
-                            <code>{item.agentPath}</code>
-                            <span class="protocol-event-id">{item.agentThreadId}</span>
-                        </div>
-                        {#if item.agentThreadId}
-                            <button
-                                type="button"
-                                class="protocol-event-link"
-                                on:click={() => dispatch("openThread", { threadId: item.agentThreadId })}
-                            >
-                                Open subagent thread
-                            </button>
-                        {/if}
                     </div>
                 {:else if item.type === "sleep"}
                     <div class="protocol-event-card sleep-card">
@@ -2607,10 +2611,31 @@
                         {/if}
                     </div>
                 </div>
-                {#if item.tool === "spawnAgent" && item.prompt}
+                {#if item.tool === "spawnAgent" && readableSubagentTask(item.prompt)}
                     <div class="collab-row-prompt">
                         <span class="collab-row-branch">└</span>
-                        <div class="collab-row-prompt-text">{item.prompt.trim()}</div>
+                        <div class="collab-row-prompt-text">{readableSubagentTask(item.prompt)}</div>
+                    </div>
+                {/if}
+                {#if item.tool === "spawnAgent" && item.receiverThreadIds?.length}
+                    {#each item.receiverThreadIds as receiverThreadId}
+                        <SubagentMetadata
+                            threadId={receiverThreadId}
+                            model={item.model}
+                            effort={item.reasoningEffort}
+                            status={item.agentsStates?.[receiverThreadId]?.status ?? null}
+                        />
+                    {/each}
+                    <div class="collab-row-actions">
+                        {#each item.receiverThreadIds as receiverThreadId}
+                            <button
+                                type="button"
+                                class="protocol-event-link"
+                                on:click={() => dispatch("openThread", { threadId: receiverThreadId })}
+                            >
+                                查看子会话
+                            </button>
+                        {/each}
                     </div>
                 {/if}
             {:else if item.type === "imageGeneration"}
@@ -3530,6 +3555,40 @@
         flex-direction: column;
         gap: 8px;
     }
+
+    .subagent-entry {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 36px;
+        padding: 6px 10px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--text-primary, #e5e7eb);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .subagent-entry:hover,
+    .subagent-entry:focus-visible {
+        background: rgba(13, 148, 136, 0.08);
+    }
+
+    .subagent-entry:focus-visible {
+        outline: 2px solid #0d9488;
+        outline-offset: -2px;
+    }
+
+    .subagent-entry:disabled { cursor: default; opacity: 0.6; }
+    .subagent-entry :global(.subagent-entry-icon) { flex-shrink: 0; color: #0d9488; }
+    .subagent-entry-copy { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 9px; }
+    .subagent-entry-title { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+    .subagent-entry-status { font-size: 12px; color: var(--text-secondary, #9ca3af); }
+    .subagent-entry-action { flex-shrink: 0; font-size: 11px; color: var(--text-secondary, #9ca3af); }
+    .subagent-entry :global(.subagent-entry-arrow) { flex-shrink: 0; color: var(--text-secondary, #9ca3af); }
 
     .collab-row {
         display: flex;

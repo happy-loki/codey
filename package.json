@@ -1,6 +1,6 @@
 {
     "name": "codey",
-    "version": "0.0.52",
+    "version": "0.0.55",
     "type": "module",
     "private": true,
     "scripts": {

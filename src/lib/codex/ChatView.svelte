@@ -1,7 +1,7 @@
 <script lang="ts">
     import { invoke } from "@tauri-apps/api/core";
     import { onMount, onDestroy, afterUpdate, tick } from "svelte";
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, setContext } from "svelte";
     import { X } from "lucide-svelte";
     import { get } from "svelte/store";
     import { listen } from "@tauri-apps/api/event";
@@ -19,6 +19,9 @@
     import { t } from "../i18n";
     import { parseTurnUnifiedDiff } from "./diffUtils";
     import ThreadItemFlatList from "./ThreadItemFlatList.svelte";
+    import SubagentTranscript from "./SubagentTranscript.svelte";
+    import SubagentMetadata from "./SubagentMetadata.svelte";
+    import { SUBAGENT_INFO, createSubagentInfoSource, readableSubagentTask, type SubagentMetadataResponse } from "./subagentInfo";
     import type { TurnDiffFileSummary } from "./diffUtils";
     import type { ComposerAttachment } from "./composerStore";
     import type { ComposerMention } from "./mentionUtils";
@@ -31,6 +34,7 @@
         Turn,
         ThreadItem,
         ThreadResumeResponse,
+        ThreadReadResponse,
         TurnInterruptResponse,
         TurnStartResponse,
         UserInput,
@@ -99,23 +103,111 @@
         modelPickerOpen: void;
     }>();
 
+    const subagentInfo = createSubagentInfoSource((childId) => {
+        const spawn = turns.flatMap((turn) => turn.items ?? []).find((item) =>
+            (item.type === "subAgentActivity" && item.kind === "started" && item.agentThreadId === childId)
+            || (item.type === "collabAgentToolCall" && item.tool === "spawnAgent" && item.receiverThreadIds.includes(childId))
+        );
+        return invoke<SubagentMetadataResponse>("codex_subagent_metadata", {
+            threadId: childId,
+            parentThreadId: threadId,
+            spawnCallId: spawn?.id ?? null,
+        });
+    });
+    setContext(SUBAGENT_INFO, subagentInfo);
+
+    // Consume only metadata for children of this ChatView. Child messages still
+    // belong to the drawer and never enter the main timeline through this route.
+    export function handleSubagentMetadata(notification: ServerNotification) {
+        const method = notification.method;
+        if (!["thread/started", "thread/settings/updated", "thread/status/changed",
+            "thread/closed", "turn/started", "turn/completed"].includes(method)) return;
+        const params = notification.params as any;
+        const childId = params.threadId ?? params.thread?.id;
+        if (!childId || childId === threadId) return;
+        if (method === "thread/started") {
+            if (params.thread?.parentThreadId === threadId) subagentInfo.remember(params.thread);
+            return;
+        }
+        if (!subagentInfo.has(childId)) return;
+        if (method === "thread/settings/updated" && params.threadSettings) {
+            subagentInfo.rememberSettings(childId, params.threadSettings);
+        } else if (method === "thread/status/changed") {
+            subagentInfo.rememberStatus(childId, params.status?.type);
+        } else if (method === "thread/closed") {
+            subagentInfo.rememberStatus(childId, "shutdown");
+            void subagentInfo.refreshMissing(childId);
+        } else if (params.turn?.status) {
+            subagentInfo.rememberStatus(childId, params.turn.status);
+            if (method === "turn/completed") void subagentInfo.refreshMissing(childId);
+        }
+    }
+
     let subagentDrawerThreadId: string | null = null;
+    let subagentDrawerTurns: Turn[] = [];
+    let subagentDrawerLoading = false;
+    let subagentDrawerError = "";
+    let subagentReadTimer: ReturnType<typeof setTimeout> | null = null;
+    let subagentReadVersion = 0;
     $: selectedSubagentCall = subagentDrawerThreadId
         ? turns.flatMap((turn) => turn.items ?? []).find((item: any) =>
             item.type === "collabAgentToolCall" && item.receiverThreadIds?.includes(subagentDrawerThreadId)
         ) as any
         : null;
-    $: selectedSubagentTask = typeof selectedSubagentCall?.prompt === "string"
-        ? selectedSubagentCall.prompt.replace(/\s+/g, " ").trim()
-        : "";
+    $: selectedSubagentTask = readableSubagentTask(selectedSubagentCall?.prompt);
+    $: selectedSubagentActivity = subagentDrawerThreadId
+        ? turns.flatMap((turn) => turn.items ?? []).find(
+            (item): item is Extract<ThreadItem, { type: "subAgentActivity" }> =>
+                item.type === "subAgentActivity" && item.agentThreadId === subagentDrawerThreadId
+        )
+        : null;
+    $: subagentDrawerTitle = selectedSubagentActivity?.agentPath?.split("/").filter(Boolean).pop() || "Subagent";
 
     function handleOpenThread(event: CustomEvent<{ threadId: string }>) {
-        const threadId = event.detail?.threadId;
-        if (threadId) subagentDrawerThreadId = threadId;
+        const childId = event.detail?.threadId;
+        if (!childId) return;
+        closeSubagentDrawer();
+        subagentDrawerThreadId = childId;
+        subagentDrawerTurns = [];
+        subagentDrawerError = "";
+        subagentDrawerLoading = true;
+        void subagentInfo.refreshMissing(childId);
+        void readSubagentThread(childId, subagentReadVersion);
+    }
+
+    async function readSubagentThread(childId: string, version: number) {
+        try {
+            const result = await invoke<ThreadReadResponse>("codex_thread_read", {
+                params: { threadId: childId, includeTurns: true },
+            });
+            if (version !== subagentReadVersion) return;
+            subagentDrawerTurns = result.thread?.turns ?? [];
+            subagentInfo.remember(result.thread);
+            subagentDrawerError = "";
+        } catch (error) {
+            if (version !== subagentReadVersion) return;
+            subagentDrawerError = String(error);
+        } finally {
+            if (version === subagentReadVersion) {
+                subagentDrawerLoading = false;
+                // Wait for each read to finish before scheduling the next one.
+                // Closing/reopening even the same child invalidates old responses.
+                subagentReadTimer = setTimeout(() => {
+                    subagentReadTimer = null;
+                    void readSubagentThread(childId, version);
+                }, 2000);
+            }
+        }
     }
 
     function closeSubagentDrawer() {
+        subagentReadVersion += 1;
         subagentDrawerThreadId = null;
+        subagentDrawerTurns = [];
+        if (subagentReadTimer) {
+            clearTimeout(subagentReadTimer);
+            subagentReadTimer = null;
+        }
     }
 
     const DEBUG_CHAT_VIEW = (() => {
@@ -136,7 +228,6 @@
     }
 
     let turns: Turn[] = [];
-    $: subagentActivityItems = turns.flatMap((turn) => turn.items ?? []).filter((item: any) => item.type === "subAgentActivity" && item.agentThreadId === subagentDrawerThreadId);
     type ItemLocation = { turnIndex: number; itemIndex: number };
     type IndexedItemLocation = ItemLocation & { item: ThreadItem };
     // Delta notifications often touch the same item several times in one frame.
@@ -331,6 +422,8 @@
             : null;
 
     $: if (threadId && threadId !== trackedThreadId) {
+        closeSubagentDrawer();
+        subagentInfo.reset();
         sessionTrusted = false;
         trackedThreadId = threadId;
         // Switching threads should never carry over "in progress" state from the previous thread,
@@ -656,6 +749,8 @@
     }
 
     onDestroy(() => {
+        subagentInfo.reset();
+        closeSubagentDrawer();
         if (resizeObserver) {
             resizeObserver.disconnect();
             resizeObserver = null;
@@ -3222,6 +3317,10 @@ let userInteracting = false;
                     break;
                 }
 
+                if (completedItem.type === "subAgentActivity" && completedItem.kind === "completed") {
+                    void subagentInfo.refreshMissing(completedItem.agentThreadId);
+                }
+
                 // Flush deltas for items already present. Any buffer that still
                 // has no matching item is retained for insertion below.
                 flushPendingDeltasNow();
@@ -3546,7 +3645,7 @@ let userInteracting = false;
             <header class="subagent-drawer-header">
                 <div>
                     <div class="subagent-drawer-kicker">Subagent</div>
-                    <h2>{subagentDrawerThreadId}</h2>
+                    <h2>{subagentDrawerTitle}</h2>
                 </div>
                 <button
                     class="subagent-drawer-close"
@@ -3557,26 +3656,25 @@ let userInteracting = false;
                     <X size="1.1em" aria-hidden="true" />
                 </button>
             </header>
-            <div class="subagent-drawer-parent">Parent chat</div>
-            {#if selectedSubagentCall}
+            <SubagentMetadata
+                threadId={subagentDrawerThreadId}
+                agentPath={selectedSubagentActivity?.agentPath ?? null}
+                model={selectedSubagentCall?.model ?? null}
+                effort={selectedSubagentCall?.reasoningEffort ?? null}
+            />
+            {#if selectedSubagentTask}
                 <section class="subagent-drawer-section">
-                    <div class="subagent-drawer-label">Task</div>
-                    <p class="subagent-drawer-task">{selectedSubagentTask || "Subagent task"}</p>
-                    <div class="subagent-drawer-meta">
-                        <span class="subagent-drawer-status">{selectedSubagentCall.status ?? "inProgress"}</span>
-                        {#if selectedSubagentCall.model}<span>{selectedSubagentCall.model}</span>{/if}
-                        {#if selectedSubagentCall.reasoningEffort}<span>{selectedSubagentCall.reasoningEffort}</span>{/if}
-                    </div>
+                    <div class="subagent-drawer-label">任务</div>
+                    <p class="subagent-drawer-task">{selectedSubagentTask}</p>
                 </section>
             {/if}
-            <section class="subagent-drawer-section">
-                <div class="subagent-drawer-label">Thread ID</div>
-                <code>{subagentDrawerThreadId}</code>
-            </section>
-            <section class="subagent-drawer-section" class:subagent-drawer-empty={subagentActivityItems.length === 0}>
-                <div class="subagent-drawer-label">Activity</div>
-                {#if subagentActivityItems.length === 0}<p>Subagent activity will appear here while the task runs.</p>{:else}
-                    <p class="subagent-drawer-task">{(subagentActivityItems.at(-1) as any)?.kind ?? "updated"}</p>
+            <section class="subagent-drawer-transcript">
+                {#if subagentDrawerLoading}
+                    <p class="subagent-drawer-loading">正在加载子会话…</p>
+                {:else if subagentDrawerError}
+                    <p class="subagent-drawer-error">暂时无法加载子会话：{subagentDrawerError}</p>
+                {:else}
+                    <SubagentTranscript turns={subagentDrawerTurns} />
                 {/if}
             </section>
         </aside>
@@ -3823,7 +3921,10 @@ let userInteracting = false;
         bottom: 0;
         z-index: 21;
         width: min(440px, 72%);
-        overflow: auto;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-width: 0;
         padding: 20px;
         background: var(--background-primary, #fff);
         border-left: 1px solid var(--border-color, #e5e7eb);
@@ -3900,18 +4001,17 @@ let userInteracting = false;
         overflow-wrap: anywhere;
     }
 
-    .subagent-drawer-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        color: var(--text-secondary, #64748b);
-        font-size: 12px;
+    .subagent-drawer-transcript {
+        width: auto;
+        max-width: calc(100% + 40px);
+        min-width: 0;
+        margin: 18px -20px -20px;
+        overflow-x: hidden;
+        border-top: 1px solid var(--border-color, #e5e7eb);
     }
-
-    .subagent-drawer-status {
-        color: var(--text-primary, #0f172a);
-        font-weight: 600;
-    }
+    .subagent-drawer-loading,
+    .subagent-drawer-error { margin: 0; padding: 18px; color: var(--text-secondary, #64748b); font-size: 13px; }
+    .subagent-drawer-error { color: var(--error-color, #b91c1c); }
 
     .subagent-drawer-empty p {
         margin: 0;

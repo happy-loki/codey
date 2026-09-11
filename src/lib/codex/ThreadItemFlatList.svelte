@@ -254,6 +254,8 @@
     }
 
     function shouldHideItem(item: ThreadItem) {
+        // Some CLI versions emit only subAgentActivity, without a collab tool
+        // call. Keep every activity at its timeline position as a details entry.
         if (item.type === "reasoning") {
             return !hasReasoningContent(item as any);
         }
