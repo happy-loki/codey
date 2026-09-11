@@ -225,11 +225,13 @@ jobs:
         run: |
           set -euo pipefail
           release_tag="v$(node -p 'require("./package.json").version')"
+          # The REST by-tag endpoint cannot resolve pending tags on drafts.
+          release_id="$(gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" --json databaseId --jq '.databaseId')"
           mkdir -p .release-normalize
-          gh release download "$release_tag" --pattern latest.json --dir .release-normalize --clobber
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$release_tag" > .release-normalize/assets.json
+          gh api "repos/$GITHUB_REPOSITORY/releases/$release_id" > .release-normalize/assets.json
+          gh release download "$release_tag" --repo "$GITHUB_REPOSITORY" --pattern latest.json --dir .release-normalize --clobber
           node scripts/normalize-updater-urls.mjs .release-normalize/latest.json .release-normalize/assets.json
-          gh release upload "$release_tag" .release-normalize/latest.json --clobber
+          gh release upload "$release_tag" --repo "$GITHUB_REPOSITORY" .release-normalize/latest.json --clobber
       - name: Verify all updater platforms and publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

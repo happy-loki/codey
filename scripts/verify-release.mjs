@@ -12,7 +12,12 @@ const platforms = {
 
 export function validateRelease(manifest, assets, version, repo) {
     assert.equal(manifest.version?.replace(/^v/, ""), version, "Updater version mismatch");
-    const byUrl = new Map(assets.flatMap(asset => [[asset.url, asset], [asset.apiUrl, asset]]));
+    const stableBase = `https://github.com/${repo}/releases/download/v${version}`;
+    const byUrl = new Map(assets.flatMap(asset => [
+        [asset.url, asset],
+        [asset.apiUrl, asset],
+        [`${stableBase}/${encodeURIComponent(asset.name)}`, asset],
+    ]));
     for (const [target, config] of Object.entries(platforms)) {
         assert.ok(manifest.platforms?.[target], `Missing updater platform: ${target}`);
         if (target.startsWith("darwin")) {
@@ -27,6 +32,8 @@ export function validateRelease(manifest, assets, version, repo) {
         const config = platforms[baseTarget];
         const asset = byUrl.get(entry.url);
         assert.ok(asset && asset.size > 0, `Missing update asset: ${target}`);
+        assert.equal(entry.url, `${stableBase}/${encodeURIComponent(asset.name)}`,
+            `Updater URL must use the public versioned download URL: ${target}`);
         assert.ok(asset.name.startsWith(`codey-v${version}-${config.suffix}-`) && asset.name.endsWith(config.extension),
             `Wrong installer or architecture: ${target}`);
         assert.ok(typeof entry.signature === "string" && entry.signature.trim(), `Missing update signature: ${target}`);

@@ -15,6 +15,10 @@ Windows 发布简体中文 MSI 安装包，macOS 发布 Apple 签名、公证后
 - `src-tauri/tauri.release.conf.json` 仅在正式发布时合并，启用 `createUpdaterArtifacts`。
 - `release.yml` 创建草稿，依次构建 Windows MSI、macOS arm64、macOS x64。每个平台检查类型基线和 Rust 测试；Windows 实际安装并卸载 MSI，macOS 校验代码签名、Gatekeeper 和公证票据。最后校验所有平台更新条目、安装包和对应 `.sig`，再公开 Release。
 
+草稿的 pending tag 不能通过 REST `releases/tags/<tag>` 查询，可能返回 404；先用 `gh release view --json databaseId` 取得 ID，再查询 `releases/<id>`。`gh release download/upload` 支持草稿，可继续使用。
+
+`normalize-updater-urls.mjs` 根据 Release 的仓库、tag 和资产名生成 `releases/download/v<version>/<asset>` 地址，不能直接复制草稿中带 `untagged-*` 的 `browser_download_url`，也不能把需要额外请求头的 API 资产地址留给客户端。脚本支持对同一草稿重复执行；发布门禁拒绝临时地址、API 地址、错误版本及缺失的平台或签名。
+
 更新包由 Tauri 签名。Windows 直接使用 `.msi` 和 `.msi.sig`，macOS 使用 `.app.tar.gz` 和 `.app.tar.gz.sig`；Tauri action 合并生成三平台的 `latest.json`。公开入口为：
 
 ```text
@@ -35,5 +39,9 @@ Apple `.p12` 用于 macOS 代码签名，`.p8` 用于 Apple 公证；二者都�
 4. 检查发布运行全部通过，Release 出现 MSI、两种架构 DMG、更新包、签名和 `latest.json`。
 
 若任何平台失败，Release 保持草稿，不改变用户看到的最新稳定版本。修复后可重新运行同一草稿版本的流水线；不要覆盖已公开版本的安装包或重建签名密钥。
+
+如果只有最后的清单整理或发布步骤失败，先核对三个平台的构建、安装与签名验收全部成功，且 Release 的 `targetCommitish` 与该次构建提交相同。可以使用修复后的脚本整理同一草稿的清单，校验通过后再公开，无需重建已验收的安装包。重跑旧的 Action 会继续使用旧提交的 workflow，不会自动加载 `master` 上的修复。
+
+发布完成还需检查 `releases/latest` 指向新 tag，并在不携带凭证的情况下读取 `releases/latest/download/latest.json`、访问其中的三平台更新包地址。客户端只发现比当前安装版本更高的版本。
 
 参考：[Tauri updater](https://v2.tauri.app/plugin/updater/)、[Windows Installer](https://v2.tauri.app/distribute/windows-installer/)、[Tauri action](https://github.com/tauri-apps/tauri-action)。

@@ -173,6 +173,8 @@ Release 构建保留 WebView DevTools，运行后可按 `F12` 或 `Ctrl+Shift+I`
 
 Release 还包含 macOS `.app.tar.gz` 更新包、更新包的 `.sig` 签名和 `latest.json`。Windows 自动更新直接使用 MSI。Apple 签名只适用于 macOS；当前 Windows MSI 未配置 Authenticode 发布者证书。
 
+发布前通过 Release ID 读取草稿资产，将更新清单中的地址转换为当前版本的公开下载地址，再校验各平台及签名。草稿不会被客户端发现；仅推送标签或构建成功还不代表发布完成。
+
 ### 应用内自动更新
 
 从 `0.0.50` 起，应用使用公开仓库的 `releases/latest/download/latest.json`。默认启动时检查并在后台下载更新，用户点击“立即重启”后安装；也可以在设置中检查更新或关闭自动更新。
