@@ -100,6 +100,14 @@
     }>();
 
     let subagentDrawerThreadId: string | null = null;
+    $: selectedSubagentCall = subagentDrawerThreadId
+        ? turns.flatMap((turn) => turn.items ?? []).find((item: any) =>
+            item.type === "collabAgentToolCall" && item.receiverThreadIds?.includes(subagentDrawerThreadId)
+        ) as any
+        : null;
+    $: selectedSubagentTask = typeof selectedSubagentCall?.prompt === "string"
+        ? selectedSubagentCall.prompt.replace(/\s+/g, " ").trim()
+        : "";
 
     function handleOpenThread(event: CustomEvent<{ threadId: string }>) {
         const threadId = event.detail?.threadId;
@@ -128,6 +136,7 @@
     }
 
     let turns: Turn[] = [];
+    $: subagentActivityItems = turns.flatMap((turn) => turn.items ?? []).filter((item: any) => item.type === "subAgentActivity" && item.agentThreadId === subagentDrawerThreadId);
     type ItemLocation = { turnIndex: number; itemIndex: number };
     type IndexedItemLocation = ItemLocation & { item: ThreadItem };
     // Delta notifications often touch the same item several times in one frame.
@@ -3549,13 +3558,26 @@ let userInteracting = false;
                 </button>
             </header>
             <div class="subagent-drawer-parent">Parent chat</div>
+            {#if selectedSubagentCall}
+                <section class="subagent-drawer-section">
+                    <div class="subagent-drawer-label">Task</div>
+                    <p class="subagent-drawer-task">{selectedSubagentTask || "Subagent task"}</p>
+                    <div class="subagent-drawer-meta">
+                        <span class="subagent-drawer-status">{selectedSubagentCall.status ?? "inProgress"}</span>
+                        {#if selectedSubagentCall.model}<span>{selectedSubagentCall.model}</span>{/if}
+                        {#if selectedSubagentCall.reasoningEffort}<span>{selectedSubagentCall.reasoningEffort}</span>{/if}
+                    </div>
+                </section>
+            {/if}
             <section class="subagent-drawer-section">
                 <div class="subagent-drawer-label">Thread ID</div>
                 <code>{subagentDrawerThreadId}</code>
             </section>
-            <section class="subagent-drawer-section subagent-drawer-empty">
+            <section class="subagent-drawer-section" class:subagent-drawer-empty={subagentActivityItems.length === 0}>
                 <div class="subagent-drawer-label">Activity</div>
-                <p>Subagent activity will appear here while the task runs.</p>
+                {#if subagentActivityItems.length === 0}<p>Subagent activity will appear here while the task runs.</p>{:else}
+                    <p class="subagent-drawer-task">{(subagentActivityItems.at(-1) as any)?.kind ?? "updated"}</p>
+                {/if}
             </section>
         </aside>
     {/if}
@@ -3868,6 +3890,27 @@ let userInteracting = false;
         overflow-wrap: anywhere;
         color: var(--text-primary, #0f172a);
         font-size: 12px;
+    }
+
+    .subagent-drawer-task {
+        margin: 0;
+        color: var(--text-primary, #0f172a);
+        font-size: 13px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+
+    .subagent-drawer-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        color: var(--text-secondary, #64748b);
+        font-size: 12px;
+    }
+
+    .subagent-drawer-status {
+        color: var(--text-primary, #0f172a);
+        font-weight: 600;
     }
 
     .subagent-drawer-empty p {
