@@ -401,13 +401,11 @@
             return;
         }
 
-        // If a turn is running, interrupt it before detaching.
-        if (currentThreadId && chatViewRef?.hasInProgressTurn()) {
-            try {
-                await chatViewRef.interruptActiveTurn("workspaceChange");
-            } catch (error) {
-                console.warn("[CodexPanel] Failed to interrupt active turn on workspace change:", error);
-            }
+        // A workspace switch detaches the current ChatView as well. Release its
+        // app-server subscription before changing the working directory.
+        if (currentThreadId) {
+            const canDetach = await releaseCurrentThreadBeforeSwitch(null, "workspaceChange");
+            if (!canDetach) return;
         }
 
         // Detach from the current thread when switching workspaces, but keep it in history.
@@ -1013,7 +1011,9 @@
     async function confirmInterruptActiveTurnBeforeSwitch(reason: string): Promise<boolean> {
         try {
             const guard = await getInterruptGuardState();
-            if (!guard?.requiresConfirmation) {
+            const localTurnActive = Boolean(chatViewRef?.hasInProgressTurn?.());
+            const requiresInterrupt = localTurnActive || Boolean(guard?.requiresConfirmation);
+            if (!requiresInterrupt) {
                 return true;
             }
 
@@ -1028,12 +1028,20 @@
                 return false;
             }
 
-            if (chatViewRef?.interruptActiveTurn) {
+            if (localTurnActive && chatViewRef?.interruptActiveTurn) {
                 const didInterrupt = await chatViewRef.interruptActiveTurn(reason);
                 if (didInterrupt) {
                     console.log("[CodexPanel] Interrupted active turn before switch:", reason);
+                } else {
+                    addNotification(
+                        NotifType.Warning,
+                        "无法切换会话",
+                        [],
+                        "当前会话仍在执行，未能确认中断结果。请稍后重试。"
+                    );
+                    return false;
                 }
-            } else if (guard.threadId && guard.turnId) {
+            } else if (guard && guard.threadId && guard.turnId) {
                 await invoke("codex_turn_interrupt", {
                     params: {
                         threadId: guard.threadId,
@@ -1045,11 +1053,54 @@
                     threadId: guard.threadId,
                     turnId: guard.turnId,
                 });
+            } else {
+                addNotification(
+                    NotifType.Warning,
+                    "无法切换会话",
+                    [],
+                    "当前会话仍在执行，但没有可用的中断信息。请稍后重试。"
+                );
+                return false;
             }
             return true;
         } catch (error) {
             console.warn("[CodexPanel] Failed to interrupt active turn before switch:", error);
             return true;
+        }
+    }
+
+    async function releaseCurrentThreadBeforeSwitch(
+        targetThreadId: string | null,
+        reason: string
+    ): Promise<boolean> {
+        const previousThreadId = currentThreadId;
+        if (!previousThreadId || previousThreadId === targetThreadId) return true;
+
+        if (!(await confirmInterruptActiveTurnBeforeSwitch(reason))) return false;
+
+        try {
+            const response = await invoke<{ status?: string }>("codex_thread_unsubscribe", {
+                params: { threadId: previousThreadId },
+            });
+            console.log("[CodexPanel] Unsubscribed previous thread before switch:", {
+                reason,
+                threadId: previousThreadId,
+                status: response?.status ?? "unknown",
+            });
+            return true;
+        } catch (error) {
+            console.error("[CodexPanel] Failed to unsubscribe previous thread:", {
+                reason,
+                threadId: previousThreadId,
+                error,
+            });
+            addNotification(
+                NotifType.Warning,
+                "无法切换会话",
+                [],
+                "旧会话仍被当前 Codey 占用，未能释放。请稍后重试。"
+            );
+            return false;
         }
     }
 
@@ -1067,7 +1118,7 @@
             alert("没有可用的模型");
             return;
         }
-        const canSwitch = await confirmInterruptActiveTurnBeforeSwitch("startNewThread");
+        const canSwitch = await releaseCurrentThreadBeforeSwitch(null, "startNewThread");
         if (!canSwitch) return;
         await createThread(preferredModel.id);
     }
@@ -1182,7 +1233,7 @@
     async function resumeThread(detail: { threadId: string; cwd?: string }) {
         const threadId = detail.threadId;
         try {
-            const canSwitch = await confirmInterruptActiveTurnBeforeSwitch("resumeThread");
+            const canSwitch = await releaseCurrentThreadBeforeSwitch(threadId, "resumeThread");
             if (!canSwitch) return;
             const params: any = { threadId };
 

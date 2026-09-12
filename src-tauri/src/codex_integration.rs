@@ -1289,6 +1289,20 @@ pub async fn codex_thread_read(
 }
 
 #[tauri::command]
+pub async fn codex_thread_unsubscribe(
+    state: tauri::State<'_, CodexState>,
+    params: serde_json::Value,
+) -> Result<serde_json::Value, String> {
+    info!("codex_thread_unsubscribe params: {}", params);
+    let response = state
+        .send_request("thread/unsubscribe".to_string(), Some(params))
+        .await
+        .map_err(|e| e.to_string())?;
+    info!("codex_thread_unsubscribe response: {}", response);
+    Ok(response)
+}
+
+#[tauri::command]
 pub async fn codex_thread_list(
     state: tauri::State<'_, CodexState>,
     params: serde_json::Value,

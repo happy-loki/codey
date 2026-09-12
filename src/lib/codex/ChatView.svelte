@@ -1740,7 +1740,7 @@
         }
     }
 
-    async function interruptTurn() {
+    async function interruptTurn(waitForBackend = false): Promise<boolean> {
         const pendingDecline = autoDeclinePendingApproval("turn interrupt");
 
         const targetThreadId = activeReviewThreadId ?? threadId;
@@ -1779,24 +1779,34 @@
             if (pendingDecline) {
                 await pendingDecline;
             }
-            return;
+            return false;
         }
 
         debugLog("[ChatView] Interrupting turn (async):", targetThreadId, targetTurnId);
-        // Fire-and-forget: don't block UI flows (e.g. switching/resuming a different thread)
-        // on the backend interrupt RPC, which can take noticeable time.
-        void invoke<TurnInterruptResponse>("codex_turn_interrupt", {
+        const interruptRequest = invoke<TurnInterruptResponse>("codex_turn_interrupt", {
             params: { threadId: targetThreadId, turnId: targetTurnId },
-        })
-            .then(() => {
-                debugLog("[ChatView] Turn interrupt request sent");
-            })
-            .catch((error) => {
+        });
+        if (waitForBackend) {
+            try {
+                await interruptRequest;
+                debugLog("[ChatView] Turn interrupt request acknowledged");
+                if (pendingDecline) await pendingDecline;
+                return true;
+            } catch (error) {
                 console.error("[ChatView] Failed to interrupt turn:", error);
-            });
+                if (pendingDecline) await pendingDecline;
+                return false;
+            }
+        }
+        // Normal user interrupts keep the UI responsive while the backend finishes
+        // delivering the terminal turn notification.
+        void interruptRequest
+            .then(() => debugLog("[ChatView] Turn interrupt request sent"))
+            .catch((error) => console.error("[ChatView] Failed to interrupt turn:", error));
         if (pendingDecline) {
             void pendingDecline;
         }
+        return true;
     }
 
     export function hasInProgressTurn(): boolean {
@@ -1822,9 +1832,9 @@
     export async function interruptActiveTurn(reason = "external"): Promise<boolean> {
         if (!hasInProgressTurn()) return false;
         debugLog("[ChatView] interruptActiveTurn requested:", { reason, threadId });
-        // Don't await; interruption is best-effort and should not block other UI actions.
-        void interruptTurn();
-        return true;
+        // Thread switching must wait until app-server acknowledges the interrupt
+        // before unsubscribing the old thread.
+        return interruptTurn(true);
     }
 
     // Keep a global "in progress" flag for other UI entrypoints (e.g. open folder).
@@ -3843,7 +3853,7 @@ let userInteracting = false;
                         e.detail.attachments,
                         e.detail.mentions
                     )}
-                on:interrupt={interruptTurn}
+                on:interrupt={() => interruptTurn()}
                 on:requestCodeReview={startCodeReview}
                 on:goalSet={setThreadGoal}
                 on:goalStatus={updateThreadGoalStatus}
