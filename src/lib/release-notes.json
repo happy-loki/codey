@@ -1,4 +1,16 @@
 {
+  "0.0.56": {
+    "en": [
+      "Fix missing Codex skill and plugin icons on macOS.",
+      "Simplify approval choices to Ask for approval, Approve for me, and Full access.",
+      "Unsubscribe from the previous Codex thread before switching conversations."
+    ],
+    "zh-CN": [
+      "修复 macOS 上 Codex Skills 和 Plugins 图标无法显示的问题。",
+      "权限菜单统一为请求批准、帮我批准、完全访问权限三档。",
+      "切换 Codex 会话前取消旧线程订阅。"
+    ]
+  },
   "0.0.50": {
     "en": [
       "Windows now ships a Chinese-language MSI installer with install, upgrade, and uninstall support.",
