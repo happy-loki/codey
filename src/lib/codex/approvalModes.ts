@@ -2,22 +2,15 @@ import type { AskForApproval } from "./types";
 
 export type AccessMode =
     | "workspaceOnRequest"
-    | "workspaceNever"
     | "workspaceGuardian"
     | "fullAccess";
 
-export function codexApprovalPolicyForAccessMode(accessMode: AccessMode): AskForApproval {
-    if (accessMode === "workspaceNever") {
-        return {
-            granular: {
-                sandbox_approval: false,
-                rules: false,
-                skill_approval: false,
-                request_permissions: false,
-                mcp_elicitations: true,
-            },
-        };
-    }
+// Legacy auto-run preferences fall back to user approval instead of enabling automatic review.
+export function normalizeAccessMode(value: unknown): AccessMode {
+    return value === "workspaceGuardian" || value === "fullAccess" ? value : "workspaceOnRequest";
+}
+
+export function codexApprovalPolicyForAccessMode(_accessMode: AccessMode): AskForApproval {
     return "on-request";
 }
 

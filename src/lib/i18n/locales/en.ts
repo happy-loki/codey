@@ -541,29 +541,18 @@ export default {
                 "Can read and search files on your machine, but will not modify any files or perform write operations.",
         },
         approval: {
-            workspaceOnRequest: "Workspace only (needs approval)",
-            workspaceOnRequestShort: "Approval",
-            workspaceOnRequestDescription:
-                "Stay within the workspace, confirm key steps yourself, and expect git writes to remain restricted",
-            workspaceOnRequestTip:
-                "By default it stays within the current workspace; high-risk actions or extra permission requests will ask for your approval first. Even with approval, sandboxed git writes such as staging or committing usually remain restricted.",
-            workspaceNever: "Workspace auto-run",
-            workspaceNeverShort: "Auto-run",
-            workspaceNeverDescription:
-                "Stay within the workspace and skip local tool approval prompts; plugin connections can still ask for one-time authorization",
-            workspaceNeverTip:
-                "It still stays within the current workspace. Local command, rule, and skill permission prompts are skipped, but plugins such as Chrome can still request confirmation when connecting to external apps or sites.",
-            workspaceGuardian: "Workspace Guardian review",
-            workspaceGuardianShort: "Auto approval",
-            workspaceGuardianDescription:
-                "Stay within the workspace while Guardian handles approvals automatically for steadier flows, but git writes still remain restricted",
-            workspaceGuardianTip:
-                "It stays within the current workspace by default; when approval would normally be needed, Guardian reviews it automatically instead of prompting you each time, so tool-heavy flows are steadier than no-approval mode, but sandboxed git writes such as staging or committing usually remain restricted.",
+            workspaceOnRequest: "Ask for approval",
+            workspaceOnRequestShort: "Ask for approval",
+            workspaceOnRequestDescription: "Ask you to approve requests for additional permissions",
+            workspaceOnRequestTip: "Ask for your approval when actions need additional permissions, such as editing files outside the workspace.",
+            workspaceGuardian: "Approve for me",
+            workspaceGuardianShort: "Approve for me",
+            workspaceGuardianDescription: "Review permission requests automatically and ask about detected risks",
+            workspaceGuardianTip: "Review permission requests automatically and ask for approval for detected risky actions.",
             fullAccess: "Full access",
             fullAccessShort: "Full access",
-            fullAccessDescription: "Allow access to files outside the workspace",
-            fullAccessTip:
-                "Has full access to your computer, including files outside the workspace (high risk). High-risk actions and plugin connections can still request confirmation.",
+            fullAccessDescription: "Access the internet and files on your computer without sandbox restrictions",
+            fullAccessTip: "Access the internet and files on your computer without sandbox restrictions.",
             fullAccessConfirmTitle: "Switch to Full access?",
             fullAccessConfirmMessage:
                 "After enabling this, actions will no longer be limited to the current workspace, and files outside the workspace can be accessed or modified.\n\nThis is high risk. Continue?",

@@ -2627,34 +2627,6 @@
       "count": 1
     },
     {
-      "file": "src/lib/codex/ApprovalPolicySelector.svelte",
-      "code": 2339,
-      "message": "Property 'labelKey' does not exist on type 'PolicyOption | { value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.\n  Property 'labelKey' does not exist on type '{ value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.",
-      "source": "<span class=\"option-label\">{policy.label ?? $t(policy.labelKey || \"\")}</span>",
-      "count": 1
-    },
-    {
-      "file": "src/lib/codex/ApprovalPolicySelector.svelte",
-      "code": 2339,
-      "message": "Property 'labelKey' does not exist on type 'PolicyOption | { value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.\n  Property 'labelKey' does not exist on type '{ value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.",
-      "source": "<span>{currentPolicy.buttonLabel ?? $t(currentPolicy.buttonLabelKey || currentPolicy.labelKey || \"\")}</span>",
-      "count": 1
-    },
-    {
-      "file": "src/lib/codex/ApprovalPolicySelector.svelte",
-      "code": 2339,
-      "message": "Property 'tipKey' does not exist on type 'PolicyOption | { value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.\n  Property 'tipKey' does not exist on type '{ value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.",
-      "source": "title={policy.tip ?? $t(policy.tipKey || \"\")}",
-      "count": 1
-    },
-    {
-      "file": "src/lib/codex/ApprovalPolicySelector.svelte",
-      "code": 2551,
-      "message": "Property 'buttonLabelKey' does not exist on type 'PolicyOption | { value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'. Did you mean 'buttonLabel'?\n  Property 'buttonLabelKey' does not exist on type '{ value: AccessMode; label: string; buttonLabel: string; tip: string | undefined; icon: any; tone: \"primary\" | \"danger\" | \"success\" | undefined; }'.",
-      "source": "<span>{currentPolicy.buttonLabel ?? $t(currentPolicy.buttonLabelKey || currentPolicy.labelKey || \"\")}</span>",
-      "count": 1
-    },
-    {
       "file": "src/lib/codex/ChatView.svelte",
       "code": 7006,
       "message": "Parameter 'index' implicitly has an 'any' type.",

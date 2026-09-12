@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onDestroy } from "svelte";
-    import { Bot, OctagonAlert, ShieldAlert, ShieldCheck } from "lucide-svelte";
+    import { Hand, OctagonAlert, ShieldCheck } from "lucide-svelte";
     import { t } from "../i18n";
     import type { AccessMode } from "./approvalModes";
 
@@ -36,23 +36,15 @@
             labelKey: "codex.approval.workspaceOnRequest",
             buttonLabelKey: "codex.approval.workspaceOnRequestShort",
             tipKey: "codex.approval.workspaceOnRequestTip",
-            icon: ShieldAlert,
+            icon: Hand,
             tone: "primary",
-        },
-        {
-            value: "workspaceNever",
-            labelKey: "codex.approval.workspaceNever",
-            buttonLabelKey: "codex.approval.workspaceNeverShort",
-            tipKey: "codex.approval.workspaceNeverTip",
-            icon: ShieldCheck,
-            tone: "success",
         },
         {
             value: "workspaceGuardian",
             labelKey: "codex.approval.workspaceGuardian",
             buttonLabelKey: "codex.approval.workspaceGuardianShort",
             tipKey: "codex.approval.workspaceGuardianTip",
-            icon: Bot,
+            icon: ShieldCheck,
             tone: "primary",
         },
         {
@@ -97,7 +89,7 @@
     }
 
     $: policies =
-        policyOptions?.map((option) => ({
+        policyOptions?.map<PolicyOption>((option) => ({
             value: option.value,
             label: option.label,
             buttonLabel: option.buttonLabel ?? option.label,
@@ -152,7 +144,12 @@
                             size="1em"
                             strokeWidth={1.5}
                         />
-                        <span class="option-label">{policy.label ?? $t(policy.labelKey || "")}</span>
+                        <div class="option-text">
+                            <span class="option-label">{policy.label ?? $t(policy.labelKey || "")}</span>
+                            {#if policy.tip || policy.tipKey}
+                                <span class="option-description">{policy.tip ?? $t(policy.tipKey || "")}</span>
+                            {/if}
+                        </div>
                     </div>
                     {#if selectedPolicy === policy.value}
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -208,7 +205,8 @@
         position: absolute;
         bottom: calc(100% + 4px);
         left: 0;
-        min-width: 160px;
+        width: 340px;
+        max-width: calc(100vw - 32px);
         background: var(--bg-secondary, #252525);
         border: 1px solid var(--border-color, #333);
         border-radius: 6px;
@@ -234,7 +232,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 6px 10px;
+        padding: 10px 12px;
         background: transparent;
         border: none;
         color: var(--text-primary, #fff);
@@ -271,6 +269,12 @@
         display: flex;
         flex-direction: column;
         gap: 2px;
+    }
+
+    .option-description {
+        color: var(--text-secondary, #aaa);
+        font-size: 0.95em;
+        line-height: 1.4;
     }
 
     .option-label {

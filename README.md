@@ -41,6 +41,10 @@ Codey 遵循以下边界：
 
 ### ChatView 的 `@` 资源补全
 
+聊天权限菜单提供三档：请求批准、帮我批准（Guardian 自动审核）、完全访问权限。旧的“工作区内自动执行”偏好加载时回退为“请求批准”。当前工作区模式允许联网，额外权限请求分别交给用户或 Guardian 审核。
+
+Skills / Plugins 的本地图标通过 Tauri asset protocol 加载。macOS 的通配符默认不匹配隐藏目录，因此图片访问范围显式包含官方 Codex home 下的插件缓存、Skills 和 `.system` 目录；`plugins.fs` 的设置不会替代图片协议的访问范围。
+
 在聊天输入框中输入 `@` 可以选择当前 Codex 环境里的资源：
 
 - 已启用的 Skill（发送为 `UserInput::Skill`，携带 Skill 名称和 `SKILL.md` 路径）

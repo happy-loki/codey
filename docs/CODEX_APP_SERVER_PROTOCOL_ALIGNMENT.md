@@ -1,6 +1,12 @@
 # Codex app-server 协议对齐方案
 
+## macOS 本地图标加载
+
+Skills / Plugins 返回的本地图标由前端 `convertFileSrc` 转为 asset URL。Tauri 在 Unix 上默认要求隐藏路径段显式匹配，原有 `assetProtocol.scope: ["**"]` 无法匹配 `.codex` 和 `.system`，日志会出现 `asset protocol not configured to allow the path`。图片协议现显式允许 `$HOME/.codex/plugins/cache/**/*`、`$HOME/.codex/skills/**/*` 和 `$HOME/.codex/skills/.system/**/*`，保留其它隐藏目录的默认匹配规则。此变更不修改 Codex 配置或安装资源，需要重新构建并重启桌面应用生效。
+
 ## 现状
+
+权限菜单统一为三档：`workspaceOnRequest`（请求批准）、`workspaceGuardian`（帮我批准）、`fullAccess`（完全访问权限）。移除 `workspaceNever` 选项；旧值和未知偏好值在加载时回退为 `workspaceOnRequest`。保留已有协议映射：三档均使用 `on-request`，仅中档使用 `guardian_subagent` reviewer，完全访问使用 `danger-full-access`，其余使用工作区沙箱。工作区 turn 仍允许网络访问，因此 UI 不承诺联网必定询问。
 
 Codey 通过外部 `codex app-server` 使用逐行 JSON-RPC。Rust 桥接层目前按 JSON 值读取 stdout，并将未知的 notification 原样转发到前端；因此协议字段通常不会在 Rust 层丢失。
 

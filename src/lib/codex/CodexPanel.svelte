@@ -14,6 +14,7 @@
         approvalsReviewerForAccessMode,
         codexApprovalPolicyForAccessMode,
         sandboxModeForAccessMode,
+        normalizeAccessMode,
         type AccessMode,
     } from "./approvalModes";
     import type {
@@ -942,14 +943,7 @@
         isHydratingUiPreferences = true;
         try {
             const settings = await invoke<any>("codex_settings_load");
-            if (
-                settings?.accessMode === "workspaceOnRequest" ||
-                settings?.accessMode === "workspaceNever" ||
-                settings?.accessMode === "workspaceGuardian" ||
-                settings?.accessMode === "fullAccess"
-            ) {
-                accessMode = settings.accessMode;
-            }
+            accessMode = normalizeAccessMode(settings?.accessMode);
             if (typeof settings?.selectedModel === "string" && settings.selectedModel.length > 0) {
                 selectedModel = settings.selectedModel;
             }

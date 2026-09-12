@@ -530,27 +530,18 @@ export default {
                 "可以在本机读取和搜索文件，但不会修改任何文件，也不会执行写入磁盘的操作。",
         },
         approval: {
-            workspaceOnRequest: "工作区内操作（需审批）",
-            workspaceOnRequestShort: "需审批",
-            workspaceOnRequestDescription: "仅限工作区内操作，关键步骤由你确认，git 写操作仍受限",
-            workspaceOnRequestTip:
-                "默认限制在当前工作区内操作；遇到高风险操作或需要额外权限时，会先请求你的审批。即使审批通过，沙箱内的 git 提交、stage 等写入 .git 的操作通常仍受限。",
-            workspaceNever: "工作区内自动执行",
-            workspaceNeverShort: "自动执行",
-            workspaceNeverDescription:
-                "仅限工作区内操作，本地工具不逐步审批；插件连接外部应用时仍会请求一次授权",
-            workspaceNeverTip:
-                "默认仍限制在当前工作区内操作，本地命令、规则和技能权限不再逐步弹审批；Chrome 等插件需要连接外部应用或站点时，仍会按协议请求你确认。",
-            workspaceGuardian: "工作区 Guardian 自动审核",
-            workspaceGuardianShort: "自动审批",
-            workspaceGuardianDescription: "仅限工作区内操作，由 Guardian 自动审批，流程更稳，但 git 写操作仍受限",
-            workspaceGuardianTip:
-                "默认限制在当前工作区内操作；需要审批时交给 Guardian 自动审核，不再由你逐步点击确认，因此比免审批模式更容易走完整个流程，但 git 提交、stage 等写入 .git 的操作通常仍受限。",
+            workspaceOnRequest: "请求批准",
+            workspaceOnRequestShort: "请求批准",
+            workspaceOnRequestDescription: "需要额外权限时请求你的批准",
+            workspaceOnRequestTip: "编辑工作区外文件等需要额外权限的操作会请求你的批准。",
+            workspaceGuardian: "帮我批准",
+            workspaceGuardianShort: "帮我批准",
+            workspaceGuardianDescription: "自动审核权限请求，仅对检测到的风险操作请求批准",
+            workspaceGuardianTip: "自动审核权限请求，仅对检测到的风险操作请求批准。",
             fullAccess: "完全访问权限",
             fullAccessShort: "完全访问",
-            fullAccessDescription: "允许访问和修改工作区外文件",
-            fullAccessTip:
-                "拥有对你的计算机的完全访问权限（高风险）；高风险操作、插件连接外部应用或站点时仍会按协议请求你确认。",
+            fullAccessDescription: "可不受沙箱限制地访问互联网和电脑上的文件",
+            fullAccessTip: "可不受沙箱限制地访问互联网和电脑上的文件。",
             fullAccessConfirmTitle: "切换到完全访问权限？",
             fullAccessConfirmMessage:
                 "开启后，将不再限制在当前工作区内操作，并且可以访问和修改工作区外文件。\n\n这属于高风险操作，是否继续？",
